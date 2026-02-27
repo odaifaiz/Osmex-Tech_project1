@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="لوحة تحكم سيتي فيكس - نظام إدارة البلاغات المجتمعية">
+  <meta name="theme-color" content="#1A3A5A">
+  <title>لوحة التحكم - سيتي فيكس</title>
+  
+  <!-- Google Fonts - Tajawal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/main.css">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="dashboard__sidebar" id="sidebar">
+      <div class="dashboard__sidebar-header">
+        <div class="dashboard__sidebar-logo">
+          <div class="header__logo-icon" style="width: 36px; height: 36px;">
+            <i data-lucide="mic" style="width: 18px; height: 18px;"></i>
+          </div>
+          <span class="dashboard__sidebar-logo-text">سيتي فيكس</span>
+        </div>
+        <button class="dashboard__sidebar-toggle" aria-label="طي/توسيع القائمة">
+          <i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+      
+      <nav class="dashboard__sidebar-nav">
+        <a href="#" class="dashboard__sidebar-item dashboard__sidebar-item--active">
+          <i data-lucide="layout-dashboard" class="dashboard__sidebar-icon"></i>
+          <span class="dashboard__sidebar-item-text">الرئيسية</span>
+        </a>
+        <a href="#" class="dashboard__sidebar-item">
+          <i data-lucide="inbox" class="dashboard__sidebar-icon"></i>
+          <span class="dashboard__sidebar-item-text">البلاغات</span>
+        </a>
+        <a href="#" class="dashboard__sidebar-item">
+          <i data-lucide="map" class="dashboard__sidebar-icon"></i>
+          <span class="dashboard__sidebar-item-text">الخريطة</span>
+        </a>
+        <a href="#" class="dashboard__sidebar-item">
+          <i data-lucide="bar-chart-3" class="dashboard__sidebar-icon"></i>
+          <span class="dashboard__sidebar-item-text">التقارير</span>
+        </a>
+        <a href="#" class="dashboard__sidebar-item">
+          <i data-lucide="users" class="dashboard__sidebar-icon"></i>
+          <span class="dashboard__sidebar-item-text">الفرق</span>
+        </a>
+        <a href="#" class="dashboard__sidebar-item">
+          <i data-lucide="settings" class="dashboard__sidebar-icon"></i>
+          <span class="dashboard__sidebar-item-text">الإعدادات</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard__main">
+      <!-- Header -->
+      <header class="dashboard__header">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <button class="dashboard__sidebar-toggle--mobile" style="display: none; padding: 0.5rem; color: #6c757d;">
+            <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+          </button>
+          <h1 class="dashboard__header-title">لوحة التحكم</h1>
+        </div>
+        
+        <div class="dashboard__header-actions">
+          <button class="dashboard__notification-btn" aria-label="الإشعارات">
+            <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
+            <span class="dashboard__notification-badge">3</span>
+          </button>
+          
+          <div class="dashboard__user">
+            <div class="dashboard__user-avatar">م</div>
+            <span class="dashboard__user-name">سامح الدراخ </span>
+            <i data-lucide="chevron-down" style="width: 16px; height: 16px; color: #6c757d;"></i>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="dashboard__content">
+        <!-- KPI Cards -->
+        <div class="kpi-grid" id="kpi-container">
+          <!-- KPI cards will be rendered here by JavaScript -->
+          <div class="kpi-card skeleton" style="height: 140px;"></div>
+          <div class="kpi-card skeleton" style="height: 140px;"></div>
+          <div class="kpi-card skeleton" style="height: 140px;"></div>
+          <div class="kpi-card skeleton" style="height: 140px;"></div>
+        </div>
+
+        <!-- Filters Bar -->
+        <div class="filters-bar">
+          <div class="filters-bar__group">
+            <label class="filters-bar__label">الحالة:</label>
+            <select class="filters-bar__select" id="status-filter">
+              <option value="all">الكل</option>
+              <option value="new">جديد</option>
+              <option value="acknowledged">تم الاستلام</option>
+              <option value="in-progress">قيد المعالجة</option>
+              <option value="resolved">تم الحل</option>
+              <option value="closed">مغلق</option>
+            </select>
+          </div>
+          
+          <div class="filters-bar__search">
+            <i data-lucide="search" class="filters-bar__search-icon" style="width: 18px; height: 18px;"></i>
+            <input 
+              type="text" 
+              class="filters-bar__search-input" 
+              id="search-input"
+              placeholder="البحث في البلاغات..."
+            >
+          </div>
+          
+          <button class="btn btn--primary btn--sm" onclick="Dashboard.refreshTable()">
+            <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+            تحديث
+          </button>
+        </div>
+
+        <!-- Data Table -->
+        <div id="data-table-container">
+          <!-- Table will be rendered here by JavaScript -->
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>رقم البلاغ</th>
+                  <th>العنوان</th>
+                  <th>التصنيف</th>
+                  <th>الموقع</th>
+                  <th>الحالة</th>
+                  <th>التاريخ</th>
+                  <th>المرسل</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="7" style="text-align: center; padding: 3rem;">
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; color: #6c757d;">
+                      <div style="width: 20px; height: 20px; border: 2px solid #e9ecef; border-top-color: #1A3A5A; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                      <span>جاري التحميل...</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Styles for mobile sidebar toggle -->
+  <style>
+    @media (max-width: 1023px) {
+      .dashboard__sidebar-toggle--mobile {
+        display: flex !important;
+      }
+      
+      .dashboard__sidebar {
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+      }
+      
+      .dashboard__sidebar--open {
+        transform: translateX(0);
+      }
+      
+      .dashboard__main {
+        margin-right: 0;
+      }
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>

@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="صوتك - منصة رقمية تربط المواطنين بالجهات الحكومية لتقديم البلاغات ومتابعتها بشكل شفاف وفعال">
+  <meta name="theme-color" content="#1A3A5A">
+  <title>سيتي فيكس - نظام إدارة البلاغات المجتمعية</title>
+  
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  
+ 
+  <link rel="stylesheet" href="css/main.css">
+  
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+  <header class="header" id="header">
+    <div class="header__container container">
+      <a href="#" class="header__logo">
+        <div class="header__logo-icon">
+          <i data-lucide="mic"></i>
+        </div>
+        <span>سيتي فيكس</span>
+      </a>
+      
+      <nav class="header__nav">
+        <a href="#hero" class="header__nav-link header__nav-link--active">الرئيسية</a>
+        <a href="#features" class="header__nav-link">المميزات</a>
+        <a href="#how-it-works" class="header__nav-link">كيف يعمل</a>
+        <a href="#about" class="header__nav-link">عن التطبيق</a>
+      </nav>
+      
+      <div class="header__actions">
+        <a href="#download" class="btn btn--primary">حمّل التطبيق</a>
+        <button class="header__menu-btn" id="menuBtn" aria-label="فتح القائمة">
+          <i data-lucide="menu"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+  
+
+  <div class="mobile-menu" id="mobileMenu">
+    <nav class="mobile-menu__nav">
+      <a href="#hero" class="mobile-menu__link">الرئيسية</a>
+      <a href="#features" class="mobile-menu__link">المميزات</a>
+      <a href="#how-it-works" class="mobile-menu__link">كيف يعمل</a>
+      <a href="#about" class="mobile-menu__link">عن التطبيق</a>
+      <a href="#download" class="btn btn--primary" style="margin-top: 1rem;">حمّل التطبيق</a>
+    </nav>
+  </div>
+
+  <main>
+  
+    <section class="hero" id="hero">
+      <div class="hero__pattern"></div>
+      <div class="container">
+        <div class="hero__content">
+          <div class="hero__text">
+            <div class="hero__badge reveal">
+              <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i>
+              <span>تطبيق مجتمعي جديد</span>
+            </div>
+            
+            <h1 class="hero__title reveal">
+             سيتي فيكس....
+              <br>
+              <span>لأن صوت المواطن يصنع التغيير</span>
+            </h1>
+            
+            <p class="hero__description reveal">
+              منصة رقمية تربط المواطنين بالجهات الحكومية لتقديم البلاغات ومتابعتها
+              بشكل شفاف وفعال. شارك في تحسين مدينتك بخطوات بسيطة.
+            </p>
+            
+            <div class="hero__actions reveal">
+              <a href="#download" class="btn btn--primary btn--lg">
+                حمّل التطبيق
+              </a>
+              <a href="#how-it-works" class="btn btn--outline btn--lg">
+                <i data-lucide="arrow-down"></i>
+                كيف يعمل؟
+              </a>
+            </div>
+            
+            <div class="hero__stats reveal">
+              <div class="hero__stat">
+                <div class="hero__stat-icon">
+                  <i data-lucide="users"></i>
+                </div>
+                <div class="hero__stat-value" data-count="10000">0</div>
+                <div class="hero__stat-label">مستخدم نشط</div>
+              </div>
+              <div class="hero__stat">
+                <div class="hero__stat-icon">
+                  <i data-lucide="check-circle"></i>
+                </div>
+                <div class="hero__stat-value" data-count="5000">0</div>
+                <div class="hero__stat-label">بلاغ تم حله</div>
+              </div>
+              <div class="hero__stat">
+                <div class="hero__stat-icon">
+                  <i data-lucide="clock"></i>
+                </div>
+                <div class="hero__stat-value">24 ساعة</div>
+                <div class="hero__stat-label">متوسط الاستجابة</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="hero__visual reveal">
+            <div class="hero__phone">
+              <div class="hero__phone-frame">
+                <div class="hero__phone-screen">
+                  <div class="hero__phone-header">
+                    <div class="hero__phone-logo">
+                      <i data-lucide="mic" style="width: 16px; height: 16px;"></i>
+                      <span>صوتك</span>
+                    </div>
+                    <div style="display: flex; gap: 4px;">
+                      <div style="width: 6px; height: 6px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                      <div style="width: 6px; height: 6px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                      <div style="width: 6px; height: 6px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                    </div>
+                  </div>
+                  <div class="hero__phone-map">
+                    <div class="hero__phone-map-grid"></div>
+                    <div class="hero__map-pin hero__map-pin--red">📍</div>
+                    <div class="hero__map-pin hero__map-pin--yellow">⚠️</div>
+                    <div class="hero__map-pin hero__map-pin--green">✓</div>
+                    <div class="hero__map-location"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Partners Section -->
+    <section class="partners">
+      <div class="container">
+        <p class="partners__title reveal">بالشراكة مع</p>
+        <div class="partners__list">
+          <div class="partner-item reveal">
+            <i data-lucide="building-2" class="partner-item__icon"></i>
+            <span class="partner-item__name">مكتب النظافة - تعز </span>
+          </div>
+          <div class="partner-item reveal">
+            <i data-lucide="landmark" class="partner-item__icon"></i>
+            <span class="partner-item__name">مكتب الاشغال العامة والطرقات - تعز </span>
+          </div>
+          <div class="partner-item reveal">
+            <i data-lucide="tree-pine" class="partner-item__icon"></i>
+            <span class="partner-item__name">مؤسسة المياه والصرف الصحي-تعز </span>
+          </div>
+          <div class="partner-item reveal">
+            <i data-lucide="car" class="partner-item__icon"></i>
+            <span class="partner-item__name">مكتب الثقافة -تعز </span>
+          </div>
+          <div class="partner-item reveal">
+            <i data-lucide="lightbulb" class="partner-item__icon"></i>
+            <span class="partner-item__name">مكتب الكهرباء-تعز </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Problem & Solution Section -->
+    <section class="problem-solution" id="problem-solution">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2 class="section-header__title">المشكلة والحل</h2>
+          <p class="section-header__description">نفهم التحديات التي تواجهك، ونوفر الحلول المناسبة</p>
+        </div>
+        
+        <div class="problem-solution__grid">
+          <div class="problem-solution__column reveal">
+            <h3 class="problem-solution__column-title problem-solution__column-title--problem">
+              <i data-lucide="x-circle"></i>
+              المشكلة
+            </h3>
+            
+            <div class="problem-card">
+              <div class="problem-card__icon">
+                <i data-lucide="x-circle"></i>
+              </div>
+              <div>
+                <h4 class="problem-card__title">غياب قنوات فعالة للإبلاغ</h4>
+                <p class="problem-card__text">صعوبة التواصل مع الجهات المختصة</p>
+              </div>
+            </div>
+            
+            <div class="problem-card">
+              <div class="problem-card__icon">
+                <i data-lucide="alert-circle"></i>
+              </div>
+              <div>
+                <h4 class="problem-card__title">بطء الاستجابة</h4>
+                <p class="problem-card__text">انتظار طويل دون معرفة مصير البلاغ</p>
+              </div>
+            </div>
+            
+            <div class="problem-card">
+              <div class="problem-card__icon">
+                <i data-lucide="eye-off"></i>
+              </div>
+              <div>
+                <h4 class="problem-card__title">انعدام الشفافية</h4>
+                <p class="problem-card__text">عدم وضوح خطوات معالجة المشكلة</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="problem-solution__column reveal">
+            <h3 class="problem-solution__column-title problem-solution__column-title--solution">
+              <i data-lucide="check-circle-2"></i>
+              الحل
+            </h3>
+            
+            <div class="solution-card">
+              <div class="solution-card__icon">
+                <i data-lucide="check-circle-2"></i>
+              </div>
+              <div>
+                <h4 class="solution-card__title">بلاغ رقمي مباشر</h4>
+                <p class="solution-card__text">إرسال البلاغ بخطوات بسيطة وسريعة</p>
+              </div>
+            </div>
+            
+            <div class="solution-card">
+              <div class="solution-card__icon">
+                <i data-lucide="map-pin"></i>
+              </div>
+              <div>
+                <h4 class="solution-card__title">تتبع شفاف</h4>
+                <p class="solution-card__text">متابعة حالة البلاغ لحظة بلحظة</p>
+              </div>
+            </div>
+            
+            <div class="solution-card">
+              <div class="solution-card__icon">
+                <i data-lucide="users"></i>
+              </div>
+              <div>
+                <h4 class="solution-card__title">مساءلة واضحة</h4>
+                <p class="solution-card__text">معرفة الجهة المسؤولة والوقت المتوقع</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2 class="section-header__title">كيف يعمل صوتك؟</h2>
+          <p class="section-header__description">خطوات بسيطة تربطك بالجهات المختصة</p>
+        </div>
+        
+        <div class="tabs reveal">
+          <div class="tabs__list">
+            <button class="tabs__trigger tabs__trigger--active" data-tab="citizen">للمواطن</button>
+            <button class="tabs__trigger" data-tab="government">للجهة الحكومية</button>
+          </div>
+          
+          <div class="tabs__content tabs__content--active" id="citizen-tab">
+            <div class="timeline">
+              <div class="timeline__line"></div>
+              
+              <div class="timeline__item reveal">
+                <div class="timeline__dot">
+                  <i data-lucide="camera"></i>
+                </div>
+                <div class="timeline__content">
+                  <span class="timeline__step">الخطوة 1</span>
+                  <h4 class="timeline__title">التقط صورة للمشكلة</h4>
+                  <p class="timeline__description">صوّر المشكلة بوضوح مع إمكانية إضافة ملاحظات</p>
+                </div>
+              </div>
+              
+              <div class="timeline__item reveal">
+                <div class="timeline__dot">
+                  <i data-lucide="send"></i>
+                </div>
+                <div class="timeline__content">
+                  <span class="timeline__step">الخطوة 2</span>
+                  <h4 class="timeline__title">أرسل البلاغ</h4>
+                  <p class="timeline__description">حدد الموقع وأرسل البلاغ للجهة المختصة</p>
+                </div>
+              </div>
+              
+              <div class="timeline__item reveal">
+                <div class="timeline__dot">
+                  <i data-lucide="map-pin"></i>
+                </div>
+                <div class="timeline__content">
+                  <span class="timeline__step">الخطوة 3</span>
+                  <h4 class="timeline__title">تابع الحالة</h4>
+                  <p class="timeline__description">تابع تقدم معالجة البلاغ لحظة بلحظة</p>
+                </div>
+              </div>
+              
+              <div class="timeline__item reveal">
+                <div class="timeline__dot">
+                  <i data-lucide="check-circle"></i>
+                </div>
+                <div class="timeline__content">
+                  <span class="timeline__step">الخطوة 4</span>
+                  <h4 class="timeline__title">أكد الحل</h4>
+                  <p class="timeline__description">أكد حل المشكلة بعد الانتهاء من المعالجة</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="tabs__content" id="government-tab">
+            <div class="timeline">
+              <div class="timeline__line"></div>
+              
+              <div class="timeline__item">
+                <div class="timeline__dot">
+                  <i data-lucide="clipboard-check"></i>
+                </div>
+                <div class="timeline__content">
+                  <span class="timeline__step">الخطوة 1</span>
+                  <h4 class="timeline__title">استلام البلاغ المؤكد</h4>
+                  <p class="timeline__description">استلام البلاغ مع جميع التفاصيل والصور</p>
+                </div>
+              </div>
+              
+              <div class="timeline__item">
+                <div class="timeline__dot">
+                  <i data-lucide="user-check"></i>
+                </div>
+                <div class="timeline__content">
+                  <span class="timeline__step">الخطوة 2</span>
+                  <h4 class="timeline__title">الإسناد والتنفيذ</h4>
+                  <p class="timeline__description">توجيه البلاغ للفريق المختص والبدء بالمعالجة</p>
+                </div>
+              </div>
+              
+              <div class="timeline__item">
+                <div class="timeline__dot">
+                  <i data-lucide="refresh-cw"></i>
+                </div>
+                <div class="timeline__content">
+                  <span class="timeline__step">الخطوة 3</span>
+                  <h4 class="timeline__title">تحديث الحالة</h4>
+                  <p class="timeline__description">تحديث حالة البلاغ للمواطن بشكل دوري</p>
+                </div>
+              </div>
+              
+              <div class="timeline__item">
+                <div class="timeline__dot">
+                  <i data-lucide="flag"></i>
+                </div>
+                <div class="timeline__content">
+                  <span class="timeline__step">الخطوة 4</span>
+                  <h4 class="timeline__title">الإغلاق والمتابعة</h4>
+                  <p class="timeline__description">إغلاق البلاغ بعد التأكد من الحل</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+      <div class="features__pattern"></div>
+      <div class="container">
+        <div class="section-header reveal">
+          <h2 class="section-header__title">مزايا التطبيق</h2>
+          <p class="section-header__description">كل ما تحتاجه للمشاركة في تحسين مدينتك</p>
+        </div>
+        
+        <div class="features__grid">
+          <div class="feature-card reveal">
+            <div class="feature-card__icon">
+              <i data-lucide="camera"></i>
+            </div>
+            <h3 class="feature-card__title">إبلاغ سهل وسريع</h3>
+            <p class="feature-card__description">صوّر وأرسل بلاغك في أقل من دقيقة مع تحديد الموقع تلقائياً</p>
+          </div>
+          
+          <div class="feature-card reveal">
+            <div class="feature-card__icon">
+              <i data-lucide="map-pin"></i>
+            </div>
+            <h3 class="feature-card__title">تتبع لحظي</h3>
+            <p class="feature-card__description">تابع حالة بلاغك على الخريطة واعرف موقع الفريق المعالج</p>
+          </div>
+          
+          <div class="feature-card reveal">
+            <div class="feature-card__icon">
+              <i data-lucide="bell"></i>
+            </div>
+            <h3 class="feature-card__title">إشعارات فورية</h3>
+            <p class="feature-card__description">تلقي إشعارات فورية عند تحديث حالة البلاغ أو اقتراب الحل</p>
+          </div>
+          
+          <div class="feature-card reveal">
+            <div class="feature-card__icon">
+              <i data-lucide="users"></i>
+            </div>
+            <h3 class="feature-card__title">نظام تحقق مجتمعي</h3>
+            <p class="feature-card__description">التحقق من المشكلات من قبل المجتمع لضمان جودة البلاغات</p>
+          </div>
+          
+          <div class="feature-card reveal">
+            <div class="feature-card__icon">
+              <i data-lucide="layout-dashboard"></i>
+            </div>
+            <h3 class="feature-card__title">لوحة تحكم للجهات</h3>
+            <p class="feature-card__description">لوحة تحكم متكاملة للجهات الحكومية لإدارة البلاغات بكفاءة</p>
+          </div>
+          
+          <div class="feature-card reveal">
+            <div class="feature-card__icon">
+              <i data-lucide="bar-chart-3"></i>
+            </div>
+            <h3 class="feature-card__title">تحليلات وإحصائيات</h3>
+            <p class="feature-card__description">تقارير وتحليلات تفصيلية لمساعدة صناع القرار</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Target Users Section -->
+    <section class="target-users" id="target-users">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2 class="section-header__title">لمن صُمم التطبيق؟</h2>
+          <p class="section-header__description">حلول مصممة لتلبية احتياجات جميع الأطراف</p>
+        </div>
+        
+        <div class="target-users__grid">
+          <div class="target-card reveal">
+            <div class="target-card__icon target-card__icon--blue">
+              <i data-lucide="user"></i>
+            </div>
+            <h3 class="target-card__name">المواطن</h3>
+            <div class="target-card__section">
+              <div class="target-card__label">
+                <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
+                الفائدة
+              </div>
+              <p class="target-card__value">المشاركة في تحسين المدينة</p>
+            </div>
+            <div class="target-card__section">
+              <div class="target-card__label">
+                <i data-lucide="award" style="width: 14px; height: 14px;"></i>
+                الأثر
+              </div>
+              <p class="target-card__value">مدينة أفضل للجميع</p>
+            </div>
+          </div>
+          
+          <div class="target-card reveal">
+            <div class="target-card__icon target-card__icon--green">
+              <i data-lucide="building-2"></i>
+            </div>
+            <h3 class="target-card__name">الجهة الحكومية</h3>
+            <div class="target-card__section">
+              <div class="target-card__label">
+                <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
+                الفائدة
+              </div>
+              <p class="target-card__value">تحسين كفاءة الاستجابة</p>
+            </div>
+            <div class="target-card__section">
+              <div class="target-card__label">
+                <i data-lucide="award" style="width: 14px; height: 14px;"></i>
+                الأثر
+              </div>
+              <p class="target-card__value">رضا المواطنين</p>
+            </div>
+          </div>
+          
+          <div class="target-card reveal">
+            <div class="target-card__icon target-card__icon--purple">
+              <i data-lucide="heart"></i>
+            </div>
+            <h3 class="target-card__name">المجتمع المحلي</h3>
+            <div class="target-card__section">
+              <div class="target-card__label">
+                <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
+                الفائدة
+              </div>
+              <p class="target-card__value">تعزيز التعاون المجتمعي</p>
+            </div>
+            <div class="target-card__section">
+              <div class="target-card__label">
+                <i data-lucide="award" style="width: 14px; height: 14px;"></i>
+                الأثر
+              </div>
+              <p class="target-card__value">بيئة مستدامة</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trust & Security Section -->
+    <section class="trust-security" id="trust-security">
+      <div class="container">
+        <div class="trust-security__grid">
+          <div class="trust-security__content">
+            <h2 class="trust-security__title reveal">ثقتك هي أولويتنا</h2>
+            <p class="trust-security__description reveal">نلتزم بأعلى معايير الأمان والخصوصية لحماية بياناتك</p>
+            
+            <div class="security-features">
+              <div class="security-feature reveal">
+                <div class="security-feature__icon">
+                  <i data-lucide="shield"></i>
+                </div>
+                <div>
+                  <h4 class="security-feature__title">حماية البيانات</h4>
+                  <p class="security-feature__description">تشفير كامل للمعلومات بأحدث تقنيات الأمان</p>
+                </div>
+              </div>
+              
+              <div class="security-feature reveal">
+                <div class="security-feature__icon">
+                  <i data-lucide="lock"></i>
+                </div>
+                <div>
+                  <h4 class="security-feature__title">الخصوصية</h4>
+                  <p class="security-feature__description">التحكم الكامل في البيانات الشخصية ومشاركتها</p>
+                </div>
+              </div>
+              
+              <div class="security-feature reveal">
+                <div class="security-feature__icon">
+                  <i data-lucide="eye-off"></i>
+                </div>
+                <div>
+                  <h4 class="security-feature__title">عدم إظهار معلومات شخصية</h4>
+                  <p class="security-feature__description">إخفاء الهوية في البلاغات لضمان الخصوصية</p>
+                </div>
+              </div>
+              
+              <div class="security-feature reveal">
+                <div class="security-feature__icon">
+                  <i data-lucide="user-check"></i>
+                </div>
+                <div>
+                  <h4 class="security-feature__title">نظام صلاحيات واضح</h4>
+                  <p class="security-feature__description">وصول محدد للمعلومات حسب الصلاحيات الممنوحة</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="trust-security__visual reveal">
+            <div class="security-illustration">
+              <div class="security-illustration__ring"></div>
+              <div class="security-illustration__ring security-illustration__ring--inner"></div>
+              <div class="security-illustration__center">
+                <i data-lucide="shield-check" class="security-illustration__icon"></i>
+              </div>
+              <div class="security-illustration__float security-illustration__float--1">
+                <i data-lucide="lock"></i>
+              </div>
+              <div class="security-illustration__float security-illustration__float--2">
+                <i data-lucide="eye-off"></i>
+              </div>
+              <div class="security-illustration__float security-illustration__float--3">
+                <i data-lucide="user-check"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- App Screenshots Section -->
+    <section class="app-screenshots" id="screenshots">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2 class="section-header__title">لقطات من التطبيق</h2>
+          <p class="section-header__description">تصميم بسيط وسهل الاستخدام لجميع الفئات</p>
+        </div>
+        
+        <div class="screenshots-carousel reveal">
+          <div class="screenshots-carousel__container" id="screenshotsContainer">
+            <div class="screenshot-item">
+              <div class="screenshot-item__frame">
+                <div class="screenshot-item__screen">
+                  <div class="screenshot-item__header">
+                    <div class="screenshot-item__title">
+                      <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+                      <span>الخريطة</span>
+                    </div>
+                    <div style="display: flex; gap: 3px;">
+                      <div style="width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                      <div style="width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                      <div style="width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                    </div>
+                  </div>
+                  <div class="screenshot-item__content" style="background: linear-gradient(135deg, rgba(26,188,156,0.1), rgba(26,58,90,0.1)); position: relative;">
+                    <div style="position: absolute; inset: 0; opacity: 0.3; background-image: linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px); background-size: 25px 25px;"></div>
+                    <div style="position: absolute; top: 20%; right: 25%; width: 28px; height: 28px; background: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">📍</div>
+                    <div style="position: absolute; top: 35%; left: 30%; width: 28px; height: 28px; background: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">⚠️</div>
+                    <div style="position: absolute; bottom: 30%; right: 35%; width: 28px; height: 28px; background: #27ae60; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">✓</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="screenshot-item">
+              <div class="screenshot-item__frame">
+                <div class="screenshot-item__screen">
+                  <div class="screenshot-item__header">
+                    <div class="screenshot-item__title">
+                      <i data-lucide="camera" style="width: 14px; height: 14px;"></i>
+                      <span>إنشاء بلاغ</span>
+                    </div>
+                    <div style="display: flex; gap: 3px;">
+                      <div style="width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                      <div style="width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                      <div style="width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                    </div>
+                  </div>
+                  <div class="screenshot-item__content" style="background: #f8f9fa;">
+                    <div style="background: white; border: 2px dashed #dee2e6; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 12px;">
+                      <i data-lucide="camera" style="width: 32px; height: 32px; color: #adb5bd; margin: 0 auto 8px;"></i>
+                      <span style="font-size: 12px; color: #6c757d;">التقط صورة</span>
+                    </div>
+                    <div style="background: white; border-radius: 8px; padding: 10px; margin-bottom: 8px; border: 1px solid #e9ecef;">
+                      <span style="font-size: 10px; color: #adb5bd; display: block; margin-bottom: 4px;">نوع البلاغ</span>
+                      <span style="font-size: 12px; color: #495057;">إنارة معطلة</span>
+                    </div>
+                    <div style="background: white; border-radius: 8px; padding: 10px; border: 1px solid #e9ecef;">
+                      <span style="font-size: 10px; color: #adb5bd; display: block; margin-bottom: 4px;">الموقع</span>
+                      <span style="font-size: 12px; color: #495057;">شارع الملك فهد</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="screenshot-item">
+              <div class="screenshot-item__frame">
+                <div class="screenshot-item__screen">
+                  <div class="screenshot-item__header">
+                    <div class="screenshot-item__title">
+                      <i data-lucide="clipboard-list" style="width: 14px; height: 14px;"></i>
+                      <span>تتبع البلاغ</span>
+                    </div>
+                    <div style="display: flex; gap: 3px;">
+                      <div style="width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                      <div style="width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                      <div style="width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                    </div>
+                  </div>
+                  <div class="screenshot-item__content" style="background: #f8f9fa;">
+                    <div style="background: white; border-radius: 12px; padding: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 12px; font-weight: 500;">بلاغ #1234</span>
+                        <span style="background: #fef3c7; color: #d97706; font-size: 10px; padding: 2px 8px; border-radius: 9999px;">قيد المعالجة</span>
+                      </div>
+                      <p style="font-size: 11px; color: #6c757d; margin-bottom: 8px;">إنارة معطلة - شارع الملك فهد</p>
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="flex: 1; height: 6px; background: #e9ecef; border-radius: 9999px; overflow: hidden;">
+                          <div style="width: 66%; height: 100%; background: #f59e0b; border-radius: 9999px;"></div>
+                        </div>
+                        <span style="font-size: 11px; color: #6c757d;">66%</span>
+                      </div>
+                    </div>
+                    <div style="background: white; border-radius: 12px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 12px; font-weight: 500;">بلاغ #1230</span>
+                        <span style="background: #d1fae5; color: #059669; font-size: 10px; padding: 2px 8px; border-radius: 9999px;">تم الحل</span>
+                      </div>
+                      <p style="font-size: 11px; color: #6c757d; margin-bottom: 8px;">حفرة في الطريق - شارع العليا</p>
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="flex: 1; height: 6px; background: #e9ecef; border-radius: 9999px; overflow: hidden;">
+                          <div style="width: 100%; height: 100%; background: #27ae60; border-radius: 9999px;"></div>
+                        </div>
+                        <span style="font-size: 11px; color: #6c757d;">100%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="screenshot-item">
+              <div class="screenshot-item__frame">
+                <div class="screenshot-item__screen">
+                  <div class="screenshot-item__header">
+                    <div class="screenshot-item__title">
+                      <i data-lucide="bar-chart-3" style="width: 14px; height: 14px;"></i>
+                      <span>لوحة التحكم</span>
+                    </div>
+                    <div style="display: flex; gap: 3px;">
+                      <div style="width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                      <div style="width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                      <div style="width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%;"></div>
+                    </div>
+                  </div>
+                  <div class="screenshot-item__content" style="background: #f8f9fa;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                      <div style="background: white; border-radius: 8px; padding: 10px;">
+                        <span style="font-size: 10px; color: #6c757d; display: block; margin-bottom: 4px;">البلاغات الجديدة</span>
+                        <span style="font-size: 20px; font-weight: 700; color: #1A3A5A;">24</span>
+                      </div>
+                      <div style="background: white; border-radius: 8px; padding: 10px;">
+                        <span style="font-size: 10px; color: #6c757d; display: block; margin-bottom: 4px;">قيد المعالجة</span>
+                        <span style="font-size: 20px; font-weight: 700; color: #f59e0b;">18</span>
+                      </div>
+                      <div style="background: white; border-radius: 8px; padding: 10px;">
+                        <span style="font-size: 10px; color: #6c757d; display: block; margin-bottom: 4px;">تم الحل</span>
+                        <span style="font-size: 20px; font-weight: 700; color: #27ae60;">156</span>
+                      </div>
+                      <div style="background: white; border-radius: 8px; padding: 10px;">
+                        <span style="font-size: 10px; color: #6c757d; display: block; margin-bottom: 4px;">هذا الشهر</span>
+                        <span style="font-size: 20px; font-weight: 700; color: #9b59b6;">89</span>
+                      </div>
+                    </div>
+                    <div style="background: white; border-radius: 8px; padding: 12px;">
+                      <span style="font-size: 12px; font-weight: 500; display: block; margin-bottom: 8px;">إحصائيات الأسبوع</span>
+                      <div style="display: flex; align-items: end; justify-content: space-between; height: 60px; gap: 4px;">
+                        <div style="flex: 1; background: #3b82f6; border-radius: 2px 2px 0 0; height: 40%;"></div>
+                        <div style="flex: 1; background: #3b82f6; border-radius: 2px 2px 0 0; height: 65%;"></div>
+                        <div style="flex: 1; background: #3b82f6; border-radius: 2px 2px 0 0; height: 45%;"></div>
+                        <div style="flex: 1; background: #3b82f6; border-radius: 2px 2px 0 0; height: 80%;"></div>
+                        <div style="flex: 1; background: #3b82f6; border-radius: 2px 2px 0 0; height: 55%;"></div>
+                        <div style="flex: 1; background: #3b82f6; border-radius: 2px 2px 0 0; height: 70%;"></div>
+                        <div style="flex: 1; background: #3b82f6; border-radius: 2px 2px 0 0; height: 60%;"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="screenshots-carousel__dots">
+            <button class="screenshots-carousel__dot screenshots-carousel__dot--active"></button>
+            <button class="screenshots-carousel__dot"></button>
+            <button class="screenshots-carousel__dot"></button>
+            <button class="screenshots-carousel__dot"></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Download CTA Section -->
+    <section class="download-cta" id="download">
+      <div class="download-cta__pattern"></div>
+      <div class="container">
+        <div class="download-cta__content reveal">
+          <h2 class="download-cta__title">ابدأ بالمشاركة في تحسين مدينتك</h2>
+          <p class="download-cta__description">حمّل تطبيق صوتك الآن وكن جزءاً من التغيير الإيجابي</p>
+          
+          <div class="download-cta__buttons">
+            <a href="#" class="download-btn">
+              <i data-lucide="apple" class="download-btn__icon"></i>
+              <div class="download-btn__text">
+                <span class="download-btn__label">تحميل من</span>
+                <span class="download-btn__store">App Store</span>
+              </div>
+            </a>
+            <a href="#" class="download-btn">
+              <svg class="download-btn__icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/>
+              </svg>
+              <div class="download-btn__text">
+                <span class="download-btn__label">تحميل من</span>
+                <span class="download-btn__store">Google Play</span>
+              </div>
+            </a>
+          </div>
+          
+          <div class="download-cta__badges">
+            <div class="download-cta__badge">
+              <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+              <span>مجاني 100%</span>
+            </div>
+            <div class="download-cta__badge">
+              <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+              <span>بدون إعلانات</span>
+            </div>
+            <div class="download-cta__badge">
+              <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+              <span>آمن وموثوق</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+      <div class="container">
+        <div class="about__grid">
+          <div class="about__content">
+            <h2 class="about__title reveal">عن المشروع</h2>
+            
+            <div class="about__section reveal">
+              <div class="about__section-header">
+                <div class="about__section-icon about__section-icon--blue">
+                  <i data-lucide="target"></i>
+                </div>
+                <h3 class="about__section-title">فكرة المشروع</h3>
+              </div>
+              <p class="about__section-text">
+                صوتك هو مشروع مجتمعي يهدف إلى تمكين المواطنين من المشاركة الفعالة
+                في تحسين بيئتهم من خلال منصة رقمية متكاملة تربطهم بالجهات الحكومية
+                بطريقة سهلة وشفافة.
+              </p>
+            </div>
+            
+            <div class="about__section reveal">
+              <div class="about__section-header">
+                <div class="about__section-icon about__section-icon--green">
+                  <i data-lucide="eye"></i>
+                </div>
+                <h3 class="about__section-title">الرؤية</h3>
+              </div>
+              <p class="about__section-text">
+                بناء مجتمعات أكثر استدامة وفعالية من خلال التواصل الرقمي بين
+                المواطنين والجهات الحكومية، وخلق بيئة تعاونية لحل المشكلات
+                المجتمعية.
+              </p>
+            </div>
+            
+            <div class="about__section reveal">
+              <div class="about__section-header">
+                <div class="about__section-icon about__section-icon--purple">
+                  <i data-lucide="rocket"></i>
+                </div>
+                <h3 class="about__section-title">الأهداف المستقبلية</h3>
+              </div>
+              <ul class="about__goals">
+                <li class="about__goal">
+                  <i data-lucide="check-circle" class="about__goal-icon"></i>
+                  <span class="about__goal-text">توسيع نطاق التطبيق ليشمل جميع المدن</span>
+                </li>
+                <li class="about__goal">
+                  <i data-lucide="check-circle" class="about__goal-icon"></i>
+                  <span class="about__goal-text">تطوير نظام ذكي للتحليلات والتنبؤ</span>
+                </li>
+                <li class="about__goal">
+                  <i data-lucide="check-circle" class="about__goal-icon"></i>
+                  <span class="about__goal-text">تعزيز الشراكات الحكومية والبلدية</span>
+                </li>
+                <li class="about__goal">
+                  <i data-lucide="check-circle" class="about__goal-icon"></i>
+                  <span class="about__goal-text">إضافة ميزات تفاعلية مجتمعية</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="about__visual reveal">
+            <div class="about-illustration">
+              <div class="about-illustration__grid">
+                <div class="about-illustration__card">
+                  <div class="about-illustration__icon about-illustration__icon--blue">🏢</div>
+                  <div style="width: 80%; height: 6px; background: #e9ecef; border-radius: 9999px; margin-bottom: 4px;">
+                    <div style="width: 70%; height: 100%; background: #adb5bd; border-radius: 9999px;"></div>
+                  </div>
+                  <div style="width: 60%; height: 6px; background: #e9ecef; border-radius: 9999px;"></div>
+                </div>
+                <div class="about-illustration__card">
+                  <div class="about-illustration__icon about-illustration__icon--green">🌳</div>
+                  <div style="width: 80%; height: 6px; background: #e9ecef; border-radius: 9999px; margin-bottom: 4px;">
+                    <div style="width: 50%; height: 100%; background: #adb5bd; border-radius: 9999px;"></div>
+                  </div>
+                  <div style="width: 60%; height: 6px; background: #e9ecef; border-radius: 9999px;"></div>
+                </div>
+                <div class="about-illustration__card">
+                  <div class="about-illustration__icon about-illustration__icon--purple">👥</div>
+                  <div style="width: 80%; height: 6px; background: #e9ecef; border-radius: 9999px; margin-bottom: 4px;">
+                    <div style="width: 80%; height: 100%; background: #adb5bd; border-radius: 9999px;"></div>
+                  </div>
+                  <div style="width: 60%; height: 6px; background: #e9ecef; border-radius: 9999px;"></div>
+                </div>
+                <div class="about-illustration__card">
+                  <div class="about-illustration__icon about-illustration__icon--orange">📱</div>
+                  <div style="width: 80%; height: 6px; background: #e9ecef; border-radius: 9999px; margin-bottom: 4px;">
+                    <div style="width: 60%; height: 100%; background: #adb5bd; border-radius: 9999px;"></div>
+                  </div>
+                  <div style="width: 60%; height: 6px; background: #e9ecef; border-radius: 9999px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand reveal">
+          <div class="footer__logo">
+            <div class="footer__logo-icon">
+              <i data-lucide="mic"></i>
+            </div>
+            <span>صوتك</span>
+          </div>
+          <p class="footer__description">
+            منصة رقمية تربط المواطنين بالجهات الحكومية لتقديم البلاغات ومتابعتها
+            بشكل شفاف وفعال.
+          </p>
+          <div class="footer__location">
+            <i data-lucide="map-pin" style="width: 16px; height: 16px;"></i>
+            <span>المملكة العربية السعودية</span>
+          </div>
+        </div>
+        
+        <div class="footer__column reveal">
+          <h4 class="footer__column-title">روابط سريعة</h4>
+          <ul class="footer__links">
+            <li><a href="#hero" class="footer__link">الرئيسية</a></li>
+            <li><a href="#features" class="footer__link">المميزات</a></li>
+            <li><a href="#how-it-works" class="footer__link">كيف يعمل</a></li>
+            <li><a href="#about" class="footer__link">عن التطبيق</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer__column reveal">
+          <h4 class="footer__column-title">الدعم</h4>
+          <ul class="footer__links">
+            <li><a href="#" class="footer__link">مركز المساعدة</a></li>
+            <li><a href="#" class="footer__link">الأسئلة الشائعة</a></li>
+            <li><a href="#" class="footer__link">سياسة الخصوصية</a></li>
+            <li><a href="#" class="footer__link">شروط الاستخدام</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer__column reveal">
+          <h4 class="footer__column-title">تواصل معنا</h4>
+          <div class="footer__contact">
+            <a href="mailto:info@sawtak.app" class="footer__contact-item">
+              <i data-lucide="mail" style="width: 16px; height: 16px;"></i>
+              <span>info@sawtak.app</span>
+            </a>
+            <a href="tel:920012345" class="footer__contact-item">
+              <i data-lucide="phone" style="width: 16px; height: 16px;"></i>
+              <span>920012345</span>
+            </a>
+          </div>
+          <div class="footer__social">
+            <a href="#" class="footer__social-link" aria-label="Facebook">
+              <svg style="width: 18px; height: 18px;" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+            </a>
+            <a href="#" class="footer__social-link" aria-label="Twitter">
+              <svg style="width: 18px; height: 18px;" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+              </svg>
+            </a>
+            <a href="#" class="footer__social-link" aria-label="Instagram">
+              <svg style="width: 18px; height: 18px;" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer__bottom reveal">
+        <p class="footer__copyright">© 2024 صوتك. جميع الحقوق محفوظة.</p>
+        <p class="footer__badge">مشروع أكاديمي / مجتمعي</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/main.js"></script>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>
