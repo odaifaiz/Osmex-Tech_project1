@@ -8,7 +8,7 @@ The application helps improve communication between citizens and local service p
 
 # 📱 App Screenshots
 
-| Log_in Screen                      | create_account Screan                        |
+| Log_in Screen                      | create_account Screan                       |
 | -------------------------------- | ------------------------------- |
 | ![](assets/images/login.png) | ![](assets/images/create_account.png) |
 
