@@ -311,7 +311,7 @@ flutter run
 # 👨‍💻 Author
 
 Odai Faez
-Saameh Mohammed
+Sameh Mohammed
 
 GitHub:
 https://github.com/odaifaiz
