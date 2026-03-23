@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 
-/// Circular back/navigation button used on the Register screen header.
-/// Shows a right-facing chevron (→) because in RTL "back" goes right.
+
 class CircularBackButton extends StatefulWidget {
   const CircularBackButton({
     super.key,

@@ -7,6 +7,7 @@ import '../../widgets/common/app_logo_header.dart';
 import '../../widgets/common/google_sign_in_button.dart';
 import '../../widgets/common/or_divider.dart';
 import '../../widgets/common/app_text_field.dart';
+import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -68,7 +69,31 @@ class _LoginScreenState extends State<LoginScreen>
 
   void _onGoogleSignIn() {}
   void _onForgotPassword() {}
-  void _onCreateAccount() {}
+  // في LoginScreen، عدّل هذا السطر:
+
+
+// إلى هذا:
+void _onCreateAccount() {
+  Navigator.of(context).push(
+    PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          const RegisterScreen(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        // انتقال من اليمين (مناسب للـ RTL)
+        const begin = Offset(1.0, 0.0);
+        const end = Offset.zero;
+        const curve = Curves.easeOutCubic;
+        final tween = Tween(begin: begin, end: end)
+            .chain(CurveTween(curve: curve));
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 400),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen>
                         const Center(child: AppLogoHeader()),
                         const SizedBox(height: AppDimensions.sectionSpacing),
 
-                        // ── Welcome Section RTL
+                      
                         Column(
                            
                           crossAxisAlignment: CrossAxisAlignment.center,

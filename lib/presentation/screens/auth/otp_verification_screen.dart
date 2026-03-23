@@ -6,14 +6,7 @@ import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../widgets/common/app_button.dart';
 
-/// OTP Verification Screen — Image 2
-/// ─────────────────────────────────
-/// • Teal circular mail icon with glow
-/// • "أدخل رمز التحقق" heading
-/// • 4 OTP boxes: invisible input + dot visual
-/// • 30-second countdown → resend link
-/// • "تحقق" primary button
-/// • "لم يصلك الرمز؟ إعادة إرسال" footer
+
 class OtpVerificationScreen extends StatefulWidget {
   const OtpVerificationScreen({super.key});
 

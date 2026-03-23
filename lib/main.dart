@@ -54,7 +54,7 @@ class CityFixApp extends StatelessWidget {
   title: 'CityFix',
   theme: AppTheme.darkTheme,
   
-  locale: const Locale('ar'), // العربية
+  locale: const Locale('ar'), 
   supportedLocales: const [Locale('ar')],
   localizationsDelegates: const [
     GlobalMaterialLocalizations.delegate,
@@ -62,9 +62,9 @@ class CityFixApp extends StatelessWidget {
     GlobalCupertinoLocalizations.delegate,
   ],
 
-  // هذا يضمن RTL لجميع العناصر حتى لو تجاهلها بعض الـ Widgets
+  
   builder: (context, child) {
-    // هذا يضمن RTL لجميع الصفحات
+   
     return Directionality(
       textDirection: TextDirection.rtl,
       child: child!,

@@ -1,0 +1,10 @@
+[33m3c74937[m[33m ([m[1;36mHEAD[m[33m)[m HEAD@{0}: commit: login&create_acount screens
+[33m907d667[m HEAD@{1}: reset: moving to HEAD~1
+[33m80d7fd3[m HEAD@{2}: pull origin main --rebase (start): checkout 80d7fd3daa6df196f8ffa61ae729f6e09c794d96
+[33mc40fe94[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m HEAD@{3}: commit: login_screen$create_account_screen
+[33mb46d82b[m HEAD@{4}: commit: add files to each folder
+[33m5cf476c[m HEAD@{5}: commit: update_asset
+[33m396116f[m HEAD@{6}: pull origin main --rebase: Fast-forward
+[33mc614e72[m HEAD@{7}: commit: update_structure
+[33m9e4af29[m[33m ([m[1;31morigin/master[m[33m)[m HEAD@{8}: Branch: renamed refs/heads/master to refs/heads/main
+[33m9e4af29[m[33m ([m[1;31morigin/master[m[33m)[m HEAD@{10}: commit (initial): project_stucture

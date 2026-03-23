@@ -1,4 +1,4 @@
-// lib/presentation/routing/app_router.dart
+
 import 'package:flutter/material.dart';
 import '../../core/constants/route_constants.dart';
 import '../screens/auth/login_screen.dart';

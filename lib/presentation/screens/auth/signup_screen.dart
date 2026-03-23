@@ -11,19 +11,7 @@ import '../../widgets/common/app_text_field.dart';
 import '../../widgets/forms/password_strength_indicator.dart';
 import '../../widgets/forms/terms_checkbox.dart';
 
-/// Register / Create Account Screen — Image 3
-/// ─────────────────────────────────────────────
-/// • Top header: title "إنشاء حساب" + circular back button (RTL)
-/// • First name / Last name in a side-by-side row
-/// • Email field (full width)
-/// • Phone number field (+966 format)
-/// • Password field + animated strength bar
-/// • Confirm password field
-/// • Terms & conditions checkbox with inline links
-/// • "إنشاء حساب" primary CTA
-/// • "أو" divider
-/// • "متابعة مع جوجل" Google button
-/// • "لديك حساب؟ تسجيل الدخول" footer
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -33,7 +21,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen>
     with SingleTickerProviderStateMixin {
-  // ── Form ─────────────────────────────────────────────
+  
   final _formKey = GlobalKey<FormState>();
 
   final _firstNameCtrl = TextEditingController();
@@ -47,7 +35,6 @@ class _RegisterScreenState extends State<RegisterScreen>
   bool _isLoading = false;
   String _password = '';
 
-  // ── Page-load animation ───────────────────────────────
   late final AnimationController _pageCtrl;
   late final Animation<double> _fadeAnim;
   late final Animation<Offset> _slideAnim;
@@ -86,7 +73,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     super.dispose();
   }
 
-  // ── Actions ───────────────────────────────────────────
+  
   void _onRegister() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_termsAccepted) return;
@@ -101,7 +88,7 @@ class _RegisterScreenState extends State<RegisterScreen>
 
   void _onLogin() {}
 
-  // ─────────────────────────────────────────────────────
+  
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -124,18 +111,18 @@ class _RegisterScreenState extends State<RegisterScreen>
                     children: [
                       const SizedBox(height: AppDimensions.paddingL),
 
-                      // ── Header row ─────────────────────────────
+                     
                       _HeaderRow(onBack: _onBack),
                       const SizedBox(height: AppDimensions.sectionSpacing),
 
-                      // ── First name + Last name ──────────────────
+                  
                       _NameRow(
                         firstNameCtrl: _firstNameCtrl,
                         lastNameCtrl: _lastNameCtrl,
                       ),
                       const SizedBox(height: AppDimensions.paddingL),
 
-                      // ── Email ───────────────────────────────────
+                     
                       AppTextField(
                         label: 'البريد الإلكتروني',
                         hint: 'example@mail.com',
@@ -158,7 +145,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                       // ── Phone ───────────────────────────────────
                       AppTextField(
                         label: 'رقم الهاتف',
-                        hint: '+966 50 000 0000',
+                        hint: '738992387',
                         controller: _phoneCtrl,
                         prefixIcon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
@@ -192,11 +179,11 @@ class _RegisterScreenState extends State<RegisterScreen>
                       ),
                       const SizedBox(height: AppDimensions.paddingS),
 
-                      // ── Strength bar ────────────────────────────
+                  
                       PasswordStrengthBar(password: _password),
                       const SizedBox(height: AppDimensions.paddingL),
 
-                      // ── Confirm password ────────────────────────
+                     
                       AppTextField(
                         label: 'تأكيد كلمة المرور',
                         hint: '••••••••',
@@ -212,7 +199,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                       ),
                       const SizedBox(height: AppDimensions.paddingL),
 
-                      // ── Terms checkbox ──────────────────────────
+                     
                       TermsCheckbox(
                         value: _termsAccepted,
                         onChanged: (v) =>
@@ -222,7 +209,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                       ),
                       const SizedBox(height: AppDimensions.sectionSpacing),
 
-                      // ── Register CTA ─────────────────────────────
+                    
                       AppButton(
                         label: 'إنشاء حساب',
                         onPressed: _onRegister,
@@ -231,18 +218,18 @@ class _RegisterScreenState extends State<RegisterScreen>
                       ),
                       const SizedBox(height: AppDimensions.sectionSpacing),
 
-                      // ── Or divider ───────────────────────────────
+                  
                       const OrDivider(label: 'أو'),
                       const SizedBox(height: AppDimensions.sectionSpacing),
 
-                      // ── Google sign up ───────────────────────────
+                    
                       GoogleSignInButton(
                         label: 'متابعة مع جوجل',
                         onPressed: _onGoogleSignUp,
                       ),
                       const SizedBox(height: AppDimensions.sectionSpacing),
 
-                      // ── Footer: already have account ─────────────
+                    
                       _LoginFooter(onLoginTap: _onLogin),
                       const SizedBox(height: AppDimensions.paddingL),
                     ],
@@ -257,9 +244,7 @@ class _RegisterScreenState extends State<RegisterScreen>
   }
 }
 
-// ─────────────────────────────────────────────────────────
-// Header row: "إنشاء حساب" title + back button (right-to-left)
-// ─────────────────────────────────────────────────────────
+
 class _HeaderRow extends StatelessWidget {
   const _HeaderRow({required this.onBack});
 
@@ -268,26 +253,28 @@ class _HeaderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      // In RTL: title on the right, back button on the LEFT of row
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    
+     textDirection: TextDirection.rtl,     
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Back button (visually left side in RTL = "end" of reading direction)
-        CircularBackButton(onTap: onBack),
+       
+       
 
-        // Title (visually right side = start of reading direction)
+       
         Text(
           'إنشاء حساب',
           style: AppTypography.screenTitle,
+          textAlign: TextAlign.right,
           textDirection: TextDirection.rtl,
         ),
+
+         CircularBackButton(onTap: onBack),
       ],
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────
-// Side-by-side first name / last name row
-// ─────────────────────────────────────────────────────────
+
 class _NameRow extends StatelessWidget {
   const _NameRow({
     required this.firstNameCtrl,
@@ -302,11 +289,11 @@ class _NameRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Last name (on the LEFT in RTL row – renders as second visually)
+       
         Expanded(
           child: AppTextField(
-            label: 'اسم العائلة',
-            hint: 'العامري',
+            label: 'الاسم الاول',
+            hint: 'احمد',
             controller: lastNameCtrl,
             keyboardType: TextInputType.name,
             textInputAction: TextInputAction.next,
@@ -316,11 +303,11 @@ class _NameRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        // First name (on the RIGHT in RTL row – renders as first visually)
+      
         Expanded(
           child: AppTextField(
-            label: 'الاسم الأول',
-            hint: 'أحمد',
+            label: 'اسم العائلة',
+            hint: 'الشرعبي',
             controller: firstNameCtrl,
             keyboardType: TextInputType.name,
             textInputAction: TextInputAction.next,
@@ -334,9 +321,7 @@ class _NameRow extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-// "لديك حساب؟ تسجيل الدخول" footer
-// ─────────────────────────────────────────────────────────
+
 class _LoginFooter extends StatelessWidget {
   const _LoginFooter({required this.onLoginTap});
 
