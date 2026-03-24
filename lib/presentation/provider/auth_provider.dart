@@ -1,35 +1,62 @@
-// lib/presentation/providers/auth_provider.dart
-import 'package:flutter/foundation.dart';
-import '../../domain/entities/user.dart';
-import '../../domain/use_cases/auth/login_use_case.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../data/services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final LoginUseCase loginUseCase;
-
-  AuthProvider({required this.loginUseCase});
-
-  bool _isLoading = false;
-  String? _error;
+  final AuthService _authService = AuthService();
   User? _user;
+  bool _isLoading = false;
 
-  bool get isLoading => _isLoading;
-  String? get error => _error;
   User? get user => _user;
+  bool get isLoading => _isLoading;
   bool get isAuthenticated => _user != null;
 
-  Future<void> login(String email, String password) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+  AuthProvider() {
+    _authService.user.listen((User? user) {
+      _user = user;
+      notifyListeners();
+    });
+  }
 
+  Future<bool> login(String email, String password) async {
+    _setLoading(true);
     try {
-      _user = await loginUseCase(email, password);
-      _isLoading = false;
-      notifyListeners();
+      final user = await _authService.signInWithEmail(email, password);
+      _setLoading(false);
+      return user != null;
     } catch (e) {
-      _isLoading = false;
-      _error = e.toString();
-      notifyListeners();
+      _setLoading(false);
+      return false;
     }
+  }
+
+  Future<bool> signup(String email, String password) async {
+    _setLoading(true);
+    try {
+      final user = await _authService.signUpWithEmail(email, password);
+      _setLoading(false);
+      return user != null;
+    } catch (e) {
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    _setLoading(true);
+    try {
+      await _authService.signInWithGoogle();
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> logout() async {
+    await _authService.signOut();
+  }
+
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
   }
 }

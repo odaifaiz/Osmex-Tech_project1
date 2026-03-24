@@ -1,11 +1,30 @@
-// lib/domain/repositories/auth_repository.dart
 import '../entities/user.dart';
 
 abstract class AuthRepository {
-  Future<User> login(String email, String password);
-  Future<User> register(String email, String password, String name);
-  Future<User> googleSignIn();
+  // Stream للمستخدم الحالي
+  Stream<User?> get user;
+  
+  // المستخدم الحالي
+  User? get currentUser;
+  
+  // تسجيل الدخول
+  Future<User?> login(String email, String password);
+  
+  // إنشاء حساب جديد
+  Future<User?> register(String email, String password);
+  
+  // تسجيل الدخول بجوجل
+  Future<User?> signInWithGoogle();
+  
+  // تسجيل الخروج
   Future<void> logout();
-  Future<User?> getCurrentUser();
+  
+  // إعادة تعيين كلمة المرور
   Future<void> resetPassword(String email);
+  
+  // التحقق من البريد الإلكتروني
+  Future<bool> isEmailVerified();
+  
+  // إرسال تأكيد البريد الإلكتروني
+  Future<void> sendEmailVerification();
 }

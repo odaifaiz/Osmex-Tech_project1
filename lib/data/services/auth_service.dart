@@ -1,49 +1,64 @@
-// lib/data/services/auth_service.dart
-import 'package:dio/dio.dart';
-import '../../core/constants/api_constants.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
-  final Dio dio;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  AuthService(this.dio);
-
-  Future<Map<String, dynamic>> login(String email, String password) async {
-    final response = await dio.post(
-      ApiConstants.login,
-      data: {
-        'email': email,
-        'password': password,
-      },
-    );
-    return response.data;
+  // تسجيل الدخول بالبريد الإلكتروني وكلمة المرور
+  Future<User?> signInWithEmail(String email, String password) async {
+    try {
+      UserCredential result = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return result.user;
+    } catch (e) {
+      print('Error signing in: $e');
+      return null;
+    }
   }
 
-  Future<Map<String, dynamic>> register(
-    String email,
-    String password,
-    String name,
-  ) async {
-    final response = await dio.post(
-      ApiConstants.register,
-      data: {
-        'email': email,
-        'password': password,
-        'name': name,
-      },
-    );
-    return response.data;
+  // إنشاء حساب جديد
+  Future<User?> signUpWithEmail(String email, String password) async {
+    try {
+      UserCredential result = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return result.user;
+    } catch (e) {
+      print('Error signing up: $e');
+      return null;
+    }
   }
 
-  Future<Map<String, dynamic>> googleSignIn() async {
-   
-    throw UnimplementedError();
+  // تسجيل الدخول باستخدام Google
+  Future<User?> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      final GoogleSignInAuthentication googleAuth = 
+          await googleUser!.authentication;
+      
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      
+      UserCredential result = await _auth.signInWithCredential(credential);
+      return result.user;
+    } catch (e) {
+      print('Error signing in with Google: $e');
+      return null;
+    }
   }
 
-  Future<void> logout() async {
-    await dio.post(ApiConstants.logout);
+  // تسجيل الخروج
+  Future<void> signOut() async {
+    await _auth.signOut();
+    await _googleSignIn.signOut();
   }
 
-  Future<void> resetPassword(String email) async {
-    await dio.post(ApiConstants.resetPassword, data: {'email': email});
-  }
+  // التحقق من حالة المستخدم
+  Stream<User?> get user => _auth.authStateChanges();
 }
