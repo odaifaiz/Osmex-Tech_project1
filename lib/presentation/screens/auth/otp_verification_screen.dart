@@ -8,8 +8,13 @@ import '../../widgets/common/app_button.dart';
 
 
 class OtpVerificationScreen extends StatefulWidget {
-  const OtpVerificationScreen({super.key});
+ 
+final String email;
 
+const OtpVerificationScreen({
+    super.key,
+    this.email = '',
+  });
   @override
   State<OtpVerificationScreen> createState() =>
       _OtpVerificationScreenState();
@@ -17,24 +22,22 @@ class OtpVerificationScreen extends StatefulWidget {
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen>
     with TickerProviderStateMixin {
-  // ── OTP State ────────────────────────────────────────
+ 
   final List<TextEditingController> _controllers =
       List.generate(4, (_) => TextEditingController());
   final List<FocusNode> _focusNodes =
       List.generate(4, (_) => FocusNode());
 
-  // ── Timer ─────────────────────────────────────────────
   int _secondsLeft = 30;
   Timer? _timer;
   bool _canResend = false;
   bool _isLoading = false;
 
-  // ── Page animation ────────────────────────────────────
   late final AnimationController _pageCtrl;
   late final Animation<double> _fadeAnim;
   late final Animation<Offset> _slideAnim;
 
-  // ── Per-box glow animations ───────────────────────────
+  
   late final List<AnimationController> _glowCtrls;
   late final List<Animation<double>> _glowAnims;
 
@@ -42,7 +45,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
   void initState() {
     super.initState();
 
-    // Page load
+   
     _pageCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 650),
@@ -55,7 +58,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
     ).animate(
         CurvedAnimation(parent: _pageCtrl, curve: Curves.easeOutCubic));
 
-    // Glow per box
+    
     _glowCtrls = List.generate(
       4,
       (_) => AnimationController(
@@ -67,7 +70,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
             CurvedAnimation(parent: c, curve: Curves.easeInOut))
         .toList();
 
-    // Wire focus → glow
+   
     for (int i = 0; i < 4; i++) {
       _focusNodes[i].addListener(() {
         _focusNodes[i].hasFocus
@@ -85,7 +88,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
     });
   }
 
-  // ── Countdown ─────────────────────────────────────────
+  
   void _startCountdown() {
     _timer?.cancel();
     setState(() {
@@ -106,7 +109,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
     });
   }
 
-  // ── OTP input navigation ──────────────────────────────
+
   void _onDigitChanged(int index, String value) {
     if (value.length == 1 && index < 3) {
       _focusNodes[index + 1].requestFocus();
@@ -115,7 +118,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
     }
   }
 
-  // ── Actions ───────────────────────────────────────────
+  
   void _onVerify() async {
     final otp = _controllers.map((c) => c.text).join();
     if (otp.length < 4) return;
@@ -141,7 +144,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
     super.dispose();
   }
 
-  // ─────────────────────────────────────────────────────
+  
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -161,11 +164,11 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
                   children: [
                     const SizedBox(height: 60),
 
-                    // ── Circular mail icon ─────────────
+                  
                     const _MailIcon(),
                     const SizedBox(height: AppDimensions.sectionSpacing),
 
-                    // ── Title ─────────────────────────
+                  
                     Text(
                       'أدخل رمز التحقق',
                       style: AppTypography.headingL,
@@ -173,15 +176,28 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
                     ),
                     const SizedBox(height: 12),
 
-                    // ── Subtitle ──────────────────────
-                    Text(
-                      'لقد أرسلنا رمز التحقق المكون من 4\nأرقام إلى بريدك الإلكتروني',
-                      style: AppTypography.bodyM.copyWith(height: 1.7),
-                      textAlign: TextAlign.center,
-                    ),
+                                  
+                                  RichText(
+                  textAlign: TextAlign.center,
+                  textDirection: TextDirection.rtl,
+                  text: TextSpan(
+                    style: AppTypography.bodyM.copyWith(height: 1.7),
+                    children: [
+                      const TextSpan(text: 'لقد أرسلنا رمز التحقق المكون من 4 أرقام إلى\n'),
+                      TextSpan(
+                        text: widget.email,
+                        style: AppTypography.bodyM.copyWith(
+                          height: 1.7,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                     const SizedBox(height: 36),
 
-                    // ── 4 OTP boxes ────────────────────
+                   
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(4, (i) {
@@ -201,7 +217,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
                     ),
                     const SizedBox(height: AppDimensions.sectionSpacing),
 
-                    // ── Countdown / resend ─────────────
+                   
                     _ResendTimerRow(
                       secondsLeft: _secondsLeft,
                       canResend: _canResend,
@@ -209,7 +225,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
                     ),
                     const SizedBox(height: 28),
 
-                    // ── Primary CTA ────────────────────
+                   
                     AppButton(
                       label: 'تحقق',
                       onPressed: _onVerify,
@@ -217,7 +233,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
                     ),
                     const SizedBox(height: AppDimensions.sectionSpacing),
 
-                    // ── Footer link ────────────────────
+                   
                     GestureDetector(
                       onTap: _onResend,
                       child: Text(
@@ -238,9 +254,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
   }
 }
 
-// ─────────────────────────────────────────────────────────
-// Teal circular mail icon with glow shadow
-// ─────────────────────────────────────────────────────────
+
 class _MailIcon extends StatelessWidget {
   const _MailIcon();
 
@@ -269,9 +283,7 @@ class _MailIcon extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-// Single OTP box: captures a digit, shows a dot indicator
-// ─────────────────────────────────────────────────────────
+
 class _OtpBox extends StatelessWidget {
   const _OtpBox({
     required this.controller,
@@ -319,7 +331,7 @@ class _OtpBox extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Invisible text input layer
+          
           SizedBox(
             width: AppDimensions.otpBoxSize,
             height: AppDimensions.otpBoxSize,
@@ -344,7 +356,7 @@ class _OtpBox extends StatelessWidget {
             ),
           ),
 
-          // Visual dot
+        
           IgnorePointer(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 180),
@@ -375,10 +387,7 @@ class _OtpBox extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-// Countdown row: clock icon + "إعادة الإرسال خلال X ثانية"
-// Switches to tappable resend link when timer reaches 0
-// ─────────────────────────────────────────────────────────
+
 class _ResendTimerRow extends StatelessWidget {
   const _ResendTimerRow({
     required this.secondsLeft,

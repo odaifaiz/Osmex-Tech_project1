@@ -10,8 +10,7 @@ import '../../widgets/common/or_divider.dart';
 import '../../widgets/common/app_text_field.dart';
 import '../../widgets/forms/password_strength_indicator.dart';
 import '../../widgets/forms/terms_checkbox.dart';
-
-
+import 'otp_verification_screen.dart'; 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -75,12 +74,53 @@ class _RegisterScreenState extends State<RegisterScreen>
 
   
   void _onRegister() async {
-    if (!_formKey.currentState!.validate()) return;
-    if (!_termsAccepted) return;
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    if (mounted) setState(() => _isLoading = false);
+  if (!_formKey.currentState!.validate()) return;
+
+ 
+  if (!_termsAccepted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'يرجى الموافقة على الشروط والأحكام',
+          textDirection: TextDirection.rtl,
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+    return;
   }
+
+  setState(() => _isLoading = true);
+  await Future.delayed(const Duration(seconds: 2));
+
+  if (!mounted) return;
+  setState(() => _isLoading = false);
+
+  Navigator.of(context).push(
+    PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+        
+          OtpVerificationScreen(email: _emailCtrl.text.trim()),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(1.0, 0.0);
+        const end = Offset.zero;
+        const curve = Curves.easeOutCubic;
+        final tween = Tween(begin: begin, end: end)
+            .chain(CurveTween(curve: curve));
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 400),
+    ),
+  );
+}
 
   void _onGoogleSignUp() {}
 
