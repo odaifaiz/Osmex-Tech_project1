@@ -1,0 +1,74 @@
+name: city_fix_app
+description: "A Flutter application for reporting city issues."
+publish_to: 'none' 
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0' # تحديث نطاق الـ SDK ليتوافق مع أحدث إصدارات فلاتر والحزم
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations: # إضافة لدعم الترجمة واللغات
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # 1. State Management (تم اختيار Riverpod كحل أساسي)
+  flutter_riverpod: ^2.5.1 # تحديث للإصدار الأخير المستقر
+
+  # 2. Network
+  dio: ^5.4.3+1 # تحديث للإصدار الأخير
+  
+  # 3. Local Storage (متوافق مع الويب)
+  shared_preferences: ^2.2.3 # تحديث للإصدار الأخير
+
+  # 4. Maps & Location (ملاحظة: تحتاج لإعداد خاص للويب)
+  google_maps_flutter: ^2.6.1
+  google_maps_flutter_web: ^0.5.5 # حزمة ضرورية لتشغيل خرائط جوجل على الويب
+  geolocator: ^11.0.0 # تحديث للإصدار الأخير
+  geocoding: ^3.0.0 # تحديث للإصدار الأخير
+  
+  # 5. Images
+  image_picker: ^1.1.1 # تحديث للإصدار الأخير
+  cached_network_image: ^3.3.1 # تحديث للإصدار الأخير
+  flutter_svg: ^2.0.10+1 # تحديث للإصدار الأخير
+  
+  # 6. UI Components
+  fluttertoast: ^8.2.5 # تحديث للإصدار الأخير
+  flutter_rating_bar: ^4.0.1
+  shimmer: ^3.0.0
+  lottie: ^3.1.2 # تحديث للإصدار الأخير
+  
+  # 7. Utilities
+  intl: ^0.20.2 # تحديث لإصدار متوافق وحديث
+  url_launcher: ^6.3.0 # تحديث للإصدار الأخير
+  go_router: ^14.0.2 # إضافة go_router لإدارة التنقل، فهو أفضل للويب ويدعم الـ Deep Linking
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.0 # استخدام الإصدار الحديث المتوافق مع الـ SDK الجديد
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/fonts/
+    # - assets/translations/ # إضافة مجلد الترجمة الذي كان في الهيكلية
+
+  fonts:
+    - family: Tajawal
+      fonts:
+        - asset: assets/fonts/Tajawal-Regular.ttf
+          weight: 400 # الوزن العادي
+        - asset: assets/fonts/Tajawal-Medium.ttf
+          weight: 500 # الوزن المتوسط
+        - asset: assets/fonts/Tajawal-Bold.ttf
+          weight: 600 # الوزن شبه العريض
+        - asset: assets/fonts/Tajawal-ExtraBold.ttf
+          weight: 700 # الوزن العريض
