@@ -314,8 +314,8 @@ flutter run
 * Sameh Mohammed
 
 GitHub:
-https://github.com/odaifaiz
-https://github.com/albasha7388
+* https://github.com/odaifaiz
+* https://github.com/albasha7388
 
 ---
 
