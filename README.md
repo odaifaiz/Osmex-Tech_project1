@@ -310,11 +310,12 @@ flutter run
 
 # 👨‍💻 Author
 
-Odai Faez
-Sameh Mohammed
+* Odai Faez
+* Sameh Mohammed
 
 GitHub:
 https://github.com/odaifaiz
+https://github.com/albasha7388
 
 ---
 
