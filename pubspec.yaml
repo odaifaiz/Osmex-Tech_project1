@@ -91,12 +91,12 @@ flutter:
   
   assets:
     - assets/images/
-    - assets/images/onboarding/
-    - assets/images/empty_states/
+    # - assets/images/onboarding/
+    # - assets/images/empty_states/
     - assets/icons/
-    - assets/icons/categories/
-    - assets/icons/status/
-    - assets/animations/
+    # - assets/icons/categories/
+    # - assets/icons/status/
+    # - assets/animations/
     - assets/translations/ar.json
     - assets/translations/en.json
 
