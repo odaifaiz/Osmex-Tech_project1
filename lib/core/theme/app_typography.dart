@@ -1,108 +1,63 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+// lib/core/theme/app_typography.dart
 
+import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// 📝 Sawtak Typography System
-/// لا تقم بتغيير هذه الأنماط إلا بالاتفاق
+/// A class that holds all the text styles for the app.
 class AppTypography {
+  // This class is not meant to be instantiated.
   AppTypography._();
 
-  // ─────────────────────────────────────────────────────
-  // Text Styles - Tajawal Font Family
-  // ─────────────────────────────────────────────────────
-  
-  // Headlines
-  static TextStyle headline32 = GoogleFonts.tajawal(
-    fontSize: 32,
-    fontWeight: FontWeight.bold,
-    color: AppColors.primary,
-    height: 1.25,
+  static const String fontFamily = 'Tajawal';
+
+  // --- Base Text Style ---
+  static const TextStyle _base = TextStyle(
+    fontFamily: fontFamily,
+    color: AppColors.textPrimary,
+    fontWeight: FontWeight.w400, // Regular
   );
 
-  static TextStyle headline24 = GoogleFonts.tajawal(
+  // --- Headlines ---
+  static final TextStyle headline1 = _base.copyWith(
+    fontSize: 28,
+    fontWeight: FontWeight.w700, // Bold
+  );
+  static final TextStyle headline2 = _base.copyWith(
     fontSize: 24,
-    fontWeight: FontWeight.bold,
-    color: AppColors.primary,
-    height: 1.25,
+    fontWeight: FontWeight.w700, // Bold
   );
-
-  static TextStyle headline20 = GoogleFonts.tajawal(
+  static final TextStyle headline3 = _base.copyWith(
     fontSize: 20,
-    fontWeight: FontWeight.w400,
-    color: AppColors.primary,
-    height: 1.3,
+    fontWeight: FontWeight.w600, // SemiBold
   );
 
-  static TextStyle headline18 = GoogleFonts.tajawal(
-    fontSize: 18,
-    fontWeight: FontWeight.w400,
-    color: AppColors.primary,
-    height: 1.4,
-  );
-
-  // Body Text
-  static TextStyle body16 = GoogleFonts.tajawal(
+  // --- Body Text ---
+  static final TextStyle body1 = _base.copyWith(
     fontSize: 16,
-    fontWeight: FontWeight.normal,
-    color: AppColors.gray800,
-    height: 1.5,
+    fontWeight: FontWeight.w400, // Regular
   );
-
-  static TextStyle body14 = GoogleFonts.tajawal(
+  static final TextStyle body2 = _base.copyWith(
     fontSize: 14,
-    fontWeight: FontWeight.normal,
-    color: AppColors.gray700,
-    height: 1.5,
+    fontWeight: FontWeight.w400, // Regular
+    color: AppColors.textSecondary,
   );
 
-  static TextStyle body12 = GoogleFonts.tajawal(
-    fontSize: 12,
-    fontWeight: FontWeight.normal,
-    color: AppColors.gray600,
-    height: 1.5,
-  );
-
-  // Button Text
-  static TextStyle button16 = GoogleFonts.tajawal(
+  // --- Buttons & Links ---
+  static final TextStyle button = _base.copyWith(
     fontSize: 16,
-    fontWeight: FontWeight.w500,
-    height: 1.5,
+    fontWeight: FontWeight.w600, // SemiBold
+    letterSpacing: 0.5,
   );
-
-  static TextStyle button14 = GoogleFonts.tajawal(
+  static final TextStyle link = _base.copyWith(
     fontSize: 14,
-    fontWeight: FontWeight.w500,
-    height: 1.5,
+    fontWeight: FontWeight.w500, // Medium
+    color: AppColors.textLink,
   );
 
-  // Caption
-  static TextStyle caption12 = GoogleFonts.tajawal(
+  // --- Captions & Overlines ---
+  static final TextStyle caption = _base.copyWith(
     fontSize: 12,
-    fontWeight: FontWeight.normal,
-    color: AppColors.gray500,
-    height: 1.4,
+    fontWeight: FontWeight.w400, // Regular
+    color: AppColors.textHint,
   );
-
-  static TextStyle caption11 = GoogleFonts.tajawal(
-    fontSize: 11,
-    fontWeight: FontWeight.normal,
-    color: AppColors.gray500,
-    height: 1.4,
-  );
-
-  // ─────────────────────────────────────────────────────
-  // Shortcut Styles (Commonly Used)
-  // ─────────────────────────────────────────────────────
-  
-  static TextStyle get semiBold18 => headline18;
-  static TextStyle get semiBold16 => GoogleFonts.tajawal(
-    fontSize: 16,
-    fontWeight: FontWeight.w400,
-    color: AppColors.primary,
-  );
-  static TextStyle get medium16 => button16;
-  static TextStyle get medium14 => button14;
-  static TextStyle get regular14 => body14;
-  static TextStyle get regular12 => body12;
 }

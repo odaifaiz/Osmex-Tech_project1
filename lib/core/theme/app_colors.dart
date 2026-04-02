@@ -1,83 +1,68 @@
+// lib/core/theme/app_colors.dart
+
 import 'package:flutter/material.dart';
 
-/// 🎨 Sawtak Color Palette
-/// مستخرجة من main.css - لا تقم بتغيير هذه الألوان إلا بالاتفاق
+/// A class that holds all the color palette for the app.
 class AppColors {
+  // This class is not meant to be instantiated.
   AppColors._();
 
-  // ─────────────────────────────────────────────────────
-  // الألوان الأساسية - Primary Palette
-  // ─────────────────────────────────────────────────────
-  static const Color primary = Color(0xFF1A3A5A);
-  static const Color primaryDark = Color(0xFF0f2438);
-  static const Color primaryLight = Color(0xFF2d5a87);
-  static const Color black = Color(0xFF000000);
+  // --- Core Palette ---
+  static const Color primary = Color(0xFF1FD6A0);
+  static const Color primaryDark = Color(0xFF17B889);
+  static const Color primaryGlow = Color(0x331FD6A0); // 20% opacity
 
-  // ─────────────────────────────────────────────────────
-  // الألوان الثانوية - Secondary
-  // ─────────────────────────────────────────────────────
-  static const Color secondary = Color(0xFFF8F9FA);
-  static const Color secondaryDark = Color(0xFFe9ecef);
+  static const Color strengthWeak = Color(0xFFEF5350);     // أحمر
+  static const Color strengthFair = Color(0xFFFFCA28);     // أصفر
+  static const Color strengthGood = Color(0xFF66BB6A);     // أخضر فاتح
+  static const Color strengthStrong = Color(0xFF43A047);
 
-  // ─────────────────────────────────────────────────────
-  // ألوان التمييز - Accent
-  // ─────────────────────────────────────────────────────
-  static const Color accent = Color(0xFF1ABC9C);
-  static const Color accentDark = Color(0xFF16a085);
-  static const Color accentLight = Color(0xFF48c9b0);
+  // --- Background Colors ---
+  static const Color backgroundDark = Color(0xFF0D1B2A);
+  static const Color backgroundCard = Color(0xFF112233);
+  static const Color backgroundInput = Color(0xFF0F1E2E);
+  static const Color backgroundRegister = Color(0xFF0F1C2D);
 
-  // ─────────────────────────────────────────────────────
-  // ألوان الحالات - Status Colors
-  // ─────────────────────────────────────────────────────
-  static const Color success = Color(0xFF27AE60);
-  static const Color warning = Color(0xFFF39C12);
-  static const Color danger = Color(0xFFE74C3C);
-  static const Color info = Color(0xFF3498DB);
+  // --- Text Colors ---
+  static const Color textPrimary = Color(0xFFFFFFFF);
+  static const Color textSecondary = Color(0xFFB0BEC5);
+  static const Color textHint = Color(0xFF546E7A);
+  static const Color textLink = primary; // Re-using primary for consistency
 
-  // ─────────────────────────────────────────────────────
-  // ألوان محايدة - Neutral Colors
-  // ─────────────────────────────────────────────────────
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color gray100 = Color(0xFFf8f9fa);
-  static const Color gray200 = Color(0xFFe9ecef);
-  static const Color gray300 = Color(0xFFdee2e6);
-  static const Color gray400 = Color(0xFFced4da);
-  static const Color gray500 = Color(0xFFadb5bd);
-  static const Color gray600 = Color(0xFF6c757d);
-  static const Color gray700 = Color(0xFF495057);
-  static const Color gray800 = Color(0xFF343a40);
-  static const Color gray900 = Color(0xFF212529);
+  // --- Border Colors ---
+  static const Color borderDefault = Color(0xFF1E3448);
+  static const Color borderFocused = primary; // Re-using primary for consistency
 
-  // ─────────────────────────────────────────────────────
-  // ألوان حالات البلاغ - Report Status Colors
-  // ─────────────────────────────────────────────────────
-  static const Color statusNew = Color(0xFF3498DB);
-  static const Color statusAcknowledged = Color(0xFFF39C12);
-  static const Color statusInProgress = Color(0xFF9B59B6);
-  static const Color statusResolved = Color(0xFF27AE60);
-  static const Color statusClosed = Color(0xFF95A5A6);
+  // --- Icon Colors ---
+  static const Color iconDefault = Color(0xFF546E7A);
+  static const Color iconActive = primary; // Re-using primary for consistency
 
-  // ─────────────────────────────────────────────────────
-  // ألوان الشفافية - Transparent Colors
-  // ─────────────────────────────────────────────────────
-  static Color primaryTransparent = primary.withOpacity(0.1);
-  static Color accentTransparent = accent.withOpacity(0.1);
-  static Color successTransparent = success.withOpacity(0.1);
-  static Color warningTransparent = warning.withOpacity(0.1);
-  static Color dangerTransparent = danger.withOpacity(0.1);
+  // --- Component-Specific Colors ---
+  static const Color googleButtonBg = Color(0xFFFFFFFF);
+  static const Color googleButtonText = Color(0xFF1A1A2E);
+  static const Color divider = Color(0xFF1E3448);
 
-  // ─────────────────────────────────────────────────────
-  // تدرجات - Gradients
-  // ─────────────────────────────────────────────────────
-  static const LinearGradient primaryGradient = LinearGradient(
-    colors: [primary, accent],
-    begin: Alignment.topRight,
-    end: Alignment.bottomLeft,
+  // --- Status & Semantic Colors ---
+  static const Color statusSuccess = Color(0xFF00C853);
+  static const Color statusWarning = Color(0xFFFFCA28);
+  static const Color statusError = Color(0xFFEF5350);
+
+  // --- OTP Input Colors ---
+  static const Color otpBoxBg = Color(0xFF112233);
+  static const Color otpBoxBorder = borderDefault;
+  static const Color otpBoxFocused = borderFocused;
+  static const Color otpDotColor = textSecondary;
+
+  // --- Gradients ---
+  static const LinearGradient backgroundGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFF0A1628), Color(0xFF0D1B2A)],
   );
 
-  static const LinearGradient accentGradient = LinearGradient(
-    colors: [accent, accentDark],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+  static const LinearGradient primaryButtonGradient = LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [primary, primaryDark],
   );
 }

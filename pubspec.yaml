@@ -1,109 +1,74 @@
 name: city_fix_app
-description: "A new Flutter project."
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-
+description: "A Flutter application for reporting city issues."
+publish_to: 'none' 
 
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.10.8
-
+  sdk: '>=3.3.0 <4.0.0' # تحديث نطاق الـ SDK ليتوافق مع أحدث إصدارات فلاتر والحزم
 
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations: # إضافة لدعم الترجمة واللغات
+    sdk: flutter
 
-  
   cupertino_icons: ^1.0.8
 
-  # State Management
-  provider: ^6.0.5
-  flutter_riverpod: ^2.4.0
-  
-  # Network
-  dio: ^5.3.0
-  connectivity_plus: ^4.0.1
-  
-  # Local Storage
-  shared_preferences: ^2.2.0
-  
-  # Maps & Location
-  google_maps_flutter: ^2.4.0
-  geolocator: ^9.0.2
-  geocoding: ^2.1.0
-  
-  # Images
-  image_picker: ^1.0.2
-  cached_network_image: ^3.2.3
-  flutter_svg: ^2.0.7
-  
-  # UI Components
-  fluttertoast: ^8.2.2
-  flutter_rating_bar: ^4.0.1
-  timeline_tile: ^2.0.0
-  shimmer: ^3.0.0
-  lottie: ^2.7.0
-  
-  # Utilities
-  intl: ^0.20.2
-  url_launcher: ^6.1.12
-  share_plus: ^7.0.2
-  device_info_plus: ^9.0.3
-  package_info_plus: ^4.0.2
-  
-  # Fonts
-  google_fonts: ^5.1.0
+  # 1. State Management (تم اختيار Riverpod كحل أساسي)
+  flutter_riverpod: ^2.5.1 # تحديث للإصدار الأخير المستقر
 
+  # 2. Network
+  dio: ^5.4.3+1 # تحديث للإصدار الأخير
+  
+  # 3. Local Storage (متوافق مع الويب)
+  shared_preferences: ^2.2.3 # تحديث للإصدار الأخير
+
+  # 4. Maps & Location (ملاحظة: تحتاج لإعداد خاص للويب)
+  google_maps_flutter: ^2.6.1
+  google_maps_flutter_web: ^0.5.5 # حزمة ضرورية لتشغيل خرائط جوجل على الويب
+  geolocator: ^11.0.0 # تحديث للإصدار الأخير
+  geocoding: ^3.0.0 # تحديث للإصدار الأخير
+  
+  # 5. Images
+  image_picker: ^1.1.1 # تحديث للإصدار الأخير
+  cached_network_image: ^3.3.1 # تحديث للإصدار الأخير
+  flutter_svg: ^2.0.10+1 # تحديث للإصدار الأخير
+  
+  # 6. UI Components
+  fluttertoast: ^8.2.5 # تحديث للإصدار الأخير
+  flutter_rating_bar: ^4.0.1
+  shimmer: ^3.0.0
+  lottie: ^3.1.2 # تحديث للإصدار الأخير
+  
+  # 7. Utilities
+  intl: ^0.20.2 # تحديث لإصدار متوافق وحديث
+  url_launcher: ^6.3.0 # تحديث للإصدار الأخير
+  go_router: ^14.0.2 # إضافة go_router لإدارة التنقل، فهو أفضل للويب ويدعم الـ Deep Linking
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^2.0.0 # تأكد من خفض هذا الإصدار لـ 2.0.0 ليتناسب مع Flutter 3.10
-  flutter_localizations:
-    sdk: flutter
+  flutter_lints: ^3.0.0 # استخدام الإصدار الحديث المتوافق مع الـ SDK الجديد
 
-
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter packages.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
     - assets/icons/
     - assets/fonts/
+    # - assets/translations/ # إضافة مجلد الترجمة الذي كان في الهيكلية
 
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/to/resolution-aware-images
-
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/to/asset-from-package
-
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
   fonts:
     - family: Tajawal
       fonts:
         - asset: assets/fonts/Tajawal-Regular.ttf
+          weight: 400 # الوزن العادي
         - asset: assets/fonts/Tajawal-Medium.ttf
-          weight: 500
+          weight: 500 # الوزن المتوسط
         - asset: assets/fonts/Tajawal-Bold.ttf
-          weight: 600
-        - asset: assets/fonts/Tajawal-Bold.ttf
-          weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
+          weight: 600 # الوزن شبه العريض
+        - asset: assets/fonts/Tajawal-ExtraBold.ttf
+          weight: 700 # الوزن العريض

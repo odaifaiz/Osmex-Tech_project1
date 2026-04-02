@@ -1,49 +1,49 @@
-/// 🛣️ Sawtak Route Constants
-/// لا تقم بتغيير هذه المسارات إلا بالاتفاق
-class AppRoutes {
-  AppRoutes._();
+// lib/core/constants/route_constants.dart
 
-  // ─────────────────────────────────────────────────────
-  // Route Paths
-  // ─────────────────────────────────────────────────────
-  static const String splash = '/';
-  static const String onboarding = '/onboarding';
-  static const String login = '/login';
-  static const String signup = '/signup';
-  static const String otpVerification = '/otp-verification';
-  static const String forgotPassword = '/forgot-password';
-  static const String resetPassword = '/reset-password';
-  static const String home = '/home';
-  static const String myReports = '/my-reports';
-  static const String reportDetails = '/report-details';
-  static const String createReport = '/create-report';
-  static const String map = '/map';
-  static const String notifications = '/notifications';
-  static const String profile = '/profile';
-  static const String editProfile = '/edit-profile';
-  static const String settings = '/settings';
-  static const String languageSettings = '/language-settings';
-  static const String notificationSettings = '/notification-settings';
-  static const String privacySettings = '/privacy-settings';
-  static const String about = '/about';
+/// A class that holds the route names for the app's navigation.
+/// Using constants for route names helps prevent typos and makes route management easier.
+class RouteConstants {
+  // This class is not meant to be instantiated.
+  RouteConstants._();
 
-  // ─────────────────────────────────────────────────────
-  // Route Names (for navigation)
-  // ─────────────────────────────────────────────────────
-  static const String splashName = 'Splash';
-  static const String onboardingName = 'Onboarding';
-  static const String loginName = 'Login';
-  static const String signupName = 'Signup';
-  static const String otpVerificationName = 'OTPVerification';
-  static const String forgotPasswordName = 'ForgotPassword';
-  static const String resetPasswordName = 'ResetPassword';
-  static const String homeName = 'Home';
-  static const String myReportsName = 'MyReports';
-  static const String reportDetailsName = 'ReportDetails';
-  static const String createReportName = 'CreateReport';
-  static const String mapName = 'Map';
-  static const String notificationsName = 'Notifications';
-  static const String profileName = 'Profile';
-  static const String editProfileName = 'EditProfile';
-  static const String settingsName = 'Settings';
+  // --- Core ---
+  static const String splashRouteName = 'splash';
+  static const String onboardingRouteName = 'onboarding';
+
+  // --- Auth ---
+  static const String loginRouteName = 'login';
+  static const String signupRouteName = 'signup';
+  static const String otpVerificationRouteName = 'otp';
+  static const String forgotPasswordRouteName = 'forgotPassword';
+
+  static const String verificationSuccessRouteName = 'success';
+
+  static const String resetPasswordRouteName = 'reset-password';
+
+  // --- Main App ---
+  static const String homeRouteName = 'home';
+  static const String createReportRouteName = 'createReport';
+  static const String myReportsRouteName = 'myReports';
+  static const String reportReviewRouteName = 'reportReviews';
+  static const String reportFailureRouteName = 'reportFailure';
+  static const String reportDetailsRouteName = 'reportDetails';
+  static const String searchReportsRouteName = 'searchReports';
+  static const String draftsRouteName = 'drafts';
+  static const String mapRouteName = 'map';
+  static const String notificationsRouteName = 'notifications';
+  static const String profileRouteName = 'profile';
+  static const String editProfileRouteName = 'editProfile';
+  
+  // --- Settings ---
+  static const String settingsRouteName = 'settings';
+  static const String accountSecurityRouteName = 'accountSecurity';
+  static const String notificationsSettingsRouteName = 'notificationsSettings';
+  static const String languageSettingsRouteName = 'languageSettings';
+  static const String aboutRouteName = 'about';
+  static const String appSettingsRouteName = 'appSettings';
+  static const String privacyRouteName = 'privacy';
+  static const String supportHelpRouteName = 'supportHelp';
+  static const String changePasswordRouteName = 'changePassword';
+  static const String faqRouteName = 'faq';
+
 }

@@ -16,6 +16,10 @@
   -->
   <base href="$FLUTTER_BASE_HREF">
 
+  <!-- ✅ Google Maps API Script (Must be loaded first) -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCX5eMyxP8zCH-4igkrv2aQwJQRBh3l0Z8&v=3.exp&libraries=geometry,places"></script>
+
+
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
@@ -31,6 +35,9 @@
 
   <title>city_fix_app</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Main Flutter script -->
+  <!-- <script src="main.dart.js" type="application/javascript"></script> -->
 </head>
 <body>
   <!--
@@ -42,5 +49,15 @@
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
   <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // Check if Google Maps is loaded
+    window.addEventListener('load', function() {
+      if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+        console.error('Google Maps failed to load');
+      } else {
+        console.log('Google Maps loaded successfully');
+      }
+    });
+  </script>
 </body>
 </html>

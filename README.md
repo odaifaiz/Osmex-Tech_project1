@@ -56,7 +56,7 @@ Citizens can submit reports, attach images, and specify the location of the issu
 
 # 📂 Project Structure
 
-sawtak_app/
+city_fix_app/
 │
 ├── 📄 pubspec.yaml                   
 ├── 📄 analysis_options.yaml        
