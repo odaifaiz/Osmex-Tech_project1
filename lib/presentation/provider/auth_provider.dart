@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../../data/services/auth_service.dart';
+import '../../data/repositories/auth_repository_impl.dart';
+import '../../domain/entities/user.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final AuthService _authService = AuthService();
+  final AuthRepositoryImpl _authRepository = AuthRepositoryImpl();
   User? _user;
   bool _isLoading = false;
+  String? _errorMessage;
 
   User? get user => _user;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _user != null;
+  String? get errorMessage => _errorMessage;
 
   AuthProvider() {
-    _authService.user.listen((User? user) {
+    _authRepository.user.listen((User? user) {
       _user = user;
       notifyListeners();
     });
@@ -20,39 +22,71 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> login(String email, String password) async {
     _setLoading(true);
+    _errorMessage = null;
     try {
-      final user = await _authService.signInWithEmail(email, password);
+      final user = await _authRepository.login(email, password);
       _setLoading(false);
       return user != null;
     } catch (e) {
+      _errorMessage = '$e';
       _setLoading(false);
       return false;
     }
   }
 
-  Future<bool> signup(String email, String password) async {
+  Future<bool> signup(
+    String email,
+    String password, {
+    String? displayName,
+    String? phoneNumber,
+  }) async {
     _setLoading(true);
+    _errorMessage = null;
     try {
-      final user = await _authService.signUpWithEmail(email, password);
+      final user = await _authRepository.register(
+        email,
+        password,
+        displayName: displayName,
+        phoneNumber: phoneNumber,
+      );
       _setLoading(false);
       return user != null;
     } catch (e) {
+      _errorMessage = '$e';
       _setLoading(false);
       return false;
     }
   }
 
-  Future<void> signInWithGoogle() async {
+  Future<bool> signInWithGoogle() async {
     _setLoading(true);
+    _errorMessage = null;
     try {
-      await _authService.signInWithGoogle();
-    } finally {
+      final user = await _authRepository.signInWithGoogle();
       _setLoading(false);
+      return user != null;
+    } catch (e) {
+      _errorMessage = '$e';
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<void> resetPassword(String email) async {
+    _setLoading(true);
+    _errorMessage = null;
+    try {
+      await _authRepository.resetPassword(email);
+      _setLoading(false);
+    } catch (e) {
+      _errorMessage = '$e';
+      _setLoading(false);
+      rethrow;
     }
   }
 
   Future<void> logout() async {
-    await _authService.signOut();
+    await _authRepository.logout();
   }
 
   void _setLoading(bool loading) {

@@ -30,10 +30,8 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       return _convertToUser(result.user);
     } on firebase_auth.FirebaseAuthException catch (e) {
-      print('Login error: ${e.message}');
       throw _getErrorMessage(e);
-    } catch (e) {
-      print('Login error: $e');
+    } catch (_) {
       throw 'حدث خطأ غير متوقع';
     }
   }
@@ -72,10 +70,8 @@ class AuthRepositoryImpl implements AuthRepository {
       
       return user;
     } on firebase_auth.FirebaseAuthException catch (e) {
-      print('Register error: ${e.message}');
       throw _getErrorMessage(e);
-    } catch (e) {
-      print('Register error: $e');
+    } catch (_) {
       throw 'حدث خطأ غير متوقع';
     }
   }
@@ -114,8 +110,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       
       return user;
-    } catch (e) {
-      print('Google sign in error: $e');
+    } catch (_) {
       throw 'حدث خطأ في تسجيل الدخول بجوجل';
     }
   }
@@ -131,10 +126,8 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } on firebase_auth.FirebaseAuthException catch (e) {
-      print('Reset password error: ${e.message}');
       throw _getErrorMessage(e);
-    } catch (e) {
-      print('Reset password error: $e');
+    } catch (_) {
       throw 'حدث خطأ غير متوقع';
     }
   }

@@ -12,6 +12,7 @@ import '../../widgets/forms/password_strength_indicator.dart';
 import '../../widgets/forms/terms_checkbox.dart';
 import 'otp_verification_screen.dart';
 import '../../../data/repositories/auth_repository_impl.dart';
+import '../../../core/utils/snackbar_mixin.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -21,7 +22,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, SnackBarMixin {
   
   final _formKey = GlobalKey<FormState>();
 
@@ -75,29 +76,11 @@ class _RegisterScreenState extends State<RegisterScreen>
     super.dispose();
   }
 
-  void _showSnackBar(String message, {bool isError = false}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          textDirection: TextDirection.rtl,
-          textAlign: TextAlign.center,
-        ),
-        backgroundColor: isError ? Colors.red : Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
-  }
-
   void _onRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (!_termsAccepted) {
-      _showSnackBar('يرجى الموافقة على الشروط والأحكام', isError: true);
+      showAppSnackBar('يرجى الموافقة على الشروط والأحكام', isError: true);
       return;
     }
 
@@ -117,7 +100,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       );
       if (!mounted) return;
       if (user != null) {
-        _showSnackBar('تم إنشاء الحساب بنجاح');
+        showAppSnackBar('تم إنشاء الحساب بنجاح');
         Navigator.of(context).push(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
@@ -140,7 +123,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       }
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar('$e', isError: true);
+      showAppSnackBar('$e', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -152,13 +135,13 @@ class _RegisterScreenState extends State<RegisterScreen>
       final user = await _authRepository.signInWithGoogle();
       if (!mounted) return;
       if (user != null) {
-        _showSnackBar('تم التسجيل بجوجل بنجاح');
+        showAppSnackBar('تم التسجيل بجوجل بنجاح');
         // TODO: الانتقال إلى الشاشة الرئيسية عندما تكون جاهزة
         // context.go('/home');
       }
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar('$e', isError: true);
+      showAppSnackBar('$e', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

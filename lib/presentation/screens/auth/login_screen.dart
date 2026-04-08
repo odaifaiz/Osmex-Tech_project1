@@ -9,6 +9,7 @@ import '../../widgets/common/or_divider.dart';
 import '../../widgets/common/app_text_field.dart';
 import 'signup_screen.dart';
 import '../../../data/repositories/auth_repository_impl.dart';
+import '../../../core/utils/snackbar_mixin.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,7 +19,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, SnackBarMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -62,24 +63,6 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  void _showSnackBar(String message, {bool isError = false}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          textDirection: TextDirection.rtl,
-          textAlign: TextAlign.center,
-        ),
-        backgroundColor: isError ? Colors.red : Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
-  }
-
   void _onLogin() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
@@ -90,13 +73,13 @@ class _LoginScreenState extends State<LoginScreen>
       );
       if (!mounted) return;
       if (user != null) {
-        _showSnackBar('تم تسجيل الدخول بنجاح');
+        showAppSnackBar('تم تسجيل الدخول بنجاح');
         // TODO: الانتقال إلى الشاشة الرئيسية عندما تكون جاهزة
         // context.go('/home');
       }
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar('$e', isError: true);
+      showAppSnackBar('$e', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -108,13 +91,13 @@ class _LoginScreenState extends State<LoginScreen>
       final user = await _authRepository.signInWithGoogle();
       if (!mounted) return;
       if (user != null) {
-        _showSnackBar('تم تسجيل الدخول بجوجل بنجاح');
+        showAppSnackBar('تم تسجيل الدخول بجوجل بنجاح');
         // TODO: الانتقال إلى الشاشة الرئيسية عندما تكون جاهزة
         // context.go('/home');
       }
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar('$e', isError: true);
+      showAppSnackBar('$e', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -184,14 +167,14 @@ class _LoginScreenState extends State<LoginScreen>
                               await _authRepository.resetPassword(email);
                               if (!dialogContext.mounted) return;
                               Navigator.pop(dialogContext);
-                              _showSnackBar(
+                              showAppSnackBar(
                                 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني',
                               );
                             } catch (e) {
                               setDialogState(() => isSending = false);
                               if (!dialogContext.mounted) return;
                               Navigator.pop(dialogContext);
-                              _showSnackBar('$e', isError: true);
+                              showAppSnackBar('$e', isError: true);
                             }
                           },
                     child: isSending

@@ -5,6 +5,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../widgets/common/app_button.dart';
+import '../../../data/repositories/auth_repository_impl.dart';
+import '../../../core/utils/snackbar_mixin.dart';
 
 
 class OtpVerificationScreen extends StatefulWidget {
@@ -21,7 +23,8 @@ const OtpVerificationScreen({
 }
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, SnackBarMixin {
+  final _authRepository = AuthRepositoryImpl();
  
   final List<TextEditingController> _controllers =
       List.generate(4, (_) => TextEditingController());
@@ -123,12 +126,34 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen>
     final otp = _controllers.map((c) => c.text).join();
     if (otp.length < 4) return;
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    if (mounted) setState(() => _isLoading = false);
+    try {
+      final isVerified = await _authRepository.isEmailVerified();
+      if (!mounted) return;
+      if (isVerified) {
+        showAppSnackBar('تم التحقق بنجاح');
+        // TODO: الانتقال إلى الشاشة الرئيسية
+        // context.go('/home');
+      } else {
+        showAppSnackBar('رمز التحقق غير صحيح، حاول مرة أخرى', isError: true);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar('$e', isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
-  void _onResend() {
+  void _onResend() async {
     if (!_canResend) return;
+    try {
+      await _authRepository.sendEmailVerification();
+      if (!mounted) return;
+      showAppSnackBar('تم إعادة إرسال رمز التحقق');
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar('حدث خطأ في إعادة الإرسال', isError: true);
+    }
     for (final c in _controllers) c.clear();
     _startCountdown();
     _focusNodes[0].requestFocus();
