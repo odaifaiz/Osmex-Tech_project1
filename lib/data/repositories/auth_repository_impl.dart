@@ -39,22 +39,31 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<User?> register(String email, String password) async {
+  Future<User?> register(String email, String password, {
+    String? displayName,
+    String? phoneNumber,
+  }) async {
     try {
       final result = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      // تحديث اسم المستخدم في Firebase Auth
+      if (displayName != null && displayName.isNotEmpty) {
+        await result.user?.updateDisplayName(displayName);
+        await result.user?.reload();
+      }
       
-      final user = _convertToUser(result.user);
+      final user = _convertToUser(_auth.currentUser);
       
-      // حفظ المستخدم في Firestore
+      // حفظ المستخدم في Firestore مع جميع البيانات
       if (user != null) {
         final userModel = UserModel(
           id: user.id,
           email: user.email,
-          displayName: user.displayName,
-          phoneNumber: user.phoneNumber,
+          displayName: displayName ?? user.displayName,
+          phoneNumber: phoneNumber ?? user.phoneNumber,
           photoURL: user.photoURL,
           createdAt: DateTime.now(),
         );

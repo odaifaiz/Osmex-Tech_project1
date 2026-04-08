@@ -11,7 +11,8 @@ import '../../widgets/common/app_text_field.dart';
 import '../../widgets/forms/password_strength_indicator.dart';
 import '../../widgets/forms/terms_checkbox.dart';
 import 'otp_verification_screen.dart';
-import '../../../data/services/auth_service.dart'; 
+import '../../../data/repositories/auth_repository_impl.dart';
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -30,7 +31,7 @@ class _RegisterScreenState extends State<RegisterScreen>
   final _phoneCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmPasswordCtrl = TextEditingController();
-  final AuthService _authService = AuthService();
+  final _authRepository = AuthRepositoryImpl();
 
   bool _termsAccepted = false;
   bool _isLoading = false;
@@ -74,107 +75,90 @@ class _RegisterScreenState extends State<RegisterScreen>
     super.dispose();
   }
 
-  
-  void _onRegister() async {
-  if (!_formKey.currentState!.validate()) return;
-
- 
-  if (!_termsAccepted) {
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text(
-          'يرجى الموافقة على الشروط والأحكام',
+        content: Text(
+          message,
           textDirection: TextDirection.rtl,
           textAlign: TextAlign.center,
         ),
-        backgroundColor: AppColors.primary,
+        backgroundColor: isError ? Colors.red : Colors.green,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
       ),
     );
-    return;
   }
 
-  setState(() => _isLoading = true);
-  try {
-    final user = await _authService.signUpWithEmail(
-      _emailCtrl.text.trim(),
-      _passwordCtrl.text,
-    );
-    if (!mounted) return;
-    if (user != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم إنشاء الحساب بنجاح',
-              textDirection: TextDirection.rtl),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Navigator.of(context).push(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              OtpVerificationScreen(email: _emailCtrl.text.trim()),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0);
-            const end = Offset.zero;
-            const curve = Curves.easeOutCubic;
-            final tween = Tween(begin: begin, end: end)
-                .chain(CurveTween(curve: curve));
-            return SlideTransition(
-              position: animation.drive(tween),
-              child: child,
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 400),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('فشل إنشاء الحساب',
-              textDirection: TextDirection.rtl),
-          backgroundColor: Colors.red,
-        ),
-      );
+  void _onRegister() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (!_termsAccepted) {
+      _showSnackBar('يرجى الموافقة على الشروط والأحكام', isError: true);
+      return;
     }
-  } catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('خطأ: $e', textDirection: TextDirection.rtl),
-        backgroundColor: Colors.red,
-      ),
-    );
-  } finally {
-    if (mounted) setState(() => _isLoading = false);
-  }
-}
 
-  void _onGoogleSignUp() async {
     setState(() => _isLoading = true);
     try {
-      final user = await _authService.signInWithGoogle();
+      // دمج الاسم الأول واسم العائلة كاسم عرض
+      final displayName =
+          '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}'.trim();
+
+      final user = await _authRepository.register(
+        _emailCtrl.text.trim(),
+        _passwordCtrl.text,
+        displayName: displayName.isNotEmpty ? displayName : null,
+        phoneNumber: _phoneCtrl.text.trim().isNotEmpty
+            ? _phoneCtrl.text.trim()
+            : null,
+      );
       if (!mounted) return;
       if (user != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم التسجيل بجوجل بنجاح',
-                textDirection: TextDirection.rtl),
-            backgroundColor: Colors.green,
+        _showSnackBar('تم إنشاء الحساب بنجاح');
+        Navigator.of(context).push(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                OtpVerificationScreen(email: _emailCtrl.text.trim()),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.easeOutCubic;
+              final tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 400),
           ),
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('خطأ في التسجيل بجوجل: $e',
-              textDirection: TextDirection.rtl),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnackBar('$e', isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _onGoogleSignUp() async {
+    setState(() => _isLoading = true);
+    try {
+      final user = await _authRepository.signInWithGoogle();
+      if (!mounted) return;
+      if (user != null) {
+        _showSnackBar('تم التسجيل بجوجل بنجاح');
+        // TODO: الانتقال إلى الشاشة الرئيسية عندما تكون جاهزة
+        // context.go('/home');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('$e', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
