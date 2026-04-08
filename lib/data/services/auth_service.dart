@@ -37,8 +37,12 @@ class AuthService {
   Future<User?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        // User cancelled the sign-in flow
+        return null;
+      }
       final GoogleSignInAuthentication googleAuth = 
-          await googleUser!.authentication;
+          await googleUser.authentication;
       
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,

@@ -8,6 +8,7 @@ import '../../widgets/common/google_sign_in_button.dart';
 import '../../widgets/common/or_divider.dart';
 import '../../widgets/common/app_text_field.dart';
 import 'signup_screen.dart';
+import '../../../data/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
   bool _rememberMe = false;
   bool _isLoading = false;
 
@@ -63,12 +65,78 @@ class _LoginScreenState extends State<LoginScreen>
   void _onLogin() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    if (mounted) setState(() => _isLoading = false);
+    try {
+      final user = await _authService.signInWithEmail(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+      if (!mounted) return;
+      if (user != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم تسجيل الدخول بنجاح',
+                textDirection: TextDirection.rtl),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('فشل تسجيل الدخول، تحقق من البريد وكلمة المرور',
+                textDirection: TextDirection.rtl),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('خطأ: $e', textDirection: TextDirection.rtl),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
-  void _onGoogleSignIn() {}
-  void _onForgotPassword() {}
+  void _onGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final user = await _authService.signInWithGoogle();
+      if (!mounted) return;
+      if (user != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم تسجيل الدخول بجوجل بنجاح',
+                textDirection: TextDirection.rtl),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('خطأ في تسجيل الدخول بجوجل: $e',
+              textDirection: TextDirection.rtl),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+  void _onForgotPassword() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('سيتم إضافة استعادة كلمة المرور قريباً',
+            textDirection: TextDirection.rtl),
+        backgroundColor: AppColors.primary,
+      ),
+    );
+  }
   // في LoginScreen، عدّل هذا السطر:
 
 
