@@ -334,7 +334,7 @@ class _NameRow extends StatelessWidget {
           child: AppTextField(
             label: 'الاسم الاول',
             hint: 'احمد',
-            controller: lastNameCtrl,
+            controller: firstNameCtrl,
             keyboardType: TextInputType.name,
             textInputAction: TextInputAction.next,
             validator: (v) => (v == null || v.isEmpty)
@@ -348,7 +348,7 @@ class _NameRow extends StatelessWidget {
           child: AppTextField(
             label: 'اسم العائلة',
             hint: 'الشرعبي',
-            controller: firstNameCtrl,
+            controller: lastNameCtrl,
             keyboardType: TextInputType.name,
             textInputAction: TextInputAction.next,
             validator: (v) => (v == null || v.isEmpty)
