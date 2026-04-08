@@ -8,6 +8,7 @@ import '../../widgets/common/google_sign_in_button.dart';
 import '../../widgets/common/or_divider.dart';
 import '../../widgets/common/app_text_field.dart';
 import 'signup_screen.dart';
+import '../../../data/repositories/auth_repository_impl.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authRepository = AuthRepositoryImpl();
   bool _rememberMe = false;
   bool _isLoading = false;
 
@@ -60,20 +62,156 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          textDirection: TextDirection.rtl,
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
   void _onLogin() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    if (mounted) setState(() => _isLoading = false);
+    try {
+      final user = await _authRepository.login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+      if (!mounted) return;
+      if (user != null) {
+        _showSnackBar('تم تسجيل الدخول بنجاح');
+        // TODO: الانتقال إلى الشاشة الرئيسية عندما تكون جاهزة
+        // context.go('/home');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('$e', isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
-  void _onGoogleSignIn() {}
-  void _onForgotPassword() {}
-  // في LoginScreen، عدّل هذا السطر:
+  void _onGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final user = await _authRepository.signInWithGoogle();
+      if (!mounted) return;
+      if (user != null) {
+        _showSnackBar('تم تسجيل الدخول بجوجل بنجاح');
+        // TODO: الانتقال إلى الشاشة الرئيسية عندما تكون جاهزة
+        // context.go('/home');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('$e', isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
+  void _onForgotPassword() {
+    final resetEmailController = TextEditingController(
+      text: _emailController.text.trim(),
+    );
 
-// إلى هذا:
-void _onCreateAccount() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        bool isSending = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: AlertDialog(
+                backgroundColor: AppColors.backgroundCard,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                title: const Text(
+                  'استعادة كلمة المرور',
+                  style: TextStyle(color: AppColors.textPrimary),
+                  textAlign: TextAlign.center,
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور',
+                      style: TextStyle(color: AppColors.textSecondary),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: resetEmailController,
+                      keyboardType: TextInputType.emailAddress,
+                      textDirection: TextDirection.ltr,
+                      decoration: InputDecoration(
+                        hintText: 'name@example.com',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        prefixIcon: const Icon(Icons.mail_outline_rounded),
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('إلغاء'),
+                  ),
+                  TextButton(
+                    onPressed: isSending
+                        ? null
+                        : () async {
+                            final email = resetEmailController.text.trim();
+                            if (email.isEmpty || !email.contains('@')) {
+                              return;
+                            }
+                            setDialogState(() => isSending = true);
+                            try {
+                              await _authRepository.resetPassword(email);
+                              if (!dialogContext.mounted) return;
+                              Navigator.pop(dialogContext);
+                              _showSnackBar(
+                                'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني',
+                              );
+                            } catch (e) {
+                              setDialogState(() => isSending = false);
+                              if (!dialogContext.mounted) return;
+                              Navigator.pop(dialogContext);
+                              _showSnackBar('$e', isError: true);
+                            }
+                          },
+                    child: isSending
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('إرسال'),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _onCreateAccount() {
   Navigator.of(context).push(
     PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>

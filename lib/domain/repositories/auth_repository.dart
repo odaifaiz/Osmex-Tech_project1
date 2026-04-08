@@ -11,7 +11,10 @@ abstract class AuthRepository {
   Future<User?> login(String email, String password);
   
   // إنشاء حساب جديد
-  Future<User?> register(String email, String password);
+  Future<User?> register(String email, String password, {
+    String? displayName,
+    String? phoneNumber,
+  });
   
   // تسجيل الدخول بجوجل
   Future<User?> signInWithGoogle();

@@ -10,7 +10,9 @@ import '../../widgets/common/or_divider.dart';
 import '../../widgets/common/app_text_field.dart';
 import '../../widgets/forms/password_strength_indicator.dart';
 import '../../widgets/forms/terms_checkbox.dart';
-import 'otp_verification_screen.dart'; 
+import 'otp_verification_screen.dart';
+import '../../../data/repositories/auth_repository_impl.dart';
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -29,6 +31,7 @@ class _RegisterScreenState extends State<RegisterScreen>
   final _phoneCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmPasswordCtrl = TextEditingController();
+  final _authRepository = AuthRepositoryImpl();
 
   bool _termsAccepted = false;
   bool _isLoading = false;
@@ -72,61 +75,100 @@ class _RegisterScreenState extends State<RegisterScreen>
     super.dispose();
   }
 
-  
-  void _onRegister() async {
-  if (!_formKey.currentState!.validate()) return;
-
- 
-  if (!_termsAccepted) {
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text(
-          'يرجى الموافقة على الشروط والأحكام',
+        content: Text(
+          message,
           textDirection: TextDirection.rtl,
           textAlign: TextAlign.center,
         ),
-        backgroundColor: AppColors.primary,
+        backgroundColor: isError ? Colors.red : Colors.green,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
       ),
     );
-    return;
   }
 
-  setState(() => _isLoading = true);
-  await Future.delayed(const Duration(seconds: 2));
+  void _onRegister() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  if (!mounted) return;
-  setState(() => _isLoading = false);
+    if (!_termsAccepted) {
+      _showSnackBar('يرجى الموافقة على الشروط والأحكام', isError: true);
+      return;
+    }
 
-  Navigator.of(context).push(
-    PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) =>
-        
-          OtpVerificationScreen(email: _emailCtrl.text.trim()),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(1.0, 0.0);
-        const end = Offset.zero;
-        const curve = Curves.easeOutCubic;
-        final tween = Tween(begin: begin, end: end)
-            .chain(CurveTween(curve: curve));
-        return SlideTransition(
-          position: animation.drive(tween),
-          child: child,
+    setState(() => _isLoading = true);
+    try {
+      // دمج الاسم الأول واسم العائلة كاسم عرض
+      final displayName =
+          '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}'.trim();
+
+      final user = await _authRepository.register(
+        _emailCtrl.text.trim(),
+        _passwordCtrl.text,
+        displayName: displayName.isNotEmpty ? displayName : null,
+        phoneNumber: _phoneCtrl.text.trim().isNotEmpty
+            ? _phoneCtrl.text.trim()
+            : null,
+      );
+      if (!mounted) return;
+      if (user != null) {
+        _showSnackBar('تم إنشاء الحساب بنجاح');
+        Navigator.of(context).push(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                OtpVerificationScreen(email: _emailCtrl.text.trim()),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.easeOutCubic;
+              final tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 400),
+          ),
         );
-      },
-      transitionDuration: const Duration(milliseconds: 400),
-    ),
-  );
-}
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('$e', isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
-  void _onGoogleSignUp() {}
+  void _onGoogleSignUp() async {
+    setState(() => _isLoading = true);
+    try {
+      final user = await _authRepository.signInWithGoogle();
+      if (!mounted) return;
+      if (user != null) {
+        _showSnackBar('تم التسجيل بجوجل بنجاح');
+        // TODO: الانتقال إلى الشاشة الرئيسية عندما تكون جاهزة
+        // context.go('/home');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('$e', isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   void _onBack() => Navigator.of(context).maybePop();
 
-  void _onLogin() {}
+  void _onLogin() {
+    Navigator.of(context).maybePop();
+  }
 
   
   @override
