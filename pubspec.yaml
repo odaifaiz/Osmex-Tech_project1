@@ -17,6 +17,7 @@ dependencies:
 
   # 1. State Management (تم اختيار Riverpod كحل أساسي)
   flutter_riverpod: ^2.5.1 # تحديث للإصدار الأخير المستقر
+  supabase_flutter: ^2.8.0      # Supabase SDK لـ Flutter
 
   # 2. Network
   dio: ^5.4.3+1 # تحديث للإصدار الأخير
@@ -27,11 +28,11 @@ dependencies:
   # 4. Maps & Location (ملاحظة: تحتاج لإعداد خاص للويب)
   google_maps_flutter: ^2.6.1
   google_maps_flutter_web: ^0.5.5 # حزمة ضرورية لتشغيل خرائط جوجل على الويب
-  geolocator: ^11.0.0 # تحديث للإصدار الأخير
+  geolocator: ^13.0.1 # تحديث للإصدار الأخير
   geocoding: ^3.0.0 # تحديث للإصدار الأخير
   
   # 5. Images
-  image_picker: ^1.1.1 # تحديث للإصدار الأخير
+  image_picker: ^1.1.2 # تحديث للإصدار الأخير
   cached_network_image: ^3.3.1 # تحديث للإصدار الأخير
   flutter_svg: ^2.0.10+1 # تحديث للإصدار الأخير
   
@@ -40,6 +41,14 @@ dependencies:
   flutter_rating_bar: ^4.0.1
   shimmer: ^3.0.0
   lottie: ^3.1.2 # تحديث للإصدار الأخير
+
+  google_sign_in: ^6.2.1
+  provider: ^6.1.5+1
+  get_it: ^7.7.0  
+  equatable: ^2.0.5
+  google_sign_in_web: ^0.12.4+4
+  crypto: ^3.0.3
+  flutter_dotenv: ^5.1.0 # أو أحدث إصدار
   
   # 7. Utilities
   intl: ^0.20.2 # تحديث لإصدار متوافق وحديث
