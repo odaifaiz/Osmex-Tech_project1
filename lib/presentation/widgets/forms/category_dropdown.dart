@@ -5,8 +5,8 @@ import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 
 class CategoryDropdown extends StatelessWidget {
-  final String? selectedValue;
-  final List<String> items;
+  final String? selectedValue; // This should be the Category ID
+  final List<Map<String, String>> items; // List of {'id': ..., 'name': ...}
   final String hintText;
   final void Function(String?)? onChanged;
 
@@ -21,7 +21,7 @@ class CategoryDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      initialValue: selectedValue,
+      value: selectedValue,
       hint: Text(hintText, style: AppTypography.body2.copyWith(color: AppColors.textHint)),
       isExpanded: true,
       onChanged: onChanged,
@@ -29,13 +29,13 @@ class CategoryDropdown extends StatelessWidget {
       style: AppTypography.body1,
       dropdownColor: AppColors.backgroundCard,
       decoration: const InputDecoration(
-        // Using the theme's default input decoration
         prefixIcon: Icon(Icons.category_outlined, color: AppColors.iconDefault),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
-      items: items.map<DropdownMenuItem<String>>((String value) {
+      items: items.map<DropdownMenuItem<String>>((Map<String, String> item) {
         return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
+          value: item['id'],
+          child: Text(item['name'] ?? ''),
         );
       }).toList(),
     );

@@ -65,7 +65,7 @@ class _AppTextFieldState extends State<AppTextField> {
         boxShadow: _isFocused // Apply shadow only when the field is focused
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.25), // Glow color
+                  color: AppColors.primary.withOpacity(0.25), // Glow color
                   blurRadius: 12.0,
                   spreadRadius: 2.0,
                 ),

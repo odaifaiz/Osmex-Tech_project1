@@ -12,7 +12,7 @@ class OtpInputField extends StatefulWidget {
 
   const OtpInputField({
     super.key,
-    this.fieldCount = 4,
+    this.fieldCount = 6,
     required this.onCompleted,
   });
 

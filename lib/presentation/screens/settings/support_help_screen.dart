@@ -142,7 +142,7 @@ class SupportHelpScreen extends StatelessWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppDimensions.radiusM),
               ),
               child: Icon(icon, color: color, size: 28),

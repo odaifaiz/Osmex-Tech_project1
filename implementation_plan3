@@ -1,0 +1,34 @@
+# UI & Compilation Fix Plan
+
+We need to fix several critical issues introduced during the localization migration that are causing crashes and build failures.
+
+## User Review Required
+
+> [!CAUTION]
+> The current `HomeScreen` is likely crashing because `Expanded` is being used as a direct child of `Scaffold.body`. We will wrap it in a `Column` to restore the correct layout structure.
+
+## Proposed Changes
+
+### HomeScreen Fixes
+
+#### [MODIFY] [home_screen.dart](file:///c:/src/flutter_app/city_fix_app/Osmex-Tech_project_test/lib/presentation/screens/home/home_screen.dart)
+- **Fix Layout Crash**: Change `_buildFixedContent` to return a `Column` instead of `Expanded`.
+- **Fix Localization Scope**: Ensure `l10n` is passed to or correctly accessed within all helper methods (`_buildRecentReportsHeader`, `_buildEmptyReports`, etc.).
+- **Fix Method Parameters**: Update `_getStatusText` and `_formatDate` calls to pass the required `context`.
+- **Cleanup**: Ensure hardcoded Arabic strings in `_buildErrorReports` are localized.
+
+### MapScreen Fixes
+
+#### [MODIFY] [map_screen.dart](file:///c:/src/flutter_app/city_fix_app/Osmex-Tech_project_test/lib/presentation/screens/map/map_screen.dart)
+- **Verify Directionality**: Ensure all `PositionedDirectional` widgets are correctly implemented for RTL/LTR.
+- **Fix Helper Scope**: (Verification check) Ensure `context` is valid in all callbacks.
+
+## Verification Plan
+
+### Automated Tests
+- Build the app and verify no compilation errors.
+- Verify `flutter gen-l10n` still works.
+
+### Manual Verification
+- Open Home Screen: Ensure it loads without crashing.
+- Open Map Screen: Ensure markers and panels work in both AR and EN.

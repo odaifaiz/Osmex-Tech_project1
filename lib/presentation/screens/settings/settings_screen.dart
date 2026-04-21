@@ -1,4 +1,4 @@
-// lib/presentation/screens/settings/settings_screen.dart (مع BottomNavigationBar)
+// lib/presentation/screens/settings/settings_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +7,7 @@ import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/widgets/common/app_bottom_nav.dart';
+import 'package:city_fix_app/l10n/app_localizations.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -16,28 +17,29 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final int _currentTabIndex = 3; // تبويب الإعدادات (الرابع)
+  final int _currentTabIndex = 3;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
       appBar: AppBar(
         title: Text(
-          'الإعدادات',
+          l10n.settings,
           style: AppTypography.headline3.copyWith(fontSize: 18),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        automaticallyImplyLeading: false, // ✅ إزالة سهم العودة
+        automaticallyImplyLeading: false,
       ),
       body: ListView(
         padding: const EdgeInsets.all(AppDimensions.spacingL),
         children: [
-          // 1. الحساب والأمان
+          // 1. Account Security
           _buildSettingsCard(
-            title: 'الحساب والأمان',
+            title: l10n.accountSecurity,
             icon: Icons.person_outline,
             onTap: () {
               context.pushNamed(RouteConstants.accountSecurityRouteName);
@@ -45,19 +47,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: AppDimensions.spacingM),
 
-          // 2. التنبيهات
+          // 2. Notifications
           _buildSettingsCard(
-            title: 'التنبيهات',
-            icon: Icons.notifications,
+            title: l10n.notifications,
+            icon: Icons.notifications_none_outlined,
             onTap: () {
               context.pushNamed(RouteConstants.notificationsSettingsRouteName);
             },
           ),
           const SizedBox(height: AppDimensions.spacingM),
 
-          // 3. إعدادات التطبيق
+          // 3. App Settings
           _buildSettingsCard(
-            title: 'إعدادات التطبيق',
+            title: l10n.appSettings,
             icon: Icons.settings_applications_outlined,
             onTap: () {
               context.pushNamed(RouteConstants.appSettingsRouteName);
@@ -65,9 +67,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: AppDimensions.spacingM),
 
-          // 4. الخصوصية
+          // 4. Privacy
           _buildSettingsCard(
-            title: 'الخصوصية',
+            title: l10n.privacy,
             icon: Icons.privacy_tip_outlined,
             onTap: () {
               context.pushNamed(RouteConstants.privacyRouteName);
@@ -75,9 +77,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: AppDimensions.spacingM),
 
-          // 5. الدعم والمساعدة
+          // 5. Support & Help
           _buildSettingsCard(
-            title: 'الدعم والمساعدة',
+            title: l10n.supportHelp,
             icon: Icons.support_agent_outlined,
             onTap: () {
               context.pushNamed(RouteConstants.supportHelpRouteName);
@@ -85,9 +87,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: AppDimensions.spacingM),
 
-          // 6. حول التطبيق
+          // 6. About App
           _buildSettingsCard(
-            title: 'حول التطبيق',
+            title: l10n.aboutApp,
             icon: Icons.info_outline,
             onTap: () {
               context.pushNamed(RouteConstants.aboutRouteName);
@@ -95,29 +97,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-      // ✅ إضافة الناف بار السفلي
       bottomNavigationBar: AppHomeBottomNav(
         currentIndex: _currentTabIndex,
         onTap: (index) {
           if (index == _currentTabIndex) return;
 
           switch (index) {
-            case 0: // الرئيسية
+            case 0:
               context.go('/${RouteConstants.homeRouteName}');
               break;
-            case 1: // بلاغاتي
+            case 1:
               context.pushNamed(RouteConstants.myReportsRouteName);
               break;
-            case 2: // الخريطة
+            case 2:
               context.pushNamed(RouteConstants.mapRouteName);
-              break;
-            case 3: // حسابي (الإعدادات)
-              // نحن هنا بالفعل
               break;
           }
         },
       ),
-      // ✅ إضافة الزر العائم (FAB)
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           context.pushNamed(RouteConstants.createReportRouteName);
@@ -135,15 +132,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required IconData icon,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppDimensions.radiusL),
       child: Container(
         padding: const EdgeInsets.all(AppDimensions.spacingM),
         decoration: BoxDecoration(
-          color: AppColors.backgroundCard,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-          border: Border.all(color: AppColors.borderDefault),
+          border: Border.all(color: theme.colorScheme.outline),
         ),
         child: Row(
           children: [
@@ -151,7 +149,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               width: 45,
               height: 45,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppDimensions.radiusM),
               ),
               child: Icon(icon, color: AppColors.primary, size: 24),

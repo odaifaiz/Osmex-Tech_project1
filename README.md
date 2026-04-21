@@ -124,8 +124,6 @@ city_fix_app/
 │   │   │   ├── 📄 user_model.dart
 │   │   │   ├── 📄 report_model.dart
 │   │   │   ├── 📄 notification_model.dart
-│   │   │   ├── 📄 stats_model.dart
-│   │   │   ├── 📄 badge_model.dart
 │   │   │   └── 📄 settings_model.dart
 │   │   │
 │   │   ├── 📁 repositories/

@@ -24,11 +24,23 @@
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
 
+  <!-- في ملف web/index.html، داخل قسم <head> -->
+  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+  <meta http-equiv="Cross-Origin-Embedder-Policy" content="credentialless">
+
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="city_fix_app">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <meta name="google-signin-client_id" content="749309119315-63vsrs6635m81kf80c10safoj6neafd0.apps.googleusercontent.com
+">
+
+
+ <!-- ✅ 2. Load Google Identity Services library -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
@@ -50,14 +62,33 @@
   -->
   <script src="flutter_bootstrap.js" async></script>
   <script>
-    // Check if Google Maps is loaded
-    window.addEventListener('load', function() {
-      if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
-        console.error('Google Maps failed to load');
-      } else {
-        console.log('Google Maps loaded successfully');
+    // ✅ Global callback for Google Sign-In
+    window.handleGoogleSignIn = function(response) {
+      if (response.credential) {
+        if (window.flutterWebGoogleSignIn) {
+          window.flutterWebGoogleSignIn(response.credential);
+        }
       }
-    });
+    };
+    
+    // ✅ Render Google Sign-In button
+    window.onload = function() {
+      if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+        google.accounts.id.initialize({
+          client_id: '749309119315-63vsrs6635m81kf80c10safoj6neafd0.apps.googleusercontent.com',
+          callback: window.handleGoogleSignIn,
+          ux_mode: 'redirect',  // ✅ تجنب مشكلة popup
+        });
+        google.accounts.id.renderButton(
+          document.getElementById('google-signin-button'),
+          { type: 'standard', theme: 'outline', size: 'large', text: 'signin_with' }
+        );
+      }
+    };
   </script>
+
+
+<!-- مكان زر Google Sign-In -->
+  <div id="google-signin-button" style="display: none;"></div>
 </body>
 </html>

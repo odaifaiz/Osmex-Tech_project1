@@ -101,14 +101,14 @@ class _SearchScreenState extends State<SearchScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A1A), // لون داكن جداً كما في الصورة الجديدة
         borderRadius: BorderRadius.circular(30), // حواف دائرية بالكامل (Capsule)
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
       ),
       child: TextField(
         controller: _searchController,
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+          hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
           prefixIcon: const Icon(Icons.search, color: AppColors.primary),
           suffixIcon: _searchController.text.isNotEmpty 
             ? IconButton(
@@ -182,10 +182,10 @@ class _SearchScreenState extends State<SearchScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: isAccent ? AppColors.primary.withValues(alpha: 0.15) : AppColors.backgroundCard,
+        color: isAccent ? AppColors.primary.withOpacity(0.15) : AppColors.backgroundCard,
         borderRadius: BorderRadius.circular(25),
         border: Border.all(
-          color: isAccent ? AppColors.primary.withValues(alpha: 0.5) : AppColors.borderDefault,
+          color: isAccent ? AppColors.primary.withOpacity(0.5) : AppColors.borderDefault,
         ),
       ),
       child: Row(

@@ -27,6 +27,7 @@ class RouteConstants {
   static const String reportReviewRouteName = 'reportReviews';
   static const String reportFailureRouteName = 'reportFailure';
   static const String reportDetailsRouteName = 'reportDetails';
+  static const String reportSuccessRouteName = 'reportSuccess';
   static const String searchReportsRouteName = 'searchReports';
   static const String draftsRouteName = 'drafts';
   static const String mapRouteName = 'map';

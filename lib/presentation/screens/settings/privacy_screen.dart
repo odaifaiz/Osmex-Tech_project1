@@ -1,36 +1,26 @@
 // lib/presentation/screens/settings/privacy_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
+import 'package:city_fix_app/presentation/provider/app_settings_provider.dart';
 
-class PrivacyScreen extends StatefulWidget {
+class PrivacyScreen extends ConsumerWidget {
   const PrivacyScreen({super.key});
 
   @override
-  State<PrivacyScreen> createState() => _PrivacyScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(appSettingsProvider);
+    final notifier = ref.read(appSettingsProvider.notifier);
+    final theme = Theme.of(context);
 
-class _PrivacyScreenState extends State<PrivacyScreen> {
-  bool _hideIdentity = false;
-  bool _preciseLocation = true;
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
       appBar: AppBar(
-        title: Text(
-          'الخصوصية',
-          style: AppTypography.headline3.copyWith(fontSize: 18),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        title: const Text('الخصوصية'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_back_ios_new),
           onPressed: () => context.pop(),
         ),
       ),
@@ -39,56 +29,58 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
         children: [
           // إخفاء الهوية
           _buildSwitchItem(
+            context,
             title: 'إخفاء الهوية',
             subtitle: 'جعل بلاغاتك تظهر بدون اسمك',
             icon: Icons.visibility_off_outlined,
-            value: _hideIdentity,
-            onChanged: (val) => setState(() => _hideIdentity = val),
+            value: settings.hideIdentity,
+            onChanged: (val) => notifier.updateSetting('hideIdentity', val),
           ),
-          const Divider(color: AppColors.borderDefault, height: 32),
+          const Divider(height: 32),
 
           // الموقع الدقيق
           _buildSwitchItem(
+            context,
             title: 'الموقع الدقيق',
             subtitle: 'تفعيل دقة الـ GPS لتحديد موقعك بدقة',
             icon: Icons.location_on_outlined,
-            value: _preciseLocation,
-            onChanged: (val) => setState(() => _preciseLocation = val),
+            value: settings.preciseLocation,
+            onChanged: (val) => notifier.updateSetting('preciseLocation', val),
           ),
-          const Divider(color: AppColors.borderDefault, height: 32),
+          const Divider(height: 32),
 
           // بيانات الاستخدام
           _buildMenuItem(
+            context,
             title: 'بيانات الاستخدام',
             subtitle: 'كيفية معالجة بياناتك',
             icon: Icons.analytics_outlined,
-            onTap: () {
-              _showUsageDataDialog();
-            },
+            onTap: () => _showUsageDataDialog(context),
           ),
-          const Divider(color: AppColors.borderDefault, height: 32),
+          const Divider(height: 32),
 
           // سياسة الخصوصية والشروط
           _buildMenuItem(
+            context,
             title: 'سياسة الخصوصية والشروط',
             subtitle: 'المستندات القانونية للتطبيق',
             icon: Icons.description_outlined,
-            onTap: () {
-              _showPrivacyPolicyDialog();
-            },
+            onTap: () => _showPrivacyPolicyDialog(context),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSwitchItem({
+  Widget _buildSwitchItem(
+    BuildContext context, {
     required String title,
     required String subtitle,
     required IconData icon,
     required bool value,
     required Function(bool) onChanged,
   }) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingM),
       child: Row(
@@ -97,44 +89,36 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.backgroundInput,
+              color: theme.colorScheme.surfaceVariant,
               borderRadius: BorderRadius.circular(AppDimensions.radiusM),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 22),
+            child: Icon(icon, color: theme.colorScheme.primary, size: 22),
           ),
           const SizedBox(width: AppDimensions.spacingM),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: AppTypography.body1.copyWith(fontWeight: FontWeight.w500),
-                ),
+                Text(title, style: AppTypography.body1.copyWith(fontWeight: FontWeight.w500)),
                 const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
-                ),
+                Text(subtitle, style: AppTypography.caption.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               ],
             ),
           ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: AppColors.primary,
-          ),
+          Switch(value: value, onChanged: onChanged),
         ],
       ),
     );
   }
 
-  Widget _buildMenuItem({
+  Widget _buildMenuItem(
+    BuildContext context, {
     required String title,
     required String subtitle,
     required IconData icon,
     VoidCallback? onTap,
   }) {
+    final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppDimensions.radiusM),
@@ -146,85 +130,65 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.backgroundInput,
+                color: theme.colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(AppDimensions.radiusM),
               ),
-              child: Icon(icon, color: AppColors.primary, size: 22),
+              child: Icon(icon, color: theme.colorScheme.primary, size: 22),
             ),
             const SizedBox(width: AppDimensions.spacingM),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: AppTypography.body1.copyWith(fontWeight: FontWeight.w500),
-                  ),
+                  Text(title, style: AppTypography.body1.copyWith(fontWeight: FontWeight.w500)),
                   const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
-                  ),
+                  Text(subtitle, style: AppTypography.caption.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.iconDefault),
+            const Icon(Icons.arrow_forward_ios, size: 14),
           ],
         ),
       ),
     );
   }
 
-  void _showUsageDataDialog() {
+  void _showUsageDataDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.backgroundCard,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-        ),
-        title: Text('بيانات الاستخدام', style: AppTypography.headline3),
-        content: Text(
+        title: const Text('بيانات الاستخدام'),
+        content: const Text(
           'نحن نجمع بيانات الاستخدام لتحسين أداء التطبيق وتجربة المستخدم. '
-          'تشمل هذه البيانات: عدد البلاغات، وقت الاستخدام، والميزات المستخدمة. '
-          'لا يتم مشاركة هذه البيانات مع أطراف خارجية.',
-          style: AppTypography.body2,
+          'تشمل هذه البيانات: عدد البلاغات، وقت الاستخدام، والميزات المستخدمة.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('فهمت', style: AppTypography.link),
+            child: const Text('فهمت'),
           ),
         ],
       ),
     );
   }
 
-  void _showPrivacyPolicyDialog() {
+  void _showPrivacyPolicyDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.backgroundCard,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-        ),
-        title: Text('سياسة الخصوصية', style: AppTypography.headline3),
-        content: SingleChildScrollView(
+        title: const Text('سياسة الخصوصية'),
+        content: const SingleChildScrollView(
           child: Text(
             'الخصوصية والأمان هما أولويتنا.\n\n'
-            '1. جمع البيانات: نجمع فقط البيانات اللازمة لتقديم الخدمة.\n'
-            '2. استخدام البيانات: تستخدم بياناتك فقط لتحسين تجربتك.\n'
-            '3. مشاركة البيانات: لا نشارك بياناتك مع أطراف خارجية.\n'
-            '4. حماية البيانات: نستخدم أحدث تقنيات التشفير.\n'
-            '5. حقوق المستخدم: يمكنك طلب حذف بياناتك في أي وقت.\n\n'
-            'للمزيد من المعلومات، يرجى التواصل مع فريق الدعم.',
-            style: AppTypography.body2,
+            '1. جمع البيانات: نجمع فقط البيانات اللازمة.\n'
+            '2. استخدام البيانات: لتحسين تجربتك فقط.\n'
+            '3. مشاركة البيانات: لا نشاركها مع أطراف خارجية.',
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('إغلاق', style: AppTypography.link),
+            child: const Text('إغلاق'),
           ),
         ],
       ),

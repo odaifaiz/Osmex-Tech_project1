@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:city_fix_app/core/theme/app_colors.dart';
+import 'package:city_fix_app/l10n/app_localizations.dart';
 
 class AppHomeBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -15,28 +16,29 @@ class AppHomeBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return SizedBox(
       height: 90,
       child: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 10,
-        color: AppColors.backgroundCard,
+        color: Theme.of(context).colorScheme.surface,
         child: Row(
-          // ✅ IMPROVED: Using MainAxisAlignment.spaceBetween
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             // First item - Home
             _buildNavItem(
               context,
               icon: Icons.home_filled,
-              label: 'الرئيسية',
+              label: l10n.home,
               index: 0,
             ),
             // Second item - My Reports
             _buildNavItem(
               context,
               icon: Icons.assignment_outlined,
-              label: 'بلاغاتي',
+              label: l10n.myReports,
               index: 1,
             ),
             // Empty space for FAB
@@ -45,14 +47,14 @@ class AppHomeBottomNav extends StatelessWidget {
             _buildNavItem(
               context,
               icon: Icons.map_outlined,
-              label: 'الخريطة',
+              label: l10n.map,
               index: 2,
             ),
             // Fourth item - Profile
             _buildNavItem(
               context,
               icon: Icons.person_outline,
-              label: 'حسابي',
+              label: l10n.profile,
               index: 3,
             ),
           ],
@@ -69,8 +71,7 @@ class AppHomeBottomNav extends StatelessWidget {
   }) {
     final bool isSelected = currentIndex == index;
 
-    return SizedBox(
-      height: 52,
+    return Expanded(
       child: InkWell(
         onTap: () => onTap(index),
         borderRadius: BorderRadius.circular(12),
@@ -88,7 +89,7 @@ class AppHomeBottomNav extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontSize: 10,
                     height: 1,
-                    color: isSelected ? AppColors.primary : AppColors.iconDefault,
+                    color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
             ),
           ],

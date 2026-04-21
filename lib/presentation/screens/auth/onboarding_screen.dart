@@ -8,6 +8,8 @@ import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/widgets/common/app_button.dart';
 import 'package:city_fix_app/presentation/widgets/common/page_indicator.dart';
+import 'package:city_fix_app/presentation/provider/onboarding_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // A model to hold the data for each onboarding page
 class OnboardingItem {
@@ -18,14 +20,14 @@ class OnboardingItem {
   OnboardingItem({required this.icon, required this.title, required this.description});
 }
 
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // 1. REVERSE the data list to work correctly with reverse: true
   final List<OnboardingItem> _onboardingData = [
     OnboardingItem(
@@ -73,8 +75,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void _navigateToHome() {
-    context.goNamed(RouteConstants.homeRouteName);
+  void _navigateToHome() async {
+    // ✅ حفظ حالة "تمت المشاهدة" في التخزين المحلي
+    await ref.read(onboardingProvider.notifier).markAsSeen();
+    
+    if (mounted) {
+      context.goNamed(RouteConstants.loginRouteName); // Go to login, not home, because unauthenticated
+    }
   }
 
   @override
@@ -128,7 +135,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   TextButton(
                     onPressed: _navigateToHome,
-                    child: Text('تخطي', style: AppTypography.body1.copyWith(color: AppColors.textSecondary)),
+                    child: Text('تخطي', style: AppTypography.body1.copyWith(color: AppColors.textSecondaryLight)),
                   ),
                   const SizedBox(height: AppDimensions.spacingS),
                   AppButton(
@@ -147,50 +154,52 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   // --- THIS IS THE MISSING METHOD ---
   Widget _buildOnboardingPage(OnboardingItem item) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Icon with background and glow
-        Container(
-          width: 150,
-          height: 150,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.primary.withValues(alpha: 0.1),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                blurRadius: 40,
-                spreadRadius: 10,
-              )
-            ],
-          ),
-          child: Center(
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary,
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Icon with background and glow
+          Container(
+            width: 150,
+            height: 150,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.primary.withOpacity(0.1),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.1),
+                  blurRadius: 40,
+                  spreadRadius: 10,
+                )
+              ],
+            ),
+            child: Center(
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary,
+                ),
+                child: Icon(item.icon, color: Colors.white, size: 70),
               ),
-              child: Icon(item.icon, color: Colors.white, size: 70),
             ),
           ),
-        ),
-        const SizedBox(height: AppDimensions.spacingXXL * 2), // Extra large spacing
-
-        // Texts
-        Text(item.title, style: AppTypography.headline1),
-        const SizedBox(height: AppDimensions.spacingM),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingL),
-          child: Text(
-            item.description,
-            style: AppTypography.body1.copyWith(color: AppColors.textSecondary),
-            textAlign: TextAlign.center,
+          const SizedBox(height: AppDimensions.spacingXXL * 2), // Extra large spacing
+      
+          // Texts
+          Text(item.title, style: AppTypography.headline1),
+          const SizedBox(height: AppDimensions.spacingM),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingL),
+            child: Text(
+              item.description,
+              style: AppTypography.body1.copyWith(color: AppColors.textSecondaryLight),
+              textAlign: TextAlign.center,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

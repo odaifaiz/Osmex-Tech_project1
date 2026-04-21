@@ -29,7 +29,7 @@ class NotificationCard extends StatelessWidget {
         padding: const EdgeInsets.all(AppDimensions.paddingCard),
         decoration: BoxDecoration(
           color: isRead
-              ? AppColors.backgroundCard.withValues(alpha: 0.5)
+              ? AppColors.backgroundCard.withOpacity(0.5)
               : AppColors.backgroundCard,
           border: const Border(bottom: BorderSide(color: AppColors.divider, width: 0.5)),
         ),
@@ -38,7 +38,7 @@ class NotificationCard extends StatelessWidget {
           children: [
             // --- Icon ---
             CircleAvatar(
-              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+              backgroundColor: AppColors.primary.withOpacity(0.1),
               child: const Icon(Icons.notifications, color: AppColors.primary),
             ),
             const SizedBox(width: AppDimensions.spacingM),

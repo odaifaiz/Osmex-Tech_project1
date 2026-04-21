@@ -29,7 +29,7 @@ class KpiCard extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+            backgroundColor: AppColors.primary.withOpacity(0.15),
             child: Icon(icon, color: AppColors.primary, size: 28),
           ),
           const SizedBox(width: AppDimensions.spacingM),

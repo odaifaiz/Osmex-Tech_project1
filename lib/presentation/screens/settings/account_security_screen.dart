@@ -111,9 +111,9 @@ class AccountSecurityScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppDimensions.spacingM),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.05),
+              color: AppColors.primary.withOpacity(0.05),
               borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
             ),
             child: Row(
               children: [

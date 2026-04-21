@@ -1,0 +1,18 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.gradle.buildServer.enabled": "on",
+    "java.gradle.buildServer.openBuildOutput": "openOnBuildStart",
+    "gradle.javaDebug.cleanOutput": false,
+    "gradle.javaDebug": {
+
+
+        "tasks": [
+            "run",
+            "runBoot",
+            "test",
+            "intTest",
+            "integration"
+        ]
+    },
+    "dart.flutterCreateAndroidLanguage": "kotlin"
+}

@@ -38,7 +38,7 @@ class AboutScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.backgroundCard,
                 borderRadius: BorderRadius.circular(AppDimensions.radiusXL),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
               ),
               child: Image.asset(
                 AssetConstants.logo,
@@ -60,7 +60,7 @@ class AboutScreen extends StatelessWidget {
 
             // الشعار النصي
             Text(
-              'نصلح مدينتك معاً',
+              ' لمدينة اجمل.. ',
               style: AppTypography.body2.copyWith(color: AppColors.textSecondary),
             ),
             const SizedBox(height: AppDimensions.spacingXXL),
@@ -68,7 +68,7 @@ class AboutScreen extends StatelessWidget {
             // معلومات التطبيق
             _buildInfoRow(
               label: 'اسم التطبيق',
-              value: 'CityFix - نصلح مدينتك معاً',
+              value: 'CityFix - لمدينة اجملً',
             ),
             const Divider(color: AppColors.borderDefault, height: 32),
 
@@ -80,13 +80,13 @@ class AboutScreen extends StatelessWidget {
 
             _buildInfoRow(
               label: 'المطور',
-              value: 'وزارة الاتصالات',
+              value: 'OSMEX TECH ',
             ),
             const Divider(color: AppColors.borderDefault, height: 32),
 
             _buildInfoRow(
               label: 'تاريخ الإصدار',
-              value: '2024',
+              value: '2026',
             ),
             const SizedBox(height: AppDimensions.spacingXXL),
 
@@ -120,7 +120,7 @@ class AboutScreen extends StatelessWidget {
 
             // حقوق النشر
             Text(
-              '© 2024 CityFix. جميع الحقوق محفوظة',
+              '© 2026 CityFix. جميع الحقوق محفوظة',
               style: AppTypography.caption.copyWith(color: AppColors.textHint),
             ),
             const SizedBox(height: AppDimensions.spacingL),

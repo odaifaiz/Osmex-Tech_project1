@@ -42,7 +42,7 @@ class AppButton extends StatelessWidget {
         boxShadow: isPrimaryButton
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.35), // The glow color
+                  color: AppColors.primary.withOpacity(0.35), // The glow color
                   blurRadius: 16.0, // How soft the shadow is
                   spreadRadius: 1, // How far the shadow extends
                   offset: const Offset(0, 6), // Position of the shadow (slightly below)

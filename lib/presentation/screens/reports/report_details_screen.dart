@@ -1,249 +1,374 @@
+// lib/presentation/screens/reports/report_details_screen.dart
+
 import 'package:city_fix_app/core/constants/route_constants.dart';
+import 'package:city_fix_app/presentation/provider/report_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/screens/reports/rating_dialog.dart';
-import 'package:go_router/go_router.dart';
+import 'package:city_fix_app/domain/entities/report.dart';
+import 'package:city_fix_app/presentation/widgets/common/app_image_widget.dart';
+import 'package:city_fix_app/l10n/app_localizations.dart';
 
-class ReportDetailsScreen extends StatefulWidget {
+class ReportDetailsScreen extends ConsumerStatefulWidget {
   const ReportDetailsScreen({super.key});
 
   @override
-  State<ReportDetailsScreen> createState() => _ReportDetailsScreenState();
+  ConsumerState<ReportDetailsScreen> createState() => _ReportDetailsScreenState();
 }
 
-class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
+class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
   @override
   Widget build(BuildContext context) {
+    final reportId = GoRouterState.of(context).extra as String?;
+    final l10n = AppLocalizations.of(context)!;
+
+    if (reportId == null) {
+      return _buildErrorScreen(l10n.reportNotFound);
+    }
+
+    final reportAsync = ref.watch(reportDetailsProvider(reportId));
+
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: Text('تفاصيل البلاغ', style: AppTypography.headline3),
-        leading: IconButton(
+      appBar: _buildAppBar(context, l10n),
+      body: reportAsync.when(
+        data: (report) => _buildContent(report, l10n),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        error: (error, __) => _buildErrorScreen(error.toString()),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context, AppLocalizations l10n) {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      centerTitle: true,
+      title: Text(l10n.reportDetails, style: AppTypography.headline3),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+        onPressed: () => context.pop(),
+      ),
+      actions: [
+        IconButton(
           icon: const Icon(Icons.share_outlined, color: Colors.white),
           onPressed: () {},
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.arrow_forward, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Directionality(
-          textDirection: TextDirection.rtl,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. قسم الصورة مع نقاط التمرير (مثل الصورة تماماً)
-              _buildImageCarousel(),
-
-              Padding(
-                padding: const EdgeInsets.all(AppDimensions.spacingL),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 2. رقم البلاغ والتاغات
-                    _buildHeaderSection(),
-                    const SizedBox(height: 12),
-
-                    // 3. العنوان الرئيسي
-                    Text('عطل مفاجئ في إضاءة الطريق الرئيسي', 
-                      style: AppTypography.headline1.copyWith(fontSize: 20)),
-                    const SizedBox(height: 20),
-
-                    // 4. بطاقة الموقع (تصميم البطاقة المنفصلة)
-                    _buildLocationCard(),
-                    const SizedBox(height: 20),
-
-                    // 5. وصف البلاغ
-                    const Text('وصف البلاغ', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                    const SizedBox(height: 8),
-                    _buildDescriptionCard(),
-                    const SizedBox(height: 20),
-
-                    // 6. قسم التقييم (البطاقة الكبيرة داخل الصفحة)
-                    _buildRatingPromptCard(),
-                    const SizedBox(height: 30),
-
-                    // 7. مراحل التنفيذ (التايملاين)
-                    const Text('مراحل التنفيذ', style: TextStyle(color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 20),
-                    _buildTimeline(),
-                    
-                    const SizedBox(height: 40),
-                    
-                    // 8. الأزرار السفلية (نسخ ومشاركة)
-                    _buildBottomActions(),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImageCarousel() {
-    return Stack(
-      alignment: Alignment.bottomCenter,
-      children: [
-        Container(
-          height: 250,
-          width: double.infinity,
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFDE7B6),
-            borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-          ),
-          child: Center(child: Icon(Icons.image, size: 80, color: Colors.orange.withValues(alpha: 0.3))),
-        ),
-        Positioned(
-          bottom: 15,
-          child: Row(
-            children: List.generate(4, (index) => Container(
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              width: index == 2 ? 20 : 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: index == 2 ? AppColors.primary : Colors.white.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(10),
-              ),
-            )),
-          ),
-        ),
       ],
     );
   }
 
-  Widget _buildHeaderSection() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text('R-2024-001#', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 18)),
-        Row(
+  Widget _buildErrorScreen(String message) {
+    final l10n = AppLocalizations.of(context)!;
+    return Scaffold(
+      backgroundColor: AppColors.backgroundDark,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildStatusBadge('تم الحل', AppColors.primary),
-            const SizedBox(width: 8),
-            _buildStatusBadge('طارئة', Colors.red),
+            const Icon(Icons.error_outline, size: 60, color: AppColors.statusError),
+            const SizedBox(height: 16),
+            Text(message, style: AppTypography.body1),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => context.pop(),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              child: Text(l10n.back, style: const TextStyle(color: Colors.black)),
+            ),
           ],
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildStatusBadge(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
-    );
-  }
+  Widget _buildContent(Report report, AppLocalizations l10n) {
+    final statusText = _getStatusText(context, report.status);
+    final statusColor = _getStatusColor(report.status);
+    final imageUrl = report.imageUrls?.isNotEmpty == true ? report.imageUrls!.first : '';
 
-  Widget _buildLocationCard() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundCard,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: AppColors.borderDefault.withValues(alpha: 0.5)),
-      ),
-      child: Row(
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CircleAvatar(backgroundColor: Color(0x1A1FD6A0), child: Icon(Icons.location_on, color: AppColors.primary, size: 20)),
-          const SizedBox(width: 12),
-          const Expanded(
+          // صورة البلاغ - Hybrid Support
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: AppImageWidget(
+              imageUrl: imageUrl,
+              height: 200,
+              width: double.infinity,
+              borderRadius: AppDimensions.radiusL,
+              fit: BoxFit.cover,
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.all(AppDimensions.spacingL),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('حي النرجس، الرياض', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                Text('شارع الملك عبدالعزيز، تقاطع 4', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                // رقم البلاغ والحالة
+                _buildHeaderSection(report, statusText, statusColor, l10n),
+                const SizedBox(height: 8),
+
+                // العنوان
+                Text(
+                  report.title,
+                  style: AppTypography.headline1.copyWith(fontSize: 22),
+                ),
+                const SizedBox(height: 16),
+
+                // بطاقة الموقع (عرض على الخريطة)
+                _buildLocationCard(report, l10n),
+                const SizedBox(height: 16),
+
+                // بطاقة وصف البلاغ
+                _buildDescriptionCard(report, l10n),
+                const SizedBox(height: 24),
+
+                // قسم التقييم
+                _buildRatingCard(l10n),
+                const SizedBox(height: 30),
+
+                // مراحل التنفيذ
+                _buildTimelineSection(report, l10n),
+                const SizedBox(height: 40),
+
+                // أزرار المشاركة ونسخ الرقم
+                _buildBottomActions(report, l10n),
+                const SizedBox(height: 20),
               ],
             ),
           ),
-          TextButton(onPressed: () {
-            context.pushNamed(RouteConstants.mapRouteName);
-          }, child: const Text('عرض على الخريطة', style: TextStyle(color: AppColors.primary, fontSize: 12))),
         ],
       ),
     );
   }
 
-  Widget _buildDescriptionCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundCard,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: const Text(
-        'تمت ملاحظة انقطاع كامل في التيار الكهربائي عن أعمدة الإنارة في الشارع الرئيسي لمسافة تزيد عن 500 متر، مما يسبب خطورة على حركة السير ليلاً.',
-        style: TextStyle(color: Colors.white, height: 1.6, fontSize: 13),
-      ),
-    );
-  }
-
-  Widget _buildRatingPromptCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        children: [
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('💡', style: TextStyle(fontSize: 20)),
-              SizedBox(width: 8),
-              Text('شاركنا رأيك لتحسين الخدمة', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(5, (index) => const Icon(Icons.star_outline, color: AppColors.textHint, size: 35)),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () => _showRatingDialog(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              minimumSize: const Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-            ),
-            child: const Text('حفظ التقييم', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimeline() {
-    return Column(
+  Widget _buildHeaderSection(Report report, String statusText, Color statusColor, AppLocalizations l10n) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildTimelineItem('تم إنشاء البلاغ', '12 أكتوبر 2024 - 09:30 ص', true),
-        _buildTimelineItem('تم استلام البلاغ', '12 أكتوبر 2024 - 10:15 ص', true),
-        _buildTimelineItem('تمت المعالجة', '12 أكتوبر 2024 - 04:45 م', true),
-        _buildTimelineItem('تم حل المشكلة', '13 أكتوبر 2024 - 08:00 ص', true),
-        _buildTimelineItem('إغلاق البلاغ', 'في انتظار المراجعة النهائية', false, isLast: true),
+        Text(
+          'R-${report.id.substring(0, 8)}',
+          style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: statusColor.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(statusText, style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w500)),
+        ),
       ],
     );
   }
 
-  Widget _buildTimelineItem(String title, String date, bool isDone, {bool isLast = false}) {
+  Widget _buildLocationCard(Report report, AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardDark,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.location_on, color: AppColors.primary, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        report.address.split('،').first,
+                        style: const TextStyle(
+                          color: Colors.white, 
+                          fontWeight: FontWeight.bold, 
+                          fontSize: 15
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  report.address,
+                  style: const TextStyle(color: AppColors.textSecondaryLight, fontSize: 12),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          
+          Container(
+            height: 40,
+            width: 1,
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            color: AppColors.borderLight,
+          ),
+
+          Expanded(
+            flex: 1,
+            child: InkWell(
+              onTap: () => context.pushNamed(RouteConstants.mapRouteName),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.map_outlined, color: AppColors.primary, size: 20),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.onMap,
+                    style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDescriptionCard(Report report, AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardDark,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.description_outlined, color: AppColors.primary, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                l10n.reportDescription,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            report.description,
+            style: const TextStyle(color: AppColors.textSecondaryLight, fontSize: 13, height: 1.4),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatingCard(AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardDark,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                 const Icon(Icons.star_outline, color: AppColors.primary, size: 22),
+                 const SizedBox(width: 8),
+                 Expanded(
+                  child: Text(
+                    l10n.ratingText,
+                    style: const TextStyle(
+                      color: Colors.white, 
+                      fontWeight: FontWeight.w500, 
+                      fontSize: 13
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => const RatingDialog(),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.black,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              minimumSize: const Size(80, 36), 
+            ),
+            child: Text(
+              l10n.rateNow, 
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimelineSection(Report report, AppLocalizations l10n) {
+    final List<Map<String, dynamic>> steps = [
+      {'title': l10n.timelineCreated, 'date': _formatDate(context, report.createdAt), 'completed': true},
+      {'title': l10n.timelineReceived, 'date': report.updatedAt != null ? _formatDate(context, report.updatedAt!) : l10n.pendingWait, 'completed': report.status != 'pending'},
+      {'title': l10n.timelineInProgress, 'date': report.updatedAt != null ? _formatDate(context, report.updatedAt!) : l10n.pendingWait, 'completed': report.status == 'in_progress' || report.status == 'resolved'},
+      {'title': l10n.timelineResolved, 'date': report.resolvedAt != null ? _formatDate(context, report.resolvedAt!) : l10n.pendingWait, 'completed': report.status == 'resolved' || report.status == 'closed'},
+      {'title': l10n.timelineClosed, 'date': report.status == 'closed' ? _formatDate(context, report.updatedAt!) : l10n.reviewWait, 'completed': report.status == 'closed'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.timeline, style: const TextStyle(color: AppColors.textSecondaryLight, fontSize: 14, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 16),
+        ...steps.asMap().entries.map((entry) {
+          final index = entry.key;
+          final step = entry.value;
+          final isLast = index == steps.length - 1;
+          return _buildTimelineItem(
+            title: step['title'],
+            date: step['date'],
+            isCompleted: step['completed'],
+            isLast: isLast,
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildTimelineItem({
+    required String title,
+    required String date,
+    required bool isCompleted,
+    bool isLast = false,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -253,23 +378,24 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: isDone ? AppColors.primary : AppColors.backgroundCard,
+                color: isCompleted ? AppColors.primary : AppColors.cardDark,
                 shape: BoxShape.circle,
-                border: Border.all(color: isDone ? AppColors.primary : AppColors.borderDefault),
+                border: Border.all(color: isCompleted ? AppColors.primary : AppColors.borderLight, width: 1.5),
               ),
-              child: Icon(isDone ? Icons.check : Icons.lock, size: 14, color: isDone ? Colors.black : AppColors.textHint),
+              child: Icon(isCompleted ? Icons.check : Icons.schedule, size: 12, color: isCompleted ? Colors.black : AppColors.textHint),
             ),
-            if (!isLast) Container(width: 2, height: 40, color: isDone ? AppColors.primary : AppColors.borderDefault),
+            if (!isLast) Container(width: 2, height: 45, color: isCompleted ? AppColors.primary : AppColors.borderLight),
           ],
         ),
-        const SizedBox(width: 15),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(color: isDone ? Colors.white : AppColors.textHint, fontWeight: FontWeight.bold, fontSize: 14)),
-              Text(date, style: const TextStyle(color: AppColors.textHint, fontSize: 11)),
-              const SizedBox(height: 20),
+              Text(title, style: TextStyle(color: isCompleted ? Colors.white : AppColors.textHint, fontWeight: FontWeight.w600, fontSize: 13)),
+              const SizedBox(height: 4),
+              Text(date, style: const TextStyle(color: AppColors.textHint, fontSize: 10)),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -277,31 +403,68 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
     );
   }
 
-  Widget _buildBottomActions() {
+  Widget _buildBottomActions(Report report, AppLocalizations l10n) {
     return Row(
       children: [
-        Expanded(child: _buildActionButton(Icons.share_outlined, 'مشاركة')),
-        const SizedBox(width: 15),
-        Expanded(child: _buildActionButton(Icons.copy_outlined, 'نسخ الرقم')),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.share_outlined, size: 18),
+            label: Text(l10n.share),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: AppColors.borderLight),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.numberCopied)));
+            },
+            icon: const Icon(Icons.copy_outlined, size: 18),
+            label: Text(l10n.copyNumber),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: AppColors.borderLight),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildActionButton(IconData icon, String label) {
-    return OutlinedButton.icon(
-      onPressed: () {},
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.white,
-        side: const BorderSide(color: AppColors.borderDefault),
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      ),
-    );
+  String _getStatusText(BuildContext context, String status) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (status) {
+      case 'pending': return l10n.statusPending;
+      case 'acknowledged': return l10n.statusInProgress;
+      case 'in_progress': return l10n.statusInProgress;
+      case 'resolved': return l10n.statusResolved;
+      case 'rejected': return l10n.statusRejected;
+      case 'closed': return l10n.statusClosed;
+      default: return status;
+    }
   }
 
-  void _showRatingDialog(BuildContext context) {
-    showDialog(context: context, builder: (context) => const RatingDialog());
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'pending': return AppColors.statusError;
+      case 'acknowledged': return AppColors.statusWarning;
+      case 'in_progress': return AppColors.statusWarning;
+      case 'resolved': return AppColors.statusSuccess;
+      case 'rejected': return AppColors.statusError;
+      case 'closed': return AppColors.textSecondaryLight;
+      default: return AppColors.textSecondaryLight;
+    }
+  }
+
+  String _formatDate(BuildContext context, DateTime date) {
+    return '${date.day}/${date.month}/${date.year} - ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

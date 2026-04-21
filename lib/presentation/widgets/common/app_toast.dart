@@ -28,7 +28,7 @@ class AppToast {
       case ToastType.error:
         return AppColors.statusError;
       case ToastType.info:
-        return Colors.black.withValues(alpha: 0.7);
+        return Colors.black.withOpacity(0.7);
     }
   }
 }

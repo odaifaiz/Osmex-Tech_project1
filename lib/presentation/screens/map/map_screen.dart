@@ -1,4 +1,4 @@
-// lib/presentation/screens/map/map_screen.dart (مع تفعيل اللوحات)
+// lib/presentation/screens/map/map_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -8,6 +8,7 @@ import 'package:city_fix_app/core/constants/route_constants.dart';
 import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/screens/map/map_widgets.dart';
+import 'package:city_fix_app/l10n/app_localizations.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -26,18 +27,15 @@ class _MapScreenState extends State<MapScreen> {
 
   bool _isGoogleMapsReady = false;
 
-  // Selected report data
   Map<String, dynamic>? _selectedReport;
   bool _showReportDetails = false;
 
-  // ✅ Smart Analytics Panel
   bool _showAnalyticsPanel = false;
   Map<String, dynamic>? _analyticsData;
 
-  // Similar Report Alert
   bool _showSimilarReportAlert = false;
 
-  String _currentFilter = 'الكل';
+  String? _currentFilter; // NULL means All
   final TextEditingController _searchController = TextEditingController();
 
   final Set<Marker> _markers = {};
@@ -46,23 +44,31 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     _checkGoogleMapsReady();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // ✅ Re-initialize markers when localization changes
     _initializeMarkers();
   }
 
   void _initializeMarkers() {
+    final l10n = AppLocalizations.of(context)!;
+    _markers.clear();
     _markers.addAll({
       Marker(
         markerId: const MarkerId('1'),
         position: const LatLng(24.7136, 46.6753),
-        infoWindow: const InfoWindow(title: 'حفرة في الطريق'),
+        infoWindow: InfoWindow(title: l10n.reportTitleHint), // Placeholder title
         onTap: () {
           final reportData = {
             'id': '1',
             'title': 'حفرة في الطريق',
             'description': 'تفاصيل البلاغ هنا',
-            'status': 'قيد المعالجة',
+            'status': l10n.statusInProgress,
             'statusColor': AppColors.statusWarning,
-            'date': 'منذ ساعتين',
+            'date': l10n.statusInProgress, // Placeholder
             'address': 'حي النرجس، الرياض',
             'imageUrl': '',
           };
@@ -78,27 +84,9 @@ class _MapScreenState extends State<MapScreen> {
             'id': '2',
             'title': 'إنارة معطلة',
             'description': 'تفاصيل البلاغ هنا',
-            'status': 'جديد',
+            'status': l10n.statusPending,
             'statusColor': AppColors.statusError,
-            'date': 'منذ ساعتين',
-            'address': 'حي النرجس، الرياض',
-            'imageUrl': '',
-          };
-          _onMarkerTapped(reportData);
-        },
-      ),
-      Marker(
-        markerId: const MarkerId('3'),
-        position: const LatLng(24.7036, 46.6653),
-        infoWindow: const InfoWindow(title: 'مشكلة مياه'),
-        onTap: () {
-          final reportData = {
-            'id': '3',
-            'title': 'مشكلة مياه',
-            'description': 'تفاصيل البلاغ هنا',
-            'status': 'تم الحل',
-            'statusColor': AppColors.statusSuccess,
-            'date': 'منذ ساعتين',
+            'date': l10n.today,
             'address': 'حي النرجس، الرياض',
             'imageUrl': '',
           };
@@ -132,7 +120,6 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {
       _selectedReport = report;
       _showReportDetails = true;
-      // Close other panels when a marker is tapped
       _showAnalyticsPanel = false;
       _showSimilarReportAlert = false;
     });
@@ -158,30 +145,22 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  /// ✅ Show Smart Analytics Panel when long-pressing on map
   void _onMapLongPressed(LatLng position) {
-    // TODO: Replace with actual data from Firebase
+    final l10n = AppLocalizations.of(context)!;
     setState(() {
       _analyticsData = {
         'pendingCount': 2,
         'nearbyReports': 3,
         'avgResponseTime': 2,
-        'lastReportTime': 'منذ ساعتين',
+        'lastReportTime': l10n.today,
       };
       _showAnalyticsPanel = true;
       _showReportDetails = false;
       _showSimilarReportAlert = false;
     });
-
-    debugPrint(
-        '📍 Long pressed at: ${position.latitude}, ${position.longitude}');
-    // TODO: Fetch analytics from Firebase based on position
   }
 
-  /// ✅ Show Similar Report Alert when trying to create a report in an area with similar reports
   void _showSimilarReport() {
-    // This would be triggered when user tries to create a report
-    // and there's a similar report within 200m
     setState(() {
       _showSimilarReportAlert = true;
       _showReportDetails = false;
@@ -191,54 +170,52 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
-      appBar: _buildAppBar(context),
+      appBar: _buildAppBar(context, l10n),
       body: Stack(
         children: [
-          // Google Map
           if (_isGoogleMapsReady)
             GoogleMap(
               initialCameraPosition: _initialCameraPosition,
               onMapCreated: (controller) {
                 _mapController = controller;
-                debugPrint('✅ Google Map created successfully');
               },
               markers: _markers,
-              onTap: (argument) {
-                // Close all panels when tapping on empty map area
+              onTap: (_) {
                 if (_showReportDetails) _closeBottomSheet();
                 if (_showAnalyticsPanel) _closeAnalyticsPanel();
                 if (_showSimilarReportAlert) _closeSimilarReportAlert();
               },
-              onLongPress:
-                  _onMapLongPressed, // ✅ Trigger analytics on long press
+              onLongPress: _onMapLongPressed,
             )
           else
             Container(
               color: AppColors.backgroundDark,
-              child: const Center(
+              child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(color: AppColors.primary),
-                    SizedBox(height: 16),
+                    const CircularProgressIndicator(color: AppColors.primary),
+                    const SizedBox(height: 16),
                     Text(
-                      'جاري تحميل الخريطة...',
-                      style: TextStyle(color: AppColors.textSecondary),
+                      l10n.loadingMap,
+                      style: const TextStyle(color: AppColors.textSecondaryLight),
                     ),
                   ],
                 ),
               ),
             ),
 
-          // Search Bar (Top)
           Positioned(
             top: 16,
             left: 16,
             right: 16,
             child: MapSearchBar(
               controller: _searchController,
+              hintText: l10n.searchMapHint,
               onSearch: (query) {
                 debugPrint('Searching for: $query');
               },
@@ -248,33 +225,31 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // Filter Chips (Below Search Bar)
           Positioned(
             top: 80,
             left: 0,
             right: 0,
             child: FilterChipsRow(
-              selectedFilter: _currentFilter,
+              selectedFilter: _currentFilter ?? l10n.all,
               onFilterSelected: (filter) {
                 setState(() {
-                  _currentFilter = filter;
+                  _currentFilter = (filter == l10n.all) ? null : filter;
                 });
-                debugPrint('Filter changed to: $filter');
               },
             ),
           ),
 
-          // Recenter Button (Bottom Right)
-          Positioned(
+          PositionedDirectional(
             bottom: 120,
-            right: 16,
+            end: 16,
             child: FloatingActionButton.small(
+              heroTag: 'recenter_btn',
               onPressed: () {
                 _mapController?.animateCamera(
                   CameraUpdate.newCameraPosition(_initialCameraPosition),
                 );
               },
-              backgroundColor: AppColors.backgroundCard,
+              backgroundColor: AppColors.cardDark,
               child: const Icon(
                 Icons.my_location,
                 color: AppColors.primary,
@@ -283,7 +258,6 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // ✅ Smart Analytics Panel (shows when long-pressing on map)
           if (_showAnalyticsPanel && _analyticsData != null)
             Positioned(
               bottom: 0,
@@ -292,30 +266,26 @@ class _MapScreenState extends State<MapScreen> {
               child: SmartAnalyticsPanel(
                 analyticsData: _analyticsData,
                 onViewDetails: () {
-                  // TODO: Navigate to detailed analytics page
-                  debugPrint('View analytics details');
                   _closeAnalyticsPanel();
                 },
                 onClose: _closeAnalyticsPanel,
               ),
             ),
 
-          // ✅ Similar Report Alert (shows when creating report in area with similar reports)
           if (_showSimilarReportAlert)
             Positioned(
               bottom: 20,
               left: 16,
               right: 16,
               child: SimilarReportAlert(
-                similarReport: {
+                similarReport: const {
                   'title': 'حفرة في الطريق',
                   'distance': 200,
                   'status': 'قيد المعالجة',
                 },
                 onViewExistingReport: () {
                   _closeSimilarReportAlert();
-                  // TODO: Navigate to existing report details
-                  context.pushNamed(RouteConstants.reportReviewRouteName);
+                  context.pushNamed(RouteConstants.reportDetailsRouteName, extra: '1');
                 },
                 onCreateNewReport: () {
                   _closeSimilarReportAlert();
@@ -324,7 +294,6 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
 
-          // Report Bottom Sheet (when marker is tapped)
           if (_showReportDetails && _selectedReport != null)
             Positioned(
               bottom: 0,
@@ -335,56 +304,53 @@ class _MapScreenState extends State<MapScreen> {
                 onClose: _closeBottomSheet,
                 onViewDetails: () {
                   _closeBottomSheet();
-                  context.pushNamed(RouteConstants.reportReviewRouteName);
+                  context.pushNamed(RouteConstants.reportDetailsRouteName, extra: _selectedReport!['id']);
                 },
               ),
             ),
         ],
       ),
 
-      // ✅ Floating Action Button to test Similar Report Alert
       floatingActionButton: FloatingActionButton(
         onPressed: _showSimilarReportAlert ? null : _showSimilarReport,
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.warning_amber_rounded, color: Colors.white),
+        child: const Icon(Icons.warning_amber_rounded, color: Colors.black),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, AppLocalizations l10n) {
     return AppBar(
       title: Text(
-        'خريطة البلاغات',
+        l10n.mapTitle,
         style: AppTypography.headline3.copyWith(fontSize: 18),
       ),
       centerTitle: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
       leading: IconButton(
-        icon:
-            const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
+        icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimaryDark),
         onPressed: () => context.pop(),
       ),
       actions: [
         IconButton(
-        icon: const Icon(Icons.analytics, color: AppColors.primary),
-        onPressed: () {
-          // فتح لوحة التحليل الذكي للاختبار
-          setState(() {
-            _analyticsData = {
-              'pendingCount': 2,
-              'nearbyReports': 3,
-              'avgResponseTime': 2,
-              'lastReportTime': 'منذ ساعتين',
-            };
-            _showAnalyticsPanel = true;
-            _showReportDetails = false;
-            _showSimilarReportAlert = false;
-          });
-        },
-      ),
+          icon: const Icon(Icons.analytics, color: AppColors.primary),
+          onPressed: () {
+            setState(() {
+              _analyticsData = {
+                'pendingCount': 2,
+                'nearbyReports': 3,
+                'avgResponseTime': 2,
+                'lastReportTime': l10n.today,
+              };
+              _showAnalyticsPanel = true;
+              _showReportDetails = false;
+              _showSimilarReportAlert = false;
+            });
+          },
+        ),
         IconButton(
-          icon: const Icon(Icons.refresh, color: AppColors.iconDefault),
+          icon: const Icon(Icons.refresh, color: AppColors.cardDark),
           onPressed: () {
             debugPrint('Refresh map');
           },

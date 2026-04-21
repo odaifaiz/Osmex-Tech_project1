@@ -5,6 +5,7 @@ import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/widgets/common/app_status_pill.dart';
+import 'package:city_fix_app/presentation/widgets/common/app_image_widget.dart';
 
 class ReportCard extends StatelessWidget {
   final String title;
@@ -26,7 +27,6 @@ class ReportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ FIXED: Using Material + InkWell instead of GestureDetector
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -41,7 +41,7 @@ class ReportCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              /// Text Section (on the left in RTL)
+              // Text Section
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,6 +59,7 @@ class ReportCard extends StatelessWidget {
                           text: status,
                           backgroundColor: statusColor,
                         ),
+                        // ✅ Use EdgeInsetsDirectional for future-proofing
                         const SizedBox(width: 8),
                         Text(
                           date,
@@ -70,28 +71,17 @@ class ReportCard extends StatelessWidget {
                 ),
               ),
 
+              // ✅ Directional spacing
               const SizedBox(width: 12),
 
-              /// Image Section (on the right)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: SizedBox(
-                  width: 85,
-                  height: 85,
-                  child: imageUrl.isNotEmpty
-                      ? Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: AppColors.backgroundCard,
-                            child: const Icon(Icons.image, size: 35),
-                          ),
-                        )
-                      : Container(
-                          color: AppColors.backgroundCard,
-                          child: const Icon(Icons.image, size: 35),
-                        ),
-                ),
+              // Image Section with hybrid support (Local + Network)
+              AppImageWidget(
+                imageUrl: imageUrl,
+                width: 85,
+                height: 85,
+                borderRadius: 12,
+                fit: BoxFit.cover,
+                errorIcon: Icons.image_not_supported_outlined,
               ),
             ],
           ),

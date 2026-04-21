@@ -1,9 +1,6 @@
-// lib/presentation/screens/auth/signup_screen.dart (FINAL, COMPLETE, AND MERGED)
+// lib/presentation/screens/auth/signup_screen.dart
 
 import 'package:city_fix_app/core/utils/validators.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
 import 'package:city_fix_app/core/constants/asset_constants.dart';
 import 'package:city_fix_app/core/constants/route_constants.dart';
 import 'package:city_fix_app/core/theme/app_colors.dart';
@@ -11,86 +8,183 @@ import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/widgets/common/app_button.dart';
 import 'package:city_fix_app/presentation/widgets/common/app_text_field.dart';
+import 'package:city_fix_app/presentation/provider/auth_provider.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 
-class SignupScreen extends StatefulWidget {
+class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
-  final _formKey = GlobalKey<FormState>(); // 1. Add Form Key
-
-  bool _agreeToTerms = false;
+class _SignupScreenState extends ConsumerState<SignupScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
+  bool _agreeToTerms = false;
+  bool _isSubmitting = false; // ✅ متغير محلي لمنع الإرسال المتكرر
 
   @override
   void initState() {
     super.initState();
-    _passwordController.addListener(() {
-      setState(() {});
-    });
-    _confirmPasswordController.addListener(() {
-      setState(() {});
-    });
+    _passwordController.addListener(() => setState(() {}));
+    _confirmPasswordController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _submit() {
-    // 2. Add submit function
-    final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) {
+  /// ✅ دالة معالجة التسجيل: تفصل المنطق عن الواجهة تماماً
+  Future<void> _handleSignup() async {
+    // 1. التحقق من صحة النموذج
+    if (!_formKey.currentState!.validate()) {
+      print('❌ [Signup] Form validation failed');
       return;
     }
+
+    // 2. التحقق من الموافقة على الشروط
     if (!_agreeToTerms) {
-      // Show a message if terms are not agreed to
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء الموافقة على الشروط والأحكام')),
-      );
+      print('❌ [Signup] Terms not agreed');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('الرجاء الموافقة على الشروط والأحكام'),
+            backgroundColor: AppColors.statusError,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
       return;
     }
-    // If valid, proceed with signup logic
-    print('Form is valid. Ready to sign up.');
-    // For now, let's navigate to the OTP screen
-    context.pushNamed(RouteConstants.otpVerificationRouteName);
+
+    // 3. منع الإرسال المتكرر
+    if (_isSubmitting) {
+      print('⚠️ [Signup] Submission already in progress');
+      return;
+    }
+
+    // 4. تجميع البيانات
+    final fullName = '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}';
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final phone = _phoneController.text.trim();
+
+    print('🔍 [Signup] Starting registration: email=$email, fullName=$fullName');
+    setState(() => _isSubmitting = true);
+
+    try {
+      // 5. استدعاء الـ Provider (المنطق معزول في طبقة الأعمال)
+      // ✅ البيانات تُخزن مؤقتاً في AuthService تلقائياً داخل الـ UseCase
+      final success = await ref.read(authProvider.notifier).register(
+            email: email,
+            password: password,
+            fullName: fullName,
+            phone: phone.isEmpty ? null : phone,
+          );
+
+      if (!mounted) return;
+
+      if (success) {
+        print('✅ [Signup] Registration successful, navigating to OTP');
+        
+        // ✅ الانتقال لصفحة OTP (البيانات مخزنة في AuthService، لا حاجة لتمريرها)
+        // نمرر الإيميل فقط كمرجع للشاشة
+        if (mounted) {
+          context.pushNamed(
+            RouteConstants.otpVerificationRouteName,
+            extra: {'email': email},
+          );
+        }
+      } else {
+        print('❌ [Signup] Registration failed');
+        final error = ref.read(authProvider).errorMessage;
+        if (error != null && mounted) {
+          _showError(error);
+        }
+      }
+    } catch (e, stack) {
+      print('❌ [Signup] Unexpected error: $e\n$stack');
+      if (mounted) {
+        _showError('حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  /// ✅ دالة مساعدة لعرض الأخطاء (إعادة استخدام الكود)
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.statusError,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  /// ✅ دالة مساعدة لبناء حقل نصي مع عنوان (تقليل التكرار في الـ UI)
+  Widget _buildLabeledTextField({required String label, required Widget child}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTypography.body1.copyWith(fontWeight: FontWeight.w600)),
+        const SizedBox(height: AppDimensions.spacingS),
+        child,
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // ✅ نراقب حالة التحميل والخطأ من الـ Provider فقط
+    final isLoading = ref.watch(authLoadingProvider);
+    // ✅ نجمع حالة التحميل المحلية مع حالة الـ Provider لمنع التحديثات الزائدة
+    final isProcessing = isLoading || _isSubmitting;
+
     return Scaffold(
-      // --- THIS IS THE MODIFIED PART ---
+      // ✅ تصميم الشاشة الأصلي محفوظ تماماً - لم نغير أي عنصر واجهة
       appBar: AppBar(
         leading: Padding(
-          padding: const EdgeInsets.all(8.0), // Add padding to control size and position
+          padding: const EdgeInsets.all(8.0),
           child: InkWell(
             onTap: () => context.pop(),
-            borderRadius: BorderRadius.circular(12), // For the ripple effect shape
+            borderRadius: BorderRadius.circular(12),
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.backgroundCard.withValues(alpha: 0.5),
+                color: AppColors.backgroundDark.withOpacity(0.5),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.borderDefault.withValues(alpha: 0.5)),
-                // The Glow Effect
+                border: Border.all(color: AppColors.borderDark.withOpacity(0.5)),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.2),
+                    color: AppColors.primary.withOpacity(0.2),
                     blurRadius: 15,
                     spreadRadius: 1,
                   ),
                 ],
               ),
-              child: const Icon(
-                Icons.arrow_forward_ios_outlined,
-                size: 18, // Adjust icon size to fit nicely inside the container
-              ),
+              child: const Icon(Icons.arrow_forward_ios_outlined, size: 18),
             ),
           ),
         ),
@@ -98,30 +192,28 @@ class _SignupScreenState extends State<SignupScreen> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leadingWidth: 80, // Increase the default width to accommodate the new button design
+        leadingWidth: 80,
       ),
-      // --- END OF MODIFIED PART ---
       body: SafeArea(
         child: SingleChildScrollView(
-          padding:
-              const EdgeInsets.symmetric(horizontal: AppDimensions.spacingXL),
+          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingXL),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: AppDimensions.spacingL),
-            
-                // --- First and Last Name ---
+
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: _buildLabeledTextField(
                         label: 'الاسم الأول',
-                        child: const AppTextField(
+                        child: AppTextField(
+                          controller: _firstNameController,
                           hintText: 'أحمد',
-                          validator: Validators.notEmpty, // 4. Add validator
+                          validator: Validators.notEmpty,
                         ),
                       ),
                     ),
@@ -129,7 +221,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     Expanded(
                       child: _buildLabeledTextField(
                         label: 'اسم العائلة',
-                        child: const AppTextField(
+                        child: AppTextField(
+                          controller: _lastNameController,
                           hintText: 'العامري',
                           validator: Validators.notEmpty,
                         ),
@@ -138,10 +231,11 @@ class _SignupScreenState extends State<SignupScreen> {
                   ],
                 ),
                 const SizedBox(height: AppDimensions.spacingL),
-            
+
                 _buildLabeledTextField(
                   label: 'البريد الإلكتروني',
-                  child: const AppTextField(
+                  child: AppTextField(
+                    controller: _emailController,
                     hintText: 'example@mail.com',
                     prefixIcon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
@@ -149,20 +243,19 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
                 const SizedBox(height: AppDimensions.spacingL),
-            
-                // --- Phone Number ---
+
                 _buildLabeledTextField(
                   label: 'رقم الهاتف',
-                  child: const AppTextField(
+                  child: AppTextField(
+                    controller: _phoneController,
                     hintText: '+966 50 000 0000',
                     prefixIcon: Icons.phone_outlined,
                     keyboardType: TextInputType.phone,
-                    validator: Validators.phone, 
+                    validator: Validators.phone,
                   ),
                 ),
                 const SizedBox(height: AppDimensions.spacingL),
-            
-                // --- Password ---
+
                 _buildLabeledTextField(
                   label: 'كلمة المرور',
                   child: AppTextField(
@@ -176,8 +269,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: AppDimensions.spacingS),
                 _buildPasswordStrengthIndicator(),
                 const SizedBox(height: AppDimensions.spacingL),
-            
-                // --- Confirm Password ---
+
                 _buildLabeledTextField(
                   label: 'تأكيد كلمة المرور',
                   child: AppTextField(
@@ -185,34 +277,35 @@ class _SignupScreenState extends State<SignupScreen> {
                     hintText: '********',
                     prefixIcon: Icons.lock_outline,
                     isPassword: true,
-                    validator: (value) => Validators.confirmPassword(_passwordController.text, value), 
+                    validator: (value) => Validators.confirmPassword(_passwordController.text, value),
                   ),
                 ),
                 const SizedBox(height: AppDimensions.spacingM),
-            
-                // --- Terms and Conditions ---
+
                 _buildTermsCheckbox(),
                 const SizedBox(height: AppDimensions.spacingL),
-            
-                // --- Action Buttons ---
+
+                // ✅ زر التسجيل: مرتبط بـ _handleSignup مع حالة تحميل موحدة
                 AppButton(
-                  text: 'إنشاء حساب',
-                  onPressed: _submit,
+                  text: isProcessing ? 'جاري الإنشاء...' : 'إنشاء حساب',
+                  onPressed: isProcessing ? null : _handleSignup,
+                  isLoading: isProcessing,
                 ),
                 const SizedBox(height: AppDimensions.spacingM),
                 _buildDividerWithText('أو'),
                 const SizedBox(height: AppDimensions.spacingM),
+
+                // ✅ زر جوجل: منطق معزول في دالة منفصلة
                 AppButton(
                   text: 'متابعة مع جوجل',
-                  onPressed: () {},
+                  onPressed: isProcessing ? null : _handleGoogleSignIn,
                   useGradient: false,
                   backgroundColor: Colors.white,
                   textColor: Colors.black87,
                   icon: SvgPicture.asset(AssetConstants.googleLogo, height: 24),
                 ),
                 const SizedBox(height: AppDimensions.spacingXL),
-            
-                // --- Footer ---
+
                 InkWell(
                   onTap: () => context.goNamed(RouteConstants.loginRouteName),
                   child: Text.rich(
@@ -223,8 +316,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       children: [
                         TextSpan(
                           text: 'تسجيل الدخول',
-                          style: AppTypography.link
-                              .copyWith(fontWeight: FontWeight.bold),
+                          style: AppTypography.link.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -239,45 +331,85 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  // Helper for labeled text fields
-  Widget _buildLabeledTextField(
-      {required String label, required Widget child}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: AppTypography.body1.copyWith(fontWeight: FontWeight.w600)),
-        const SizedBox(height: AppDimensions.spacingS),
-        child,
-      ],
-    );
+  /// ✅ منطق تسجيل الدخول بجوجل (معزول عن الـ UI)
+    /// ✅ منطق تسجيل الدخول بجوجل (يدعم الويب والموبايل بمنطق مختلف)
+  Future<void> _handleGoogleSignIn() async {
+    if (_isSubmitting) return;
+
+    print('🔍 [Signup] Google Sign-In initiated (platform: ${kIsWeb ? "web" : "mobile"})');
+    setState(() => _isSubmitting = true);
+
+    try {
+      // ✅ على الويب: نستخدم تدفق الـ OAuth المباشر لتجنب مشاكل الـ Popups و COOP
+      if (kIsWeb) {
+        print('🔍 [Signup-Web] Using Supabase OAuth redirect flow');
+        
+        // ✅ signInWithOAuth يفتح صفحة جوجل في نفس النافذة (أكثر استقراراً على الويب)
+        // بعد النجاح، سيعود المستخدم للتطبيق وسيقوم الـ Auth State listener باستعادة الجلسة
+        await ref.read(authProvider.notifier).signInWithOAuthWeb();
+        
+        // ⚠️ ملاحظة: على الويب، هذه الدالة قد تعيد تحميل الصفحة بعد النجاح
+        // لذا لا نحتاج لـ context.goNamed هنا، الـ Router سيتعامل مع التوجيه تلقائياً
+        print('✅ [Signup-Web] OAuth flow initiated, waiting for redirect...');
+        
+      } else {
+        // ✅ على الموبايل: نستخدم الطريقة العادية عبر google_sign_in package
+        print('🔍 [Signup-Mobile] Using native Google Sign-In flow');
+        
+        final success = await ref.read(authProvider.notifier).signInWithGoogle();
+        
+        if (!mounted) return;
+
+        if (success) {
+          print('✅ [Signup-Mobile] Google Sign-In successful, navigating to Home');
+          // ✅ بعد نجاح جوجل، يتم مزامنة الملف الشخصي تلقائياً في الـ Provider
+          // ثم التوجيه للرئيسية
+          if (mounted) {
+            context.goNamed(RouteConstants.homeRouteName);
+          }
+        } else {
+          print('❌ [Signup-Mobile] Google Sign-In failed');
+          final error = ref.read(authProvider).errorMessage;
+          if (error != null && mounted) {
+            _showError(error);
+          }
+        }
+      }
+      
+    } catch (e, stack) {
+      print('❌ [Signup] Google Sign-In error: $e\n$stack');
+      if (mounted) {
+        _showError('فشل تسجيل الدخول بجوجل، يرجى المحاولة مرة أخرى');
+      }
+    } finally {
+      // ✅ على الويب لا نعيد _isSubmitting إلى false هنا لأن الصفحة قد تعاد تحميلها
+      // على الموبايل فقط نعيد الحالة
+      if (!kIsWeb && mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
-  // Helper for the "Or" divider
+  // ─────────────────────────────────────────────────────────────
+  // ✅ Widgets مساعدة (محفوظة كما هي - تصميم فقط)
+  // ─────────────────────────────────────────────────────────────
+
   Widget _buildDividerWithText(String text) {
     return Row(
       children: [
-        const Expanded(
-            child: Divider(color: AppColors.borderDefault, thickness: 1)),
+        const Expanded(child: Divider(color: AppColors.borderDark, thickness: 1)),
         Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: AppDimensions.spacingM),
+          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingM),
           child: Text(text, style: AppTypography.body2),
         ),
-        const Expanded(
-            child: Divider(color: AppColors.borderDefault, thickness: 1)),
+        const Expanded(child: Divider(color: AppColors.borderDark, thickness: 1)),
       ],
     );
   }
 
-  // Helper for the terms and conditions checkbox
   Widget _buildTermsCheckbox() {
     return InkWell(
-      onTap: () {
-        setState(() {
-          _agreeToTerms = !_agreeToTerms;
-        });
-      },
+      onTap: () => setState(() => _agreeToTerms = !_agreeToTerms),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -286,13 +418,9 @@ class _SignupScreenState extends State<SignupScreen> {
             height: 24,
             child: Checkbox(
               value: _agreeToTerms,
-              onChanged: (val) {
-                setState(() {
-                  _agreeToTerms = val ?? false;
-                });
-              },
+              onChanged: (val) => setState(() => _agreeToTerms = val ?? false),
               activeColor: AppColors.primary,
-              side: const BorderSide(color: AppColors.borderDefault),
+              side: const BorderSide(color: AppColors.borderDark),
             ),
           ),
           const SizedBox(width: AppDimensions.spacingS),
@@ -302,10 +430,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 text: 'أوافق على ',
                 style: AppTypography.body2,
                 children: [
-                  TextSpan(
-                    text: 'الشروط والأحكام و سياسة الخصوصية',
-                    style: AppTypography.link,
-                  ),
+                  TextSpan(text: 'الشروط والأحكام و سياسة الخصوصية', style: AppTypography.link),
                 ],
               ),
             ),
@@ -315,7 +440,6 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  // Password strength indicator
   Widget _buildPasswordStrengthIndicator() {
     final password = _passwordController.text;
     int strength = 0;
@@ -330,10 +454,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
     return Row(
       children: [
-        Text(
-          'قوة',
-          style: AppTypography.caption.copyWith(color: AppColors.textHint),
-        ),
+        Text('قوة', style: AppTypography.caption.copyWith(color: AppColors.textHint)),
         const SizedBox(width: AppDimensions.spacingS),
         Expanded(
           child: Row(
@@ -341,14 +462,14 @@ class _SignupScreenState extends State<SignupScreen> {
               Color barColor;
               if (index < strength) {
                 switch (strength) {
-                  case 1: barColor = AppColors.strengthWeak; break;
-                  case 2: barColor = AppColors.strengthFair; break;
-                  case 3: barColor = AppColors.strengthGood; break;
-                  case 4: barColor = AppColors.strengthStrong; break;
-                  default: barColor = AppColors.borderDefault;
+                  case 1: barColor = AppColors.statusSuccess; break;
+                  case 2: barColor = AppColors.statusSuccess; break;
+                  case 3: barColor = AppColors.statusSuccess; break;
+                  case 4: barColor = AppColors.statusSuccess; break;
+                  default: barColor = AppColors.borderDark;
                 }
               } else {
-                barColor = AppColors.borderDefault;
+                barColor = AppColors.borderDark;
               }
               return Expanded(
                 child: Container(

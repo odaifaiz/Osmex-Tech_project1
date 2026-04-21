@@ -1,0 +1,439 @@
+// lib/presentation/screens/reports/report_details_screen.dart
+
+import 'package:city_fix_app/core/constants/route_constants.dart';
+import 'package:city_fix_app/presentation/provider/notification_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:city_fix_app/core/theme/app_colors.dart';
+import 'package:city_fix_app/core/theme/app_dimensions.dart';
+import 'package:city_fix_app/core/theme/app_typography.dart';
+import 'package:city_fix_app/presentation/screens/reports/rating_dialog.dart';
+// import 'package:city_fix_app/presentation/provider/report_provider.dart';
+import 'package:city_fix_app/domain/entities/report.dart';
+
+class ReportDetailsScreen extends ConsumerStatefulWidget {
+  const ReportDetailsScreen({super.key});
+
+  @override
+  ConsumerState<ReportDetailsScreen> createState() => _ReportDetailsScreenState();
+}
+
+class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
+  @override
+  Widget build(BuildContext context) {
+    // ✅ الحصول على reportId من الـ extra (المرسل من صفحة الإشعارات)
+      final reportId = GoRouterState.of(context).extra as String?;
+
+
+      print('📌 reportId المستلم: $reportId');
+    
+    // ✅ إذا لم يوجد reportId، نعرض خطأ
+    if (reportId == null) {
+      return Scaffold(
+        backgroundColor: AppColors.backgroundDark,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          title: Text('تفاصيل البلاغ', style: AppTypography.headline3),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+            onPressed: () => context.pop(),
+          ),
+        ),
+        body: const Center(
+          child: Text('لم يتم العثور على البلاغ', style: TextStyle(color: Colors.white)),
+        ),
+      );
+    }
+
+    // ✅ جلب تفاصيل البلاغ من Supabase
+    final reportAsync = ref.watch(reportDetailsProvider(reportId));
+
+    return Scaffold(
+      backgroundColor: AppColors.backgroundDark,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        title: Text('تفاصيل البلاغ', style: AppTypography.headline3),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => context.pop(),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share_outlined, color: Colors.white),
+            onPressed: () {
+              // TODO: مشاركة البلاغ
+            },
+          ),
+        ],
+      ),
+      body: reportAsync.when(
+        data: (report) => _buildContent(report),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        error: (error, __) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 60, color: AppColors.statusError),
+              const SizedBox(height: 16),
+              Text('حدث خطأ في تحميل البلاغ', style: AppTypography.body1),
+              const SizedBox(height: 8),
+              Text(error.toString(), style: AppTypography.caption.copyWith(color: AppColors.textHint)),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(reportDetailsProvider(reportId)),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.black)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(Report report) {
+    final statusText = _getStatusText(report.status);
+    final statusColor = _getStatusColor(report.status);
+    final imageUrl = report.imageUrls?.isNotEmpty == true ? report.imageUrls!.first : '';
+
+    return SingleChildScrollView(
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. قسم الصورة مع نقاط التمرير
+            _buildImageCarousel(imageUrl),
+
+            Padding(
+              padding: const EdgeInsets.all(AppDimensions.spacingL),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 2. رقم البلاغ والتاغات
+                  _buildHeaderSection(report, statusText, statusColor),
+                  const SizedBox(height: 12),
+
+                  // 3. العنوان الرئيسي
+                  Text(report.title, style: AppTypography.headline1.copyWith(fontSize: 20)),
+                  const SizedBox(height: 20),
+
+                  // 4. بطاقة الموقع
+                  _buildLocationCard(report),
+                  const SizedBox(height: 20),
+
+                  // 5. وصف البلاغ
+                  const Text('وصف البلاغ', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                  const SizedBox(height: 8),
+                  _buildDescriptionCard(report),
+                  const SizedBox(height: 20),
+
+                  // 6. قسم التقييم (يظهر فقط إذا تم حل البلاغ)
+                  if (report.status == 'resolved' || report.status == 'closed')
+                    _buildRatingPromptCard(),
+                  const SizedBox(height: 30),
+
+                  // 7. مراحل التنفيذ (التايملاين)
+                  const Text('مراحل التنفيذ', style: TextStyle(color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 20),
+                  _buildTimeline(report),
+                  
+                  const SizedBox(height: 40),
+                  
+                  // 8. الأزرار السفلية (نسخ ومشاركة)
+                  _buildBottomActions(report),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageCarousel(String imageUrl) {
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        Container(
+          height: 250,
+          width: double.infinity,
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: AppColors.backgroundCard,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusL),
+          ),
+          child: imageUrl.isNotEmpty
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusL),
+                  child: Image.network(imageUrl, fit: BoxFit.cover, width: double.infinity),
+                )
+              : const Center(
+                  child: Icon(Icons.image_not_supported, size: 80, color: AppColors.iconDefault),
+                ),
+        ),
+        Positioned(
+          bottom: 15,
+          child: Row(
+            children: List.generate(4, (index) => Container(
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: index == 2 ? 20 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: index == 2 ? AppColors.primary : Colors.white.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            )),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeaderSection(Report report, String statusText, Color statusColor) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(report.id.substring(0, 8).toUpperCase(), 
+          style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 18)),
+        Row(
+          children: [
+            _buildStatusBadge(statusText, statusColor),
+            if (report.isUrgent) ...[
+              const SizedBox(width: 8),
+              _buildStatusBadge('طارئة', Colors.red),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Widget _buildLocationCard(Report report) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundCard,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: AppColors.borderDefault.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            backgroundColor: Color(0x1A1FD6A0),
+            child: Icon(Icons.location_on, color: AppColors.primary, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(report.address.split('،').first, 
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                Text(report.address, 
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              // TODO: Open map with this location
+              context.pushNamed(RouteConstants.mapRouteName);
+            },
+            child: const Text('عرض على الخريطة', style: TextStyle(color: AppColors.primary, fontSize: 12)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDescriptionCard(Report report) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundCard,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Text(
+        report.description,
+        style: const TextStyle(color: Colors.white, height: 1.6, fontSize: 13),
+      ),
+    );
+  }
+
+  Widget _buildRatingPromptCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundCard,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        children: [
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('💡', style: TextStyle(fontSize: 20)),
+              SizedBox(width: 8),
+              Text('شاركنا رأيك لتحسين الخدمة', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 15),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(5, (index) => const Icon(Icons.star_outline, color: AppColors.textHint, size: 35)),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () => _showRatingDialog(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              minimumSize: const Size(double.infinity, 50),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+            ),
+            child: const Text('حفظ التقييم', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeline(Report report) {
+    // TODO: بناء على البيانات الفعلية من قاعدة البيانات
+    // حالياً نعرض تايملاين تجريبي
+    return Column(
+      children: [
+        _buildTimelineItem('تم إنشاء البلاغ', _formatDate(report.createdAt), true),
+        _buildTimelineItem('تم استلام البلاغ', _formatDate(report.createdAt), true),
+        _buildTimelineItem('تمت المعالجة', report.updatedAt != null ? _formatDate(report.updatedAt!) : 'قيد الانتظار', 
+          report.status == 'in_progress' || report.status == 'resolved'),
+        _buildTimelineItem('تم حل المشكلة', report.resolvedAt != null ? _formatDate(report.resolvedAt!) : 'قيد الانتظار', 
+          report.status == 'resolved' || report.status == 'closed'),
+        _buildTimelineItem('إغلاق البلاغ', report.status == 'closed' ? _formatDate(report.updatedAt!) : 'في انتظار المراجعة', 
+          report.status == 'closed', isLast: true),
+      ],
+    );
+  }
+
+  Widget _buildTimelineItem(String title, String date, bool isDone, {bool isLast = false}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: isDone ? AppColors.primary : AppColors.backgroundCard,
+                shape: BoxShape.circle,
+                border: Border.all(color: isDone ? AppColors.primary : AppColors.borderDefault),
+              ),
+              child: Icon(isDone ? Icons.check : Icons.lock, size: 14, color: isDone ? Colors.black : AppColors.textHint),
+            ),
+            if (!isLast) Container(width: 2, height: 40, color: isDone ? AppColors.primary : AppColors.borderDefault),
+          ],
+        ),
+        const SizedBox(width: 15),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: TextStyle(color: isDone ? Colors.white : AppColors.textHint, fontWeight: FontWeight.bold, fontSize: 14)),
+              Text(date, style: const TextStyle(color: AppColors.textHint, fontSize: 11)),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomActions(Report report) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () {
+              // TODO: مشاركة البلاغ
+            },
+            icon: const Icon(Icons.share_outlined, size: 18),
+            label: const Text('مشاركة'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: AppColors.borderDefault),
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            ),
+          ),
+        ),
+        const SizedBox(width: 15),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () {
+              // TODO: نسخ رقم البلاغ
+            },
+            icon: const Icon(Icons.copy_outlined, size: 18),
+            label: const Text('نسخ الرقم'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: AppColors.borderDefault),
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getStatusText(String status) {
+    switch (status) {
+      case 'pending': return 'جديد';
+      case 'acknowledged': return 'تم الاستلام';
+      case 'in_progress': return 'قيد المعالجة';
+      case 'resolved': return 'تم الحل';
+      case 'rejected': return 'مرفوض';
+      case 'closed': return 'مغلق';
+      default: return status;
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'pending': return AppColors.statusError;
+      case 'acknowledged': return AppColors.statusWarning;
+      case 'in_progress': return AppColors.statusWarning;
+      case 'resolved': return AppColors.statusSuccess;
+      case 'rejected': return AppColors.statusError;
+      case 'closed': return AppColors.textSecondary;
+      default: return AppColors.textSecondary;
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year} - ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  void _showRatingDialog(BuildContext context) {
+    showDialog(context: context, builder: (context) => const RatingDialog());
+  }
+}

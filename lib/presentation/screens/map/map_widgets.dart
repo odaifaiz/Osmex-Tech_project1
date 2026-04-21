@@ -5,16 +5,19 @@ import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/widgets/common/app_button.dart';
+import 'package:city_fix_app/l10n/app_localizations.dart';
 
 /// ✅ شريط البحث المخصص
 class MapSearchBar extends StatelessWidget {
   final TextEditingController controller;
+  final String hintText;
   final Function(String) onSearch;
   final VoidCallback onNotificationTap;
 
   const MapSearchBar({
     super.key,
     required this.controller,
+    required this.hintText, // ✅ Added to match MapScreen call
     required this.onSearch,
     required this.onNotificationTap,
   });
@@ -24,11 +27,11 @@ class MapSearchBar extends StatelessWidget {
     return Container(
       height: 52,
       decoration: BoxDecoration(
-        color: AppColors.backgroundCard,
+        color: AppColors.cardDark,
         borderRadius: BorderRadius.circular(AppDimensions.radiusCircular),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: Colors.black.withOpacity(0.2),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -40,13 +43,15 @@ class MapSearchBar extends StatelessWidget {
             child: TextField(
               controller: controller,
               style: AppTypography.body1,
-              textAlign: TextAlign.right,
+              // ✅ Start alignment instead of fixed right
+              textAlign: TextAlign.start,
               decoration: InputDecoration(
-                hintText: 'ابحث برقم البلاغ، العنوان، الموقع...',
+                hintText: hintText,
                 hintStyle: AppTypography.body2.copyWith(color: AppColors.textHint),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                prefixIcon: const Icon(Icons.search, color: AppColors.iconDefault),
+                // ✅ Positioned correctly based on text direction
+                prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 20),
               ),
               onSubmitted: onSearch,
             ),
@@ -54,10 +59,10 @@ class MapSearchBar extends StatelessWidget {
           Container(
             width: 1,
             height: 30,
-            color: AppColors.borderDefault,
+            color: AppColors.borderDark,
           ),
           IconButton(
-            icon: const Icon(Icons.notifications_none_outlined, color: AppColors.iconDefault),
+            icon: const Icon(Icons.notifications_none_outlined, color: AppColors.textSecondaryLight),
             onPressed: onNotificationTap,
           ),
           const SizedBox(width: 8),
@@ -78,34 +83,43 @@ class FilterChipsRow extends StatelessWidget {
     required this.onFilterSelected,
   });
 
-  final List<String> _filters = const ['الكل', 'جديد', 'قيد', 'محلول', 'مطلق'];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final List<String> filters = [
+      l10n.all,
+      l10n.filterNew,
+      l10n.filterInProgress,
+      l10n.filterResolved,
+      l10n.filterClosed,
+    ];
+
     return Container(
       height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: _filters.length,
+        itemCount: filters.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final filter = _filters[index];
+          final filter = filters[index];
           final isSelected = selectedFilter == filter;
           return FilterChip(
             label: Text(filter),
             selected: isSelected,
             onSelected: (_) => onFilterSelected(filter),
-            backgroundColor: AppColors.backgroundCard,
-            selectedColor: AppColors.primary.withValues(alpha: 0.2),
+            backgroundColor: AppColors.cardDark,
+            selectedColor: AppColors.primary.withOpacity(0.2),
             checkmarkColor: AppColors.primary,
             labelStyle: AppTypography.body2.copyWith(
-              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+              color: isSelected ? AppColors.primary : AppColors.textSecondaryLight,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppDimensions.radiusCircular),
               side: BorderSide(
-                color: isSelected ? AppColors.primary : AppColors.borderDefault,
+                color: isSelected ? AppColors.primary : AppColors.borderDark,
               ),
             ),
           );
@@ -130,16 +144,18 @@ class ReportBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.backgroundCard,
+        color: AppColors.cardDark,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(AppDimensions.radiusXL),
           topRight: Radius.circular(AppDimensions.radiusXL),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: Colors.black.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -148,110 +164,99 @@ class ReportBottomSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag handle
+          const SizedBox(height: 12),
           Container(
-            margin: const EdgeInsets.only(top: 12),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColors.borderDefault,
+              color: AppColors.borderDark,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(height: AppDimensions.spacingM),
-
-          // Close button
+          
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerEnd,
             child: IconButton(
-              icon: const Icon(Icons.close, color: AppColors.iconDefault),
+              icon: const Icon(Icons.close, color: AppColors.textHint),
               onPressed: onClose,
             ),
           ),
 
-          // Content
           Padding(
-            padding: const EdgeInsets.all(AppDimensions.spacingL),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title and status
                 Row(
                   children: [
                     Expanded(
                       child: Text(
-                        report['title'] ?? 'بلاغ',
-                        style: AppTypography.headline3,
+                        report['title'] ?? l10n.reportDetails,
+                        style: AppTypography.headline3.copyWith(fontSize: 18),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: (report['statusColor'] as Color?)?.withValues(alpha: 0.1) ?? 
-                               AppColors.statusWarning.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppDimensions.radiusCircular),
+                        color: (report['statusColor'] as Color?)?.withOpacity(0.15) ?? AppColors.statusWarning.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        report['status'] ?? 'قيد المعالجة',
+                        report['status'] ?? l10n.statusPending,
                         style: AppTypography.caption.copyWith(
                           color: report['statusColor'] ?? AppColors.statusWarning,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: AppDimensions.spacingM),
+                const SizedBox(height: 16),
 
-                // Address
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 16, color: AppColors.primary),
+                    const Icon(Icons.location_on_outlined, size: 18, color: AppColors.primary),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        report['address'] ?? 'حي النرجس، الرياض',
-                        style: AppTypography.body2,
+                        report['address'] ?? '',
+                        style: AppTypography.body2.copyWith(color: AppColors.textSecondaryLight),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: AppDimensions.spacingS),
+                const SizedBox(height: 8),
 
-                // Date
                 Row(
                   children: [
-                    const Icon(Icons.access_time, size: 16, color: AppColors.iconDefault),
+                    const Icon(Icons.access_time, size: 18, color: AppColors.textHint),
                     const SizedBox(width: 8),
                     Text(
-                      report['date'] ?? 'منذ ساعتين',
-                      style: AppTypography.caption,
+                      report['date'] ?? '',
+                      style: AppTypography.caption.copyWith(color: AppColors.textHint),
                     ),
                   ],
                 ),
-                const SizedBox(height: AppDimensions.spacingL),
+                const SizedBox(height: 24),
 
-                // Action buttons
                 Row(
                   children: [
                     Expanded(
                       child: AppButton(
-                        text: 'عرض التفاصيل',
+                        text: l10n.viewDetails,
                         onPressed: onViewDetails,
                         useGradient: true,
                       ),
                     ),
-                    const SizedBox(width: AppDimensions.spacingM),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: AppButton(
-                        text: 'توجيه',
-                        onPressed: () {
-                          // TODO: Open navigation to this location
-                        },
+                        text: l10n.navigate,
+                        onPressed: () {},
                         useGradient: false,
-                        backgroundColor: AppColors.backgroundInput,
+                        backgroundColor: AppColors.inputDark,
                       ),
                     ),
                   ],
@@ -259,34 +264,33 @@ class ReportBottomSheet extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppDimensions.spacingL),
         ],
       ),
     );
   }
 }
 
-/// ✅ لوحة التحليل الذكي (Smart Analytics Panel)
-/// سيتم تفعيلها لاحقاً عند النقر على منطقة في الخريطة
 /// ✅ لوحة التحليل الذكي (Smart Analytics Panel) - محدثة
 class SmartAnalyticsPanel extends StatelessWidget {
   final Map<String, dynamic>? analyticsData;
   final VoidCallback onViewDetails;
-  final VoidCallback onClose; // ✅ Added
+  final VoidCallback onClose;
 
   const SmartAnalyticsPanel({
     super.key,
     this.analyticsData,
     required this.onViewDetails,
-    required this.onClose, // ✅ Added
+    required this.onClose,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       decoration: const BoxDecoration(
-        color: AppColors.backgroundCard,
-        borderRadius:  BorderRadius.only(
+        color: AppColors.cardDark,
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(AppDimensions.radiusXL),
           topRight: Radius.circular(AppDimensions.radiusXL),
         ),
@@ -294,55 +298,53 @@ class SmartAnalyticsPanel extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag handle
+          const SizedBox(height: 12),
           Container(
-            margin: const EdgeInsets.only(top: 12),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColors.borderDefault,
+              color: AppColors.borderDark,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           
-          // ✅ Close button (top right)
           Padding(
-            padding: const EdgeInsets.only(top: 8, right: 8),
+            padding: const EdgeInsets.only(top: 8, right: 8, left: 8),
             child: Align(
-              alignment: Alignment.topRight,
+              alignment: AlignmentDirectional.centerEnd,
               child: IconButton(
-                icon: const Icon(Icons.close, color: AppColors.iconDefault, size: 20),
+                icon: const Icon(Icons.close, color: AppColors.textHint, size: 20),
                 onPressed: onClose,
               ),
             ),
           ),
           
           Padding(
-            padding: const EdgeInsets.all(AppDimensions.spacingL),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.analytics, color: AppColors.primary),
-                    const SizedBox(width: 8),
+                    const Icon(Icons.analytics, color: AppColors.primary, size: 24),
+                    const SizedBox(width: 10),
                     Text(
-                      'تحليل المنطقة المحيطة',
+                      l10n.analyticsTitle,
                       style: AppTypography.headline3.copyWith(fontSize: 18),
                     ),
                   ],
                 ),
-                const SizedBox(height: AppDimensions.spacingM),
-                _buildStatRow('قيد المعالجة', '${analyticsData?['pendingCount'] ?? 0}', AppColors.statusWarning),
-                const SizedBox(height: AppDimensions.spacingS),
-                _buildStatRow('بلاغات أخرى قريبة', '${analyticsData?['nearbyReports'] ?? 0}', AppColors.primary),
-                const SizedBox(height: AppDimensions.spacingS),
-                _buildStatRow('متوسط وقت الاستجابة', '${analyticsData?['avgResponseTime'] ?? 0} يوم', AppColors.strengthGood),
-                const SizedBox(height: AppDimensions.spacingS),
-                _buildStatRow('آخر بلاغ', analyticsData?['lastReportTime'] ?? 'لا يوجد', AppColors.textSecondary),
-                const SizedBox(height: AppDimensions.spacingL),
+                const SizedBox(height: 20),
+                _buildStatRow(l10n.statusInProgress, '${analyticsData?['pendingCount'] ?? 0}', AppColors.statusWarning, l10n),
+                const SizedBox(height: 12),
+                _buildStatRow(l10n.nearbyReportsCount, '${analyticsData?['nearbyReports'] ?? 0}', AppColors.primary, l10n),
+                const SizedBox(height: 12),
+                _buildStatRow(l10n.responseTime, '${analyticsData?['avgResponseTime'] ?? 0} ${l10n.days}', AppColors.statusSuccess, l10n),
+                const SizedBox(height: 12),
+                _buildStatRow(l10n.lastReport, analyticsData?['lastReportTime'] ?? l10n.noReports, AppColors.textSecondaryLight, l10n),
+                const SizedBox(height: 30),
                 AppButton(
-                  text: 'عرض التفاصيل',
+                  text: l10n.viewDetails,
                   onPressed: onViewDetails,
                   useGradient: true,
                 ),
@@ -354,16 +356,17 @@ class SmartAnalyticsPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildStatRow(String label, String value, Color valueColor) {
+  Widget _buildStatRow(String label, String value, Color valueColor, AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppTypography.body2),
+        Text(label, style: AppTypography.body2.copyWith(color: AppColors.textSecondaryLight)),
         Text(
           value,
           style: AppTypography.headline3.copyWith(
             fontSize: 16,
             color: valueColor,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ],
@@ -372,7 +375,6 @@ class SmartAnalyticsPanel extends StatelessWidget {
 }
 
 /// ✅ تنبيه البلاغ المشابه (Similar Report Alert)
-/// سيتم تفعيله عند محاولة إنشاء بلاغ في منطقة بها بلاغ مشابه
 class SimilarReportAlert extends StatelessWidget {
   final Map<String, dynamic>? similarReport;
   final VoidCallback onViewExistingReport;
@@ -387,57 +389,61 @@ class SimilarReportAlert extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final distance = similarReport?['distance'] as int? ?? 200;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.backgroundCard,
+        color: AppColors.cardDark,
         borderRadius: BorderRadius.circular(AppDimensions.radiusXL),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.statusWarning.withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            blurRadius: 12,
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(AppDimensions.spacingM),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.warning_amber_rounded, color: AppColors.statusWarning),
-              const SizedBox(width: 8),
+              const Icon(Icons.warning_amber_rounded, color: AppColors.statusWarning, size: 24),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'يوجد بلاغ مشابه على بعد 200 متر',
-                  style: AppTypography.body1.copyWith(
-                    fontWeight: FontWeight.w600,
+                  l10n.similarReportAlert(distance),
+                  style: AppTypography.headline3.copyWith(
+                    fontSize: 16,
                     color: AppColors.statusWarning,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppDimensions.spacingS),
+          const SizedBox(height: 12),
           Text(
-            'تم رصد بلاغ مماثل مؤخراً في هذا النطاق الجغرافي. يرجى التحقق من التفاصيل لتجنب التكرار.',
-            style: AppTypography.body2,
+            l10n.similarReportNote,
+            style: AppTypography.body2.copyWith(color: AppColors.textSecondaryLight, height: 1.4),
           ),
-          const SizedBox(height: AppDimensions.spacingM),
+          const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
                 child: AppButton(
-                  text: 'عرض البلاغ الموجود',
+                  text: l10n.viewExistingReport,
                   onPressed: onViewExistingReport,
                   useGradient: false,
-                  backgroundColor: AppColors.backgroundInput,
+                  backgroundColor: AppColors.inputDark,
                 ),
               ),
-              const SizedBox(width: AppDimensions.spacingM),
+              const SizedBox(width: 12),
               Expanded(
                 child: AppButton(
-                  text: 'إنشاء بلاغ جديد',
+                  text: l10n.createNewReport,
                   onPressed: onCreateNewReport,
                   useGradient: true,
                 ),
@@ -461,23 +467,25 @@ class ExpandSearchButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.backgroundCard,
+        color: AppColors.cardDark,
         borderRadius: BorderRadius.circular(AppDimensions.radiusCircular),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 8,
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
           ),
         ],
       ),
       child: TextButton.icon(
         onPressed: onExpand,
-        icon: const Icon(Icons.zoom_out_map, color: AppColors.primary),
+        icon: const Icon(Icons.zoom_out_map, color: AppColors.primary, size: 20),
         label: Text(
-          'توسيع نطاق البحث',
-          style: AppTypography.link,
+          l10n.expandSearch,
+          style: AppTypography.link.copyWith(fontWeight: FontWeight.bold),
         ),
       ),
     );

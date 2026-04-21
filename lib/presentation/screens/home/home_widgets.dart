@@ -23,11 +23,11 @@ class WelcomeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppDimensions.spacingL),
       decoration: BoxDecoration(
-        gradient: AppColors.primaryButtonGradient,
+        gradient: AppColors.darkGradient,
         borderRadius: BorderRadius.circular(AppDimensions.radiusXL),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
+            color: AppColors.primary.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -50,7 +50,7 @@ class WelcomeCard extends StatelessWidget {
               Text(
                 'شارك في تحسين مدينتك اليوم',
                 style: AppTypography.body2.copyWith(
-                  color: Colors.white.withValues(alpha: 0.8),
+                  color: Colors.white.withOpacity(0.8),
                 ),
               ),
             ],
@@ -61,7 +61,7 @@ class WelcomeCard extends StatelessWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(AppDimensions.radiusM),
               ),
               child: const Icon(Icons.add, color: Colors.white, size: 30),
