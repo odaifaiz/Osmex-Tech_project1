@@ -2,112 +2,260 @@
 
 import 'package:flutter/material.dart';
 
-/// A unified class for all app colors, supporting semantic naming for themes.
-class AppColors {
-  AppColors._();
+@immutable
+class AppColors extends ThemeExtension<AppColors> {
+  // Brand Colors
+  final Color primary;
+  final Color primaryDark;
+  final Color primaryLight;
+  final Color primaryGlow;
+  final LinearGradient primaryGradient;
 
+  // UI Colors
+  final Color background;
+  final LinearGradient backgroundGradient;
+  final Color surface;
+  final Color card;
+  final Color backgroundCard; // Added
+  final Color input;
+  final Color border;
+  final Color borderDefault; // Added
+  final Color divider;
 
-  static const Color strengthWeak = Color(0xFFEF5350);     // أحمر
-  static const Color strengthFair = Color(0xFFFFCA28);     // أصفر
-  static const Color strengthGood = Color(0xFF66BB6A);     // أخضر فاتح
-  static const Color strengthStrong = Color(0xFF43A047);
+  // Text Colors
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textHint;
+  final Color iconDefault; // Added
 
-  // --- Background Colors ---
-  static const Color backgroundDark = Color(0xFF0D1B2A);
-  static const Color backgroundCard = Color(0xFF112233);
-  static const Color backgroundInput = Color(0xFF0F1E2E);
-  static const Color backgroundRegister = Color(0xFF0F1C2D);
+  // Status Colors
+  final Color success;
+  final Color statusSuccess; // Added
+  final Color warning;
+  final Color statusWarning; // Added
+  final Color error;
+  final Color statusError; // Added
+  final Color info;
 
+  // Strength Colors
+  final Color strengthWeak;
+  final Color strengthFair;
+  final Color strengthGood;
 
-  // --- Core Brand Palette ---
-  static const Color primary = Color(0xFF1FD6A0);
-  static const Color primaryDark = Color(0xFF17B889);
-  static const Color primaryGlow = Color(0x331FD6A0);
+  const AppColors({
+    required this.primary,
+    required this.primaryDark,
+    required this.primaryLight,
+    required this.primaryGlow,
+    required this.primaryGradient,
+    required this.background,
+    required this.backgroundGradient,
+    required this.surface,
+    required this.card,
+    required this.backgroundCard,
+    required this.input,
+    required this.border,
+    required this.borderDefault,
+    required this.divider,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textHint,
+    required this.iconDefault,
+    required this.success,
+    required this.statusSuccess,
+    required this.warning,
+    required this.statusWarning,
+    required this.error,
+    required this.statusError,
+    required this.info,
+    required this.strengthWeak,
+    required this.strengthFair,
+    required this.strengthGood,
+  });
 
-  static const Color textPrimary = Color(0xFFFFFFFF);
-  static const Color textSecondary = Color(0xFFB0BEC5);
-  static const Color textHint = Color(0xFF546E7A);
-  static const Color textLink = primary; // Re-using primary for consistency
-
-
-  // --- Semantic Palette (Dark Mode Default) ---
-
-  static const Color surfaceDark = Color(0xFF1B263B);
-  static const Color cardDark = Color(0xFF112233);
-  static const Color inputDark = Color(0xFF0F1E2E);
-  static const Color textPrimaryDark = Color(0xFFFFFFFF);
-  static const Color textSecondaryDark = Color(0xFFB0BEC5);
-  static const Color borderDark = Color(0xFF1E3448);
-
-  // --- Semantic Palette (Light Mode) ---
-  static const Color backgroundLight = Color(0xFFF8F9FA);
-  static const Color surfaceLight = Color(0xFFFFFFFF);
-  static const Color cardLight = Color(0xFFFFFFFF);
-  static const Color inputLight = Color(0xFFF1F3F5);
-  static const Color textPrimaryLight = Color(0xFF1A1A2E);
-  static const Color textSecondaryLight = Color(0xFF495057);
-  static const Color borderLight = Color(0xFFDEE2E6);
-
-  // --- Neutral & Status ---
-  static const Color statusSuccess = Color(0xFF00C853);
-  static const Color statusWarning = Color(0xFFFFCA28);
-  static const Color statusError = Color(0xFFEF5350);
-
-
-  // --- Icon Colors ---
-  static const Color iconDefault = Color(0xFF546E7A);
-  static const Color iconActive = primary; // Re-using primary for consistency
-
-
-
-  // --- Component-Specific Colors ---
-  static const Color googleButtonBg = Color(0xFFFFFFFF);
-  static const Color googleButtonText = Color(0xFF1A1A2E);
-  static const Color divider = Color(0xFF1E3448);
-
-  // --- Status & Semantic Colors ---
-
-
-
-
-  // --- OTP Input Colors ---
-  static const Color otpBoxBg = Color(0xFF112233);
-  static const Color otpBoxBorder = borderDefault;
-  static const Color otpBoxFocused = borderFocused;
-  static const Color otpDotColor = textSecondary;
-
-  // --- Gradients ---
-  static const LinearGradient backgroundGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFF0A1628), Color(0xFF0D1B2A)],
+  // =============================================
+  // Light Mode Instance
+  // =============================================
+  static const light = AppColors(
+    primary: Color(0xFF1ABC3A),
+    primaryDark: Color(0xFF16A085),
+    primaryLight: Color(0xFF4ADE80),
+    primaryGlow: Color(0x331ABC3A),
+    primaryGradient: LinearGradient(
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+      colors: [Color(0xFF1ABC3A), Color(0xFF16A085)],
+    ),
+    background: Color(0xFFF6F8F6),
+    backgroundGradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0xFFF6F8F6), Color(0xFFFFFFFF)],
+    ),
+    surface: Color(0xFFFFFFFF),
+    card: Color(0xFFFFFFFF),
+    backgroundCard: Color(0xFFFFFFFF),
+    input: Color(0xFFF9FAFB),
+    border: Color(0xFFE5E7EB),
+    borderDefault: Color(0xFFE5E7EB),
+    divider: Color(0xFFE5E7EB),
+    textPrimary: Color(0xFF111827),
+    textSecondary: Color(0xFF6B7280),
+    textHint: Color(0xFF9CA3AF),
+    iconDefault: Color(0xFF6B7280),
+    success: Color(0xFF10B981),
+    statusSuccess: Color(0xFF10B981),
+    warning: Color(0xFFF59E0B),
+    statusWarning: Color(0xFFF59E0B),
+    error: Color(0xFFEF4444),
+    statusError: Color(0xFFEF4444),
+    info: Color(0xFF3B82F6),
+    strengthWeak: Color(0xFFEF4444),
+    strengthFair: Color(0xFFF59E0B),
+    strengthGood: Color(0xFF10B981),
   );
 
-  static const LinearGradient primaryButtonGradient = LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-    colors: [primary, primaryDark],
+  // =============================================
+  // Dark Mode Instance
+  // =============================================
+  static const dark = AppColors(
+    primary: Color(0xFF1ABC3A),
+    primaryDark: Color(0xFF16A085),
+    primaryLight: Color(0xFF4ADE80),
+    primaryGlow: Color(0x331ABC3A),
+    primaryGradient: LinearGradient(
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+      colors: [Color(0xFF1ABC3A), Color(0xFF16A085)],
+    ),
+    background: Color(0xFF112114),
+    backgroundGradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0xFF0A1628), Color(0xFF0D1B2A)],
+    ),
+    surface: Color(0xFF1A2E1D),
+    card: Color(0xFF1E3322),
+    backgroundCard: Color(0xFF1E3322),
+    input: Color(0xFF1E3322),
+    border: Color(0xFF2D4A33),
+    borderDefault: Color(0xFF2D4A33),
+    divider: Color(0xFF2D4A33),
+    textPrimary: Color(0xFFF9FAFB),
+    textSecondary: Color(0xFF9CA3AF),
+    textHint: Color(0xFF6B7280),
+    iconDefault: Color(0xFF9CA3AF),
+    success: Color(0xFF10B981),
+    statusSuccess: Color(0xFF10B981),
+    warning: Color(0xFFF59E0B),
+    statusWarning: Color(0xFFF59E0B),
+    error: Color(0xFFEF4444),
+    statusError: Color(0xFFEF4444),
+    info: Color(0xFF3B82F6),
+    strengthWeak: Color(0xFFEF4444),
+    strengthFair: Color(0xFFF59E0B),
+    strengthGood: Color(0xFF10B981),
   );
 
+  @override
+  AppColors copyWith({
+    Color? primary,
+    Color? primaryDark,
+    Color? primaryLight,
+    Color? primaryGlow,
+    LinearGradient? primaryGradient,
+    Color? background,
+    LinearGradient? backgroundGradient,
+    Color? surface,
+    Color? card,
+    Color? backgroundCard,
+    Color? input,
+    Color? border,
+    Color? borderDefault,
+    Color? divider,
+    Color? textPrimary,
+    Color? textSecondary,
+    Color? textHint,
+    Color? iconDefault,
+    Color? success,
+    Color? statusSuccess,
+    Color? warning,
+    Color? statusWarning,
+    Color? error,
+    Color? statusError,
+    Color? info,
+    Color? strengthWeak,
+    Color? strengthFair,
+    Color? strengthGood,
+  }) {
+    return AppColors(
+      primary: primary ?? this.primary,
+      primaryDark: primaryDark ?? this.primaryDark,
+      primaryLight: primaryLight ?? this.primaryLight,
+      primaryGlow: primaryGlow ?? this.primaryGlow,
+      primaryGradient: primaryGradient ?? this.primaryGradient,
+      background: background ?? this.background,
+      backgroundGradient: backgroundGradient ?? this.backgroundGradient,
+      surface: surface ?? this.surface,
+      card: card ?? this.card,
+      backgroundCard: backgroundCard ?? this.backgroundCard,
+      input: input ?? this.input,
+      border: border ?? this.border,
+      borderDefault: borderDefault ?? this.borderDefault,
+      divider: divider ?? this.divider,
+      textPrimary: textPrimary ?? this.textPrimary,
+      textSecondary: textSecondary ?? this.textSecondary,
+      textHint: textHint ?? this.textHint,
+      iconDefault: iconDefault ?? this.iconDefault,
+      success: success ?? this.success,
+      statusSuccess: statusSuccess ?? this.statusSuccess,
+      warning: warning ?? this.warning,
+      statusWarning: statusWarning ?? this.statusWarning,
+      error: error ?? this.error,
+      statusError: statusError ?? this.statusError,
+      info: info ?? this.info,
+      strengthWeak: strengthWeak ?? this.strengthWeak,
+      strengthFair: strengthFair ?? this.strengthFair,
+      strengthGood: strengthGood ?? this.strengthGood,
+    );
+  }
 
+  @override
+  AppColors lerp(ThemeExtension<AppColors>? other, double t) {
+    if (other is! AppColors) return this;
+    return AppColors(
+      primary: Color.lerp(primary, other.primary, t)!,
+      primaryDark: Color.lerp(primaryDark, other.primaryDark, t)!,
+      primaryLight: Color.lerp(primaryLight, other.primaryLight, t)!,
+      primaryGlow: Color.lerp(primaryGlow, other.primaryGlow, t)!,
+      primaryGradient: LinearGradient.lerp(primaryGradient, other.primaryGradient, t)!,
+      background: Color.lerp(background, other.background, t)!,
+      backgroundGradient: LinearGradient.lerp(backgroundGradient, other.backgroundGradient, t)!,
+      surface: Color.lerp(surface, other.surface, t)!,
+      card: Color.lerp(card, other.card, t)!,
+      backgroundCard: Color.lerp(backgroundCard, other.backgroundCard, t)!,
+      input: Color.lerp(input, other.input, t)!,
+      border: Color.lerp(border, other.border, t)!,
+      borderDefault: Color.lerp(borderDefault, other.borderDefault, t)!,
+      divider: Color.lerp(divider, other.divider, t)!,
+      textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
+      textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
+      textHint: Color.lerp(textHint, other.textHint, t)!,
+      iconDefault: Color.lerp(iconDefault, other.iconDefault, t)!,
+      success: Color.lerp(success, other.success, t)!,
+      statusSuccess: Color.lerp(statusSuccess, other.statusSuccess, t)!,
+      warning: Color.lerp(warning, other.warning, t)!,
+      statusWarning: Color.lerp(statusWarning, other.statusWarning, t)!,
+      error: Color.lerp(error, other.error, t)!,
+      statusError: Color.lerp(statusError, other.statusError, t)!,
+      info: Color.lerp(info, other.info, t)!,
+      strengthWeak: Color.lerp(strengthWeak, other.strengthWeak, t)!,
+      strengthFair: Color.lerp(strengthFair, other.strengthFair, t)!,
+      strengthGood: Color.lerp(strengthGood, other.strengthGood, t)!,
+    );
+  }
+}
 
-
-
-
-
-  static const Color borderDefault = Color(0xFF1E3448);
-  static const Color borderFocused = primary; // Re-using primary for consistency
-
-  // --- Gradients ---
-  static const LinearGradient darkGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFF0A1628), Color(0xFF0D1B2A)],
-  );
-
-  static const LinearGradient lightGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFFFFFFFF), Color(0xFFF8F9FA)],
-  );
+extension AppColorsGetter on BuildContext {
+  AppColors get appColors => Theme.of(this).extension<AppColors>()!;
 }

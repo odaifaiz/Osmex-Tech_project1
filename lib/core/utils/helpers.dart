@@ -20,8 +20,8 @@ class Helpers {
       msg: message,
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
-      backgroundColor: AppColors.backgroundCard,
-      textColor: AppColors.textPrimary,
+      backgroundColor: AppColors.light.backgroundCard,
+      textColor: AppColors.light.textPrimary,
       fontSize: 16.0,
     );
   }
@@ -31,7 +31,7 @@ class Helpers {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? AppColors.statusError : AppColors.backgroundCard,
+        backgroundColor: isError ? context.appColors.statusError : context.appColors.backgroundCard,
         behavior: SnackBarBehavior.floating,
       ),
     );

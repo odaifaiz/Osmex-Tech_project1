@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:city_fix_app/core/theme/app_colors.dart';
+import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/widgets/common/app_button.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
@@ -17,48 +18,55 @@ class _RatingDialogState extends State<RatingDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.cardDark,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: AppColors.borderLight),
+          border: Border.all(color: colors.border.withOpacity(0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
         padding: const EdgeInsets.all(24),
-        child: _isSubmitted ? _buildSuccessView() : _buildRatingInputView(),
+        child: _isSubmitted ? _buildSuccessView(colors) : _buildRatingInputView(colors),
       ),
     );
   }
 
-  Widget _buildRatingInputView() {
+  Widget _buildRatingInputView(AppColors colors) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // الأيقونة العلوية الجذابة
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            color: colors.primary.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.stars_rounded, size: 60, color: AppColors.primary),
+          child: Icon(Icons.stars_rounded, size: 60, color: colors.primary),
         ),
         const SizedBox(height: 20),
-        const Text(
+        Text(
           'كيف كانت تجربتك؟',
-          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+          style: AppTypography.headline2.copyWith(color: colors.textPrimary, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'تقييمك يساعدنا على تقديم خدمة أفضل لك وللمدينة',
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.textSecondaryLight, fontSize: 13),
+          style: AppTypography.body2.copyWith(color: colors.textSecondary),
         ),
         const SizedBox(height: 24),
 
-        // نجوم التقييم
         RatingBar.builder(
           initialRating: 0,
           minRating: 1,
@@ -71,35 +79,37 @@ class _RatingDialogState extends State<RatingDialog> {
         ),
         const SizedBox(height: 24),
 
-        // حقل التعليق
         TextField(
           controller: _commentController,
           maxLines: 3,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
+          style: TextStyle(color: colors.textPrimary),
           decoration: InputDecoration(
             hintText: 'اكتب رأيك هنا (اختياري)...',
-            hintStyle: const TextStyle(color: AppColors.textHint, fontSize: 13),
-            fillColor: AppColors.backgroundDark,
+            hintStyle: TextStyle(color: colors.textHint, fontSize: 13),
+            fillColor: colors.input,
             filled: true,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.borderLight),
+              borderSide: BorderSide(color: colors.border.withOpacity(0.5)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.borderLight),
+              borderSide: BorderSide(color: colors.border.withOpacity(0.5)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: colors.primary),
             ),
           ),
         ),
         const SizedBox(height: 24),
 
-        // أزرار التحكم
         Row(
           children: [
             Expanded(
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('إلغاء', style: TextStyle(color: AppColors.textSecondaryLight)),
+                child: Text('إلغاء', style: TextStyle(color: colors.textSecondary)),
               ),
             ),
             const SizedBox(width: 12),
@@ -109,7 +119,7 @@ class _RatingDialogState extends State<RatingDialog> {
                 text: 'إرسال التقييم',
                 onPressed: _rating > 0 
                   ? () => setState(() => _isSubmitted = true) 
-                  : null, // تعطيل الزر إذا لم يتم اختيار نجوم
+                  : null,
               ),
             ),
           ],
@@ -118,21 +128,21 @@ class _RatingDialogState extends State<RatingDialog> {
     );
   }
 
-  Widget _buildSuccessView() {
+  Widget _buildSuccessView(AppColors colors) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.check_circle_rounded, size: 80, color: AppColors.statusSuccess),
+        Icon(Icons.check_circle_rounded, size: 80, color: colors.success),
         const SizedBox(height: 20),
-        const Text(
+        Text(
           'شكراً لتقييمك!',
-          style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+          style: AppTypography.headline2.copyWith(color: colors.textPrimary, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        const Text(
+        Text(
           'لقد تم استلام رأيك بنجاح، نحن نقدر وقتك.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.textSecondaryLight, fontSize: 14),
+          style: AppTypography.body2.copyWith(color: colors.textSecondary),
         ),
         const SizedBox(height: 30),
         AppButton(

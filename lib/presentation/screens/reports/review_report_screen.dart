@@ -1,5 +1,6 @@
 // lib/presentation/screens/reports/review_report_screen.dart
 
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,8 +36,17 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
     super.didChangeDependencies();
     if (!_dataInitialized) {
       final extra = GoRouterState.of(context).extra;
-      if (extra != null && extra is Map<String, dynamic>) {
-        _reportData = extra;
+      final Map<String, dynamic>? extraMap = extra is String 
+          ? jsonDecode(extra) as Map<String, dynamic>?
+          : extra as Map<String, dynamic>?;
+
+      if (extraMap != null) {
+        _reportData = Map<String, dynamic>.from(extraMap);
+        // Reconstruct File objects if we have imagePaths
+        if (_reportData.containsKey('imagePaths')) {
+          final List<String> paths = (_reportData['imagePaths'] as List?)?.cast<String>() ?? [];
+          _reportData['images'] = paths.map((p) => File(p)).toList();
+        }
       } else {
         _reportData = {
           'title': '',
@@ -54,7 +64,7 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
     }
   }
 
-  Future<void> _sendReport() async {
+  Future<void> _sendReport(AppColors colors) async {
     if (!_isConfirmed) return;
     final l10n = AppLocalizations.of(context)!;
 
@@ -103,12 +113,12 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
       if (mounted) {
         context.pushNamed(
           RouteConstants.reportSuccessRouteName,
-          extra: {
+          extra: jsonEncode({
             'id': newReport.id,
             'latitude': _reportData['latitude'],
             'longitude': _reportData['longitude'],
             'address': _reportData['address'],
-          },
+          }),
         );
       }
     } catch (e) {
@@ -117,7 +127,7 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString().replaceAll('Exception: ', '')),
-            backgroundColor: AppColors.statusError,
+            backgroundColor: colors.error,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -126,24 +136,24 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
     }
   }
 
-  void _showWarningDialog(AppLocalizations l10n) {
+  void _showWarningDialog(AppLocalizations l10n, AppColors colors) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.backgroundCard,
+        backgroundColor: colors.surface,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimensions.radiusL)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.warning_amber_rounded,
-                size: 50, color: AppColors.statusWarning),
+            Icon(Icons.warning_amber_rounded,
+                size: 50, color: colors.warning),
             const SizedBox(height: AppDimensions.spacingL),
-            Text(l10n.warning, style: AppTypography.headline3),
+            Text(l10n.warning, style: AppTypography.headline3.copyWith(color: colors.textPrimary)),
             const SizedBox(height: AppDimensions.spacingM),
             Text(
               l10n.activateDeclaration,
-              style: AppTypography.body2,
+              style: AppTypography.body2.copyWith(color: colors.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppDimensions.spacingL),
@@ -157,24 +167,24 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
     );
   }
 
-  void _showConfirmationDialog(BuildContext context, AppLocalizations l10n) {
+  void _showConfirmationDialog(BuildContext context, AppLocalizations l10n, AppColors colors) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.backgroundCard,
+        backgroundColor: colors.surface,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimensions.radiusXL)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: AppDimensions.spacingM),
-            const Icon(Icons.send_outlined, size: 48, color: AppColors.primary),
+            Icon(Icons.send_outlined, size: 48, color: colors.primary),
             const SizedBox(height: AppDimensions.spacingL),
-            Text(l10n.confirmationTitle, style: AppTypography.headline3),
+            Text(l10n.confirmationTitle, style: AppTypography.headline3.copyWith(color: colors.textPrimary)),
             const SizedBox(height: AppDimensions.spacingM),
             Text(l10n.confirmationMessage,
-                style: AppTypography.body2, textAlign: TextAlign.center),
+                style: AppTypography.body2.copyWith(color: colors.textSecondary), textAlign: TextAlign.center),
             const SizedBox(height: AppDimensions.spacingXL),
             Row(
               children: [
@@ -183,7 +193,7 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
                     text: l10n.confirmAndSend.replaceAll(' ➤', ''),
                     onPressed: () {
                       Navigator.pop(context);
-                      _sendReport();
+                      _sendReport(colors);
                     },
                   ),
                 ),
@@ -193,7 +203,7 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
                     onPressed: () => Navigator.pop(context),
                     child: Text(l10n.cancel,
                         style: AppTypography.body2
-                            .copyWith(color: AppColors.statusError)),
+                            .copyWith(color: colors.error)),
                   ),
                 ),
               ],
@@ -206,12 +216,14 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final l10n = AppLocalizations.of(context)!;
     final imagesList = (_reportData['images'] as List?) ?? [];
     final imagesCount = imagesList.length;
 
     return Scaffold(
-      appBar: _buildAppBar(context, l10n),
+      backgroundColor: colors.background,
+      appBar: _buildAppBar(context, l10n, colors),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimensions.spacingL),
         child: Column(
@@ -220,20 +232,20 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
             const StepProgressIndicator(currentStep: 2),
             const SizedBox(height: AppDimensions.spacingL),
 
-            _buildSectionHeader(l10n.attachedImages, count: l10n.imagesCount(imagesCount), l10n: l10n),
+            _buildSectionHeader(l10n.attachedImages, count: l10n.imagesCount(imagesCount), colors: colors),
             const SizedBox(height: AppDimensions.spacingM),
-            _buildImagesRow(imagesList, l10n),
+            _buildImagesRow(imagesList, l10n, colors),
             const SizedBox(height: AppDimensions.spacingXL),
 
-            _buildSectionHeader(l10n.reportDetails, l10n: l10n),
+            _buildSectionHeader(l10n.reportDetails, colors: colors),
             const SizedBox(height: AppDimensions.spacingM),
-            _buildDetailsCard(l10n),
+            _buildDetailsCard(l10n, colors),
             const SizedBox(height: AppDimensions.spacingXL),
 
-            _buildConfirmationCheckbox(l10n),
+            _buildConfirmationCheckbox(l10n, colors),
             const SizedBox(height: AppDimensions.spacingXL),
 
-            _buildActionButtons(context, l10n),
+            _buildActionButtons(context, l10n, colors),
             const SizedBox(height: AppDimensions.spacingXL),
           ],
         ),
@@ -241,13 +253,15 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, AppLocalizations l10n) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, AppLocalizations l10n, AppColors colors) {
     return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
       leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: colors.textPrimary),
           onPressed: () => context.pop()),
       title: Text(l10n.reviewReport,
-          style: AppTypography.headline3.copyWith(fontSize: 18)),
+          style: AppTypography.headline3.copyWith(fontSize: 18, color: colors.textPrimary)),
       centerTitle: true,
       actions: [
         Container(
@@ -255,42 +269,42 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
               horizontal: AppDimensions.spacingM, vertical: 12),
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: colors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(AppDimensions.radiusM)),
           child: Center(
               child: Text('2/3',
                   style: AppTypography.caption.copyWith(
-                      color: AppColors.primary, fontWeight: FontWeight.bold))),
+                      color: colors.primary, fontWeight: FontWeight.bold))),
         ),
       ],
     );
   }
 
-  Widget _buildSectionHeader(String title, {String? count, required AppLocalizations l10n}) {
+  Widget _buildSectionHeader(String title, {String? count, required AppColors colors}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: AppTypography.headline3.copyWith(fontSize: 16)),
+        Text(title, style: AppTypography.headline3.copyWith(fontSize: 16, color: colors.textPrimary)),
         if (count != null)
           Text(count,
-              style: AppTypography.caption.copyWith(color: AppColors.primary)),
+              style: AppTypography.caption.copyWith(color: colors.primary)),
       ],
     );
   }
 
-  Widget _buildImagesRow(List images, AppLocalizations l10n) {
+  Widget _buildImagesRow(List images, AppLocalizations l10n, AppColors colors) {
     if (images.isEmpty) {
       return Container(
         height: 100,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColors.backgroundCard,
+          color: colors.input,
           borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-          border: Border.all(color: AppColors.borderDefault),
+          border: Border.all(color: colors.border.withOpacity(0.5)),
         ),
         child: Center(
             child: Text(l10n.noImages,
-                style: const TextStyle(color: AppColors.textSecondary))),
+                style: TextStyle(color: colors.textSecondary))),
       );
     }
     return SizedBox(
@@ -307,7 +321,7 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
             height: 100,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-              border: Border.all(color: AppColors.borderDefault),
+              border: Border.all(color: colors.border.withOpacity(0.5)),
               image: DecorationImage(
                   image: FileImage(imageFile), fit: BoxFit.cover),
             ),
@@ -317,13 +331,20 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
     );
   }
 
-  Widget _buildDetailsCard(AppLocalizations l10n) {
+  Widget _buildDetailsCard(AppLocalizations l10n, AppColors colors) {
     return Container(
       padding: const EdgeInsets.all(AppDimensions.spacingL),
       decoration: BoxDecoration(
-        color: AppColors.backgroundCard,
+        color: colors.card,
         borderRadius: BorderRadius.circular(AppDimensions.radiusXL),
-        border: Border.all(color: AppColors.borderDefault),
+        border: Border.all(color: colors.border.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -332,19 +353,19 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
               value: _reportData['categoryName'] ?? '---',
               icon: Icons.category_outlined,
               onEdit: () => context.pop()),
-          const Divider(height: AppDimensions.spacingXL),
+          Divider(height: AppDimensions.spacingXL, color: colors.divider),
           ReportDetailItem(
               label: l10n.reportTitleLabel,
               value: _reportData['title'] ?? '',
               icon: Icons.title_outlined,
               onEdit: () => context.pop()),
-          const Divider(height: AppDimensions.spacingXL),
+          Divider(height: AppDimensions.spacingXL, color: colors.divider),
           ReportDetailItem(
               label: l10n.location,
               value: _reportData['address'] ?? '---',
               icon: Icons.location_on_outlined,
               onEdit: () => context.pop()),
-          const Divider(height: AppDimensions.spacingXL),
+          Divider(height: AppDimensions.spacingXL, color: colors.divider),
           ReportDetailItem(
               label: l10n.reportDescription,
               value: _reportData['description'] ?? '',
@@ -356,17 +377,17 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                    color: AppColors.statusError.withOpacity(0.1),
+                    color: colors.error.withOpacity(0.1),
                     borderRadius:
                         BorderRadius.circular(AppDimensions.radiusM)),
                 child: Row(
                   children: [
-                    const Icon(Icons.warning_amber_rounded,
-                        color: AppColors.statusError, size: 18),
+                    Icon(Icons.warning_amber_rounded,
+                        color: colors.error, size: 18),
                     const SizedBox(width: 8),
                     Text(l10n.urgentReport,
-                        style: const TextStyle(
-                            color: AppColors.statusError,
+                        style: TextStyle(
+                            color: colors.error,
                             fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -377,7 +398,7 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
     );
   }
 
-  Widget _buildConfirmationCheckbox(AppLocalizations l10n) {
+  Widget _buildConfirmationCheckbox(AppLocalizations l10n, AppColors colors) {
     return GestureDetector(
       onTap: () => setState(() => _isConfirmed = !_isConfirmed),
       child: Row(
@@ -388,26 +409,26 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
               shape: BoxShape.circle,
               border: Border.all(
                   color: _isConfirmed
-                      ? AppColors.primary
-                      : AppColors.iconDefault,
+                      ? colors.primary
+                      : colors.textHint,
                   width: 2),
             ),
             child: Icon(Icons.circle,
                 size: 12,
-                color: _isConfirmed ? AppColors.primary : Colors.transparent),
+                color: _isConfirmed ? colors.primary : Colors.transparent),
           ),
           const SizedBox(width: AppDimensions.spacingM),
           Expanded(
             child: Text(
                 l10n.declarationText,
-                style: AppTypography.body2),
+                style: AppTypography.body2.copyWith(color: colors.textPrimary)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, AppLocalizations l10n) {
+  Widget _buildActionButtons(BuildContext context, AppLocalizations l10n, AppColors colors) {
     return Column(
       children: [
         AppButton(
@@ -416,10 +437,10 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
               ? null
               : () {
                   if (!_isConfirmed) {
-                    _showWarningDialog(l10n);
+                    _showWarningDialog(l10n, colors);
                     return;
                   }
-                  _showConfirmationDialog(context, l10n);
+                  _showConfirmationDialog(context, l10n, colors);
                 },
         ),
         const SizedBox(height: AppDimensions.spacingM),
@@ -428,13 +449,12 @@ class _ReviewReportScreenState extends ConsumerState<ReviewReportScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // ✅ Handle arrow direction based on RTL/LTR
               Icon(Directionality.of(context) == TextDirection.rtl ? Icons.arrow_forward : Icons.arrow_back,
-                  size: 18, color: AppColors.iconDefault),
+                  size: 18, color: colors.textSecondary),
               const SizedBox(width: 8),
               Text(l10n.back,
                   style:
-                      AppTypography.body2.copyWith(color: AppColors.iconDefault)),
+                      AppTypography.body2.copyWith(color: colors.textSecondary)),
             ],
           ),
         ),

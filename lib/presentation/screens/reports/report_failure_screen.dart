@@ -14,15 +14,16 @@ class ReportFailureScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: colors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
         leading: IconButton(
-          icon: Icon(Directionality.of(context) == TextDirection.rtl ? Icons.arrow_forward_ios : Icons.arrow_back_ios_new, color: AppColors.textPrimaryDark, size: 20),
+          icon: Icon(Directionality.of(context) == TextDirection.rtl ? Icons.arrow_forward_ios : Icons.arrow_back_ios_new, color: colors.textPrimary, size: 20),
           onPressed: () => context.pop(),
         ),
       ),
@@ -37,10 +38,10 @@ class ReportFailureScreen extends StatelessWidget {
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.statusError.withOpacity(0.1),
+                  color: colors.error.withOpacity(0.1),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.statusError.withOpacity(0.3),
+                      color: colors.error.withOpacity(0.3),
                       blurRadius: 30,
                       spreadRadius: 5,
                     ),
@@ -51,11 +52,11 @@ class ReportFailureScreen extends StatelessWidget {
                   height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.statusError.withOpacity(0.2),
+                    color: colors.error.withOpacity(0.2),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.wifi_off_rounded,
-                    color: AppColors.statusError,
+                    color: colors.error,
                     size: 70,
                   ),
                 ),
@@ -66,7 +67,7 @@ class ReportFailureScreen extends StatelessWidget {
                 l10n.failureTitle,
                 style: AppTypography.headline1.copyWith(
                   fontSize: 28,
-                  color: AppColors.textPrimaryLight,
+                  color: colors.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -75,7 +76,7 @@ class ReportFailureScreen extends StatelessWidget {
               Text(
                 l10n.reportFailure,
                 style: AppTypography.body1.copyWith(
-                  color: AppColors.textSecondaryLight,
+                  color: colors.textSecondary,
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
@@ -84,7 +85,7 @@ class ReportFailureScreen extends StatelessWidget {
 
               AppButton(
                 text: l10n.retry,
-                icon: const Icon(Icons.refresh_rounded, size: 20),
+                icon: const Icon(Icons.refresh_rounded, size: 20, color: Colors.white),
                 onPressed: () {
                   context.pop();
                 },
@@ -92,43 +93,15 @@ class ReportFailureScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppDimensions.spacingM),
 
-              Container(
-                height: AppDimensions.buttonHeight,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusCircular),
-                  border: Border.all(color: AppColors.borderLight, width: 1.5),
-                ),
-                child: ElevatedButton(
-                  onPressed: () {
-                    context.goNamed(RouteConstants.homeRouteName);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusCircular),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.save_outlined,
-                        color: AppColors.textSecondary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: AppDimensions.spacingS),
-                      Text(
-                        l10n.saveDraft,
-                        style: AppTypography.button.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              AppButton(
+                text: l10n.saveDraft,
+                icon: Icon(Icons.save_outlined, size: 20, color: colors.textSecondary),
+                onPressed: () {
+                  context.goNamed(RouteConstants.homeRouteName);
+                },
+                useGradient: false,
+                backgroundColor: colors.input,
+                textColor: colors.textSecondary,
               ),
               const SizedBox(height: AppDimensions.spacingL),
             ],

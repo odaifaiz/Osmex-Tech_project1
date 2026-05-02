@@ -34,4 +34,16 @@ extension ContextExtensions on BuildContext {
 
   /// Returns the screen height.
   double get screenHeight => screenSize.height;
+
+  /// Returns a width proportional to the screen width.
+  double responsiveWidth(double ratio) => screenWidth * ratio;
+
+  /// Returns a height proportional to the screen height.
+  double responsiveHeight(double ratio) => screenHeight * ratio;
+
+  /// Returns true if the device is a tablet.
+  bool get isTablet => screenWidth >= 600;
+
+  /// Returns true if the device has a small screen.
+  bool get isSmallScreen => screenWidth < 360;
 }

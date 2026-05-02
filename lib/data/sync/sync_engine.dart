@@ -55,11 +55,6 @@ class SyncEngine {
       createdAt: Value(DateTime.now().toUtc()),
     ));
     print('📋 [Sync] Enqueued create_report for localId: $localId');
-
-    // Attempt immediate sync if online
-    if (_connectivity.isOnline) {
-      await syncAll();
-    }
   }
 
   /// Enqueue an image upload operation
@@ -78,10 +73,6 @@ class SyncEngine {
       createdAt: Value(DateTime.now().toUtc()),
     ));
     print('📋 [Sync] Enqueued image upload for localId: $localId');
-
-    if (_connectivity.isOnline) {
-      await syncAll();
-    }
   }
 
   /// Flush the entire queue — called on app resume or connectivity restored
@@ -92,9 +83,10 @@ class SyncEngine {
 
     try {
       final items = await _db.getPendingSyncItems();
-      print('📋 [Sync] ${items.length} items in queue');
+      print('Items count: ${items.length}'); // As requested
 
       for (final item in items) {
+        print("Processing item: ${item.operation}"); // As requested
         await _processSyncItem(item);
       }
 
@@ -157,14 +149,18 @@ class SyncEngine {
       'longitude': payload['longitude'],
       'address': payload['address'],
       'is_urgent': payload['is_urgent'] ?? false,
-      'status': 'pending',
+      'status': 'pending', // Supabase check constraint requires 'pending'
     }).select().single();
 
     final serverReport = ReportModel.fromJson(serverResponse);
     print('✅ [Sync] Report created on server: ${serverReport.id}');
 
     // ── 4. Replace temp local record with real server record ──
-    await _localReports.replaceTempWithServerReport(localId, serverReport);
+    // IMPORTANT: Preserve local image paths so they continue to display until uploads finish
+    final mergedReport = serverReport.copyWith(
+      imageUrls: localReport.imageUrls,
+    );
+    await _localReports.replaceTempWithServerReport(localId, mergedReport);
 
     // ── 5. Handle pending image uploads for this report ───────
     // Update any queued image uploads to reference the real server ID
@@ -175,11 +171,29 @@ class SyncEngine {
   }
 
   Future<void> _syncUploadImage(SyncQueueData item) async {
-    final payload = jsonDecode(item.payload) as Map<String, dynamic>;
+    // ── 1. Re-fetch item to get potentially updated localId ──
+    // (Updated by _updateImageQueueIds from a previous create_report sync)
+    final freshItem = await (_db.select(_db.syncQueue)
+          ..where((q) => q.id.equals(item.id)))
+        .getSingleOrNull();
+
+    if (freshItem == null) {
+      print('⚠️ [Sync] Sync item ${item.id} no longer exists');
+      return;
+    }
+
+    final reportId = freshItem.localId;
+
+    // ── 2. Validate ID ────────────────────────────────────────
+    // Never send local temp IDs to Supabase
+    if (reportId.startsWith('local_')) {
+      print('⏳ [Sync] Parent report not yet synced, retrying image upload later');
+      throw Exception('Parent report still has local ID: $reportId');
+    }
+
+    final payload = jsonDecode(freshItem.payload) as Map<String, dynamic>;
     final localImagePath = payload['localImagePath'] as String?;
     final order = payload['order'] as int? ?? 0;
-    // localId may have been updated to real server ID by _updateImageQueueIds
-    final reportId = item.localId;
 
     if (localImagePath == null) {
       await _db.markSyncItemSuccess(item.id);

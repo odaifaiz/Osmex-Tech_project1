@@ -128,7 +128,7 @@ Future<Report> createReport({
             'longitude': longitude,
             'address': address,
             'is_urgent': isUrgent,
-            'status': 'pending',
+            'status': 'pending', // Supabase check constraint requires 'pending'
           })
           .select()
           .single();
@@ -196,7 +196,7 @@ Future<Report> createReport({
       int total = response.length;
       int resolved = response.where((r) => r['status'] == 'resolved').length;
       int inProgress =
-          response.where((r) => r['status'] == 'in_progress').length;
+          response.where((r) => r['status'] == 'in_progress' || r['status'] == 'acknowledged').length;
 
       return {
         'total': total,

@@ -1,11 +1,11 @@
 // lib/presentation/screens/map/map_screen.dart
 
+import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:city_fix_app/core/constants/route_constants.dart';
-import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/screens/map/map_widgets.dart';
 import 'package:city_fix_app/l10n/app_localizations.dart';
@@ -35,7 +35,7 @@ class _MapScreenState extends State<MapScreen> {
 
   bool _showSimilarReportAlert = false;
 
-  String? _currentFilter; // NULL means All
+  String? _currentFilter;
   final TextEditingController _searchController = TextEditingController();
 
   final Set<Marker> _markers = {};
@@ -49,26 +49,26 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // ✅ Re-initialize markers when localization changes
     _initializeMarkers();
   }
 
   void _initializeMarkers() {
     final l10n = AppLocalizations.of(context)!;
+    final colors = context.appColors;
     _markers.clear();
     _markers.addAll({
       Marker(
         markerId: const MarkerId('1'),
         position: const LatLng(24.7136, 46.6753),
-        infoWindow: InfoWindow(title: l10n.reportTitleHint), // Placeholder title
+        infoWindow: InfoWindow(title: l10n.reportTitleHint),
         onTap: () {
           final reportData = {
             'id': '1',
             'title': 'حفرة في الطريق',
             'description': 'تفاصيل البلاغ هنا',
             'status': l10n.statusInProgress,
-            'statusColor': AppColors.statusWarning,
-            'date': l10n.statusInProgress, // Placeholder
+            'statusColor': colors.warning,
+            'date': l10n.statusInProgress,
             'address': 'حي النرجس، الرياض',
             'imageUrl': '',
           };
@@ -85,7 +85,7 @@ class _MapScreenState extends State<MapScreen> {
             'title': 'إنارة معطلة',
             'description': 'تفاصيل البلاغ هنا',
             'status': l10n.statusPending,
-            'statusColor': AppColors.statusError,
+            'statusColor': colors.error,
             'date': l10n.today,
             'address': 'حي النرجس، الرياض',
             'imageUrl': '',
@@ -170,11 +170,12 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
-      appBar: _buildAppBar(context, l10n),
+      backgroundColor: colors.background,
+      appBar: _buildAppBar(context, l10n, colors),
       body: Stack(
         children: [
           if (_isGoogleMapsReady)
@@ -193,16 +194,16 @@ class _MapScreenState extends State<MapScreen> {
             )
           else
             Container(
-              color: AppColors.backgroundDark,
+              color: colors.background,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const CircularProgressIndicator(color: AppColors.primary),
+                    CircularProgressIndicator(color: colors.primary),
                     const SizedBox(height: 16),
                     Text(
                       l10n.loadingMap,
-                      style: const TextStyle(color: AppColors.textSecondaryLight),
+                      style: TextStyle(color: colors.textSecondary),
                     ),
                   ],
                 ),
@@ -249,10 +250,10 @@ class _MapScreenState extends State<MapScreen> {
                   CameraUpdate.newCameraPosition(_initialCameraPosition),
                 );
               },
-              backgroundColor: AppColors.cardDark,
-              child: const Icon(
+              backgroundColor: colors.surface,
+              child: Icon(
                 Icons.my_location,
-                color: AppColors.primary,
+                color: colors.primary,
                 size: 24,
               ),
             ),
@@ -313,28 +314,28 @@ class _MapScreenState extends State<MapScreen> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: _showSimilarReportAlert ? null : _showSimilarReport,
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.warning_amber_rounded, color: Colors.black),
+        backgroundColor: colors.primary,
+        child: const Icon(Icons.warning_amber_rounded, color: Colors.white),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, AppLocalizations l10n) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, AppLocalizations l10n, AppColors colors) {
     return AppBar(
       title: Text(
         l10n.mapTitle,
-        style: AppTypography.headline3.copyWith(fontSize: 18),
+        style: AppTypography.headline3.copyWith(fontSize: 18, color: colors.textPrimary),
       ),
       centerTitle: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimaryDark),
+        icon: Icon(Icons.arrow_back_ios_new, color: colors.textPrimary),
         onPressed: () => context.pop(),
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.analytics, color: AppColors.primary),
+          icon: Icon(Icons.analytics, color: colors.primary),
           onPressed: () {
             setState(() {
               _analyticsData = {
@@ -350,7 +351,7 @@ class _MapScreenState extends State<MapScreen> {
           },
         ),
         IconButton(
-          icon: const Icon(Icons.refresh, color: AppColors.cardDark),
+          icon: Icon(Icons.refresh, color: colors.textPrimary),
           onPressed: () {
             debugPrint('Refresh map');
           },

@@ -83,16 +83,23 @@ class LocalReportDataSource {
   /// Saves a report that already exists in Supabase (status = synced)
   Future<void> cacheReport(Report report) async {
     try {
-      await _db.upsertReport(_toCompanion(report, syncStatus: 'synced'));
+      final existing = await _db.getReportById(report.id);
+      final mergedReport = _mergeImages(report, existing != null ? _toEntity(existing) : null);
+      await _db.upsertReport(_toCompanion(mergedReport, syncStatus: 'synced'));
     } catch (e) {
       throw LocalDatabaseException('فشل تخزين البلاغ محلياً: $e');
     }
   }
 
-  /// Saves a batch of synced reports efficiently
   Future<void> cacheReports(List<Report> reports) async {
     try {
-      final companions = reports
+      final List<Report> mergedReports = [];
+      for (final r in reports) {
+        final existing = await _db.getReportById(r.id);
+        mergedReports.add(_mergeImages(r, existing != null ? _toEntity(existing) : null));
+      }
+      
+      final companions = mergedReports
           .map((r) => _toCompanion(r, syncStatus: 'synced'))
           .toList();
       await _db.upsertReports(companions);
@@ -130,7 +137,7 @@ class LocalReportDataSource {
         categoryIcon: Value(categoryIcon),
         title: Value(title),
         description: Value(description),
-        status: const Value('pending'),
+        status: const Value('new'),
         latitude: Value(latitude),
         longitude: Value(longitude),
         address: Value(address),
@@ -236,13 +243,37 @@ class LocalReportDataSource {
   }
 
   String? _arabicToDbStatus(String? status) {
-    if (status == null || status == 'الكل') return null;
+    if (status == null || status == 'الكل' || status == 'all') return null;
     const map = {
-      'جديد': 'pending',
+      'جديد': 'new',
       'قيد المعالجة': 'in_progress',
       'محلول': 'resolved',
       'مغلق': 'closed',
+      // Keys for compatibility with provider values
+      'new': 'new',
+      'pending': 'new',
+      'in_progress': 'in_progress',
+      'resolved': 'resolved',
+      'closed': 'closed',
     };
     return map[status];
+  }
+
+  Report _mergeImages(Report incoming, Report? existing) {
+    if (existing == null) return incoming;
+
+    final incomingImages = incoming.imageUrls ?? [];
+    final existingImages = existing.imageUrls ?? [];
+
+    // If incoming has no images, but existing has local images, preserve them
+    if (incomingImages.isEmpty && existingImages.isNotEmpty) {
+      final hasLocal = existingImages.any(
+          (u) => u.startsWith('/') || u.startsWith('file://') || !u.startsWith('http'));
+      if (hasLocal) {
+        return incoming.copyWith(imageUrls: existingImages);
+      }
+    }
+
+    return incoming;
   }
 }

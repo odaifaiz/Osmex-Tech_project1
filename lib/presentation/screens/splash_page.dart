@@ -1,6 +1,4 @@
 // lib/presentation/screens/splash_screen.dart
-//
-// ✅ تم الدمج: التصميم الجميل من نسخة صاحبك + منطق المصادقة من Supabase
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,8 +37,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
 
     _controller.forward();
-
-    // الانتقال بعد الـ Animation
     Future.delayed(const Duration(milliseconds: 2500), _navigate);
   }
 
@@ -53,11 +49,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   void _navigate() {
     if (!mounted) return;
 
-    // ✅ التحقق من حالة المصادقة وحالة شاشات الترحيب
     final isAuthenticated = ref.read(isAuthenticatedProvider);
     final onboardingSeen = ref.read(onboardingProvider);
-
-    print('🔍 [Splash] Routing: Auth=$isAuthenticated | OnboardingSeen=$onboardingSeen');
 
     if (isAuthenticated) {
       context.goNamed(RouteConstants.homeRouteName);
@@ -70,10 +63,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: colors.background,
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+        decoration: BoxDecoration(
+          gradient: colors.backgroundGradient,
+        ),
         child: Center(
           child: FadeTransition(
             opacity: _fadeAnim,
@@ -82,15 +78,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Logo
                   Container(
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: colors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(30),
                       border: Border.all(
-                        color: AppColors.primary.withOpacity(0.3),
+                        color: colors.primary.withOpacity(0.3),
                         width: 2,
                       ),
                     ),
@@ -99,9 +94,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       child: Image.asset(
                         'assets/images/logo.png',
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
+                        errorBuilder: (_, __, ___) => Icon(
                           Icons.location_city,
-                          color: AppColors.primary,
+                          color: colors.primary,
                           size: 60,
                         ),
                       ),
@@ -112,7 +107,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     'CityFix',
                     style: AppTypography.headline1.copyWith(
                       fontSize: 36,
-                      color: AppColors.primary,
+                      color: colors.primary,
                       letterSpacing: 2,
                     ),
                   ),
@@ -120,16 +115,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   Text(
                     'نصلح مدينتك معاً',
                     style: AppTypography.body1.copyWith(
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 60),
-                  const SizedBox(
+                  SizedBox(
                     width: 32,
                     height: 32,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.5,
-                      color: AppColors.primary,
+                      color: colors.primary,
                     ),
                   ),
                 ],

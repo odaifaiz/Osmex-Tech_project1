@@ -60,41 +60,53 @@ class _OtpInputFieldState extends State<OtpInputField> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    
     return Directionality(
-      textDirection: TextDirection.ltr, // Force LTR for the OTP fields themselves
+      textDirection: TextDirection.ltr,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(widget.fieldCount, (index) {
-          return SizedBox(
-            width: 60,
-            height: 68,
-            child: TextFormField(
-              controller: _controllers[index],
-              focusNode: _focusNodes[index],
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              style: AppTypography.headline2,
-              inputFormatters: [
-                LengthLimitingTextInputFormatter(1),
-                FilteringTextInputFormatter.digitsOnly,
-              ],
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: AppColors.backgroundInput,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-                  borderSide: const BorderSide(color: AppColors.borderDefault, width: 1.5),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-                  borderSide: const BorderSide(color: AppColors.primary, width: 2.0),
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: widget.fieldCount > 4 ? 4.0 : 8.0),
+              child: AspectRatio(
+                aspectRatio: 0.85,
+                child: TextFormField(
+                  controller: _controllers[index],
+                  focusNode: _focusNodes[index],
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  textAlignVertical: TextAlignVertical.center,
+                  style: AppTypography.headline2.copyWith(
+                    color: colors.textPrimary,
+                  ),
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(1),
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: colors.input,
+                    contentPadding: EdgeInsets.zero,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusL),
+                      borderSide: BorderSide(color: colors.border.withOpacity(0.5), width: 1.5),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusL),
+                      borderSide: BorderSide(color: colors.primary, width: 2.0),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    if (value.isEmpty && index > 0) {
+                      _focusNodes[index - 1].requestFocus();
+                    } else if (value.isNotEmpty && index < widget.fieldCount - 1) {
+                      _focusNodes[index + 1].requestFocus();
+                    }
+                  },
                 ),
               ),
-              onChanged: (value) {
-                if (value.isEmpty && index > 0) {
-                  _focusNodes[index - 1].requestFocus();
-                }
-              },
             ),
           );
         }),

@@ -87,18 +87,20 @@ class _ManualLocationPickerState extends State<ManualLocationPicker> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: colors.background,
       appBar: AppBar(
         title: Text(
           'اختر موقع البلاغ',
-          style: AppTypography.headline3.copyWith(fontSize: 18),
+          style: AppTypography.headline3.copyWith(fontSize: 18, color: colors.textPrimary),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimaryLight),
+          icon: Icon(Icons.arrow_back_ios_new, color: colors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -128,33 +130,34 @@ class _ManualLocationPickerState extends State<ManualLocationPicker> {
           Container(
             padding: const EdgeInsets.all(AppDimensions.spacingL),
             decoration: BoxDecoration(
-              color: AppColors.cardDark,
+              color: colors.card,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withOpacity(0.1),
                   blurRadius: 10,
                   offset: const Offset(0, -3),
                 ),
               ],
+              border: Border.all(color: colors.border.withOpacity(0.5)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.location_on, color: AppColors.primary, size: 22),
+                    Icon(Icons.location_on, color: colors.primary, size: 22),
                     const SizedBox(width: 8),
                     Text(
                       'الموقع المحدد',
-                      style: AppTypography.body1.copyWith(fontWeight: FontWeight.bold),
+                      style: AppTypography.body1.copyWith(fontWeight: FontWeight.bold, color: colors.textPrimary),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Text(
                   _selectedAddress.isEmpty ? 'اضغط على الخريطة لتحديد موقع' : _selectedAddress,
-                  style: AppTypography.body2.copyWith(color: AppColors.textSecondaryLight),
+                  style: AppTypography.body2.copyWith(color: colors.textSecondary),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -172,8 +175,8 @@ class _ManualLocationPickerState extends State<ManualLocationPicker> {
                         text: 'إلغاء',
                         onPressed: () => Navigator.pop(context),
                         useGradient: false,
-                        backgroundColor: AppColors.inputLight,
-                        textColor: AppColors.textSecondaryLight,
+                        backgroundColor: colors.input,
+                        textColor: colors.textSecondary,
                       ),
                     ),
                   ],

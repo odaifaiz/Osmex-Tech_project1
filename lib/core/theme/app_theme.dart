@@ -13,59 +13,63 @@ class AppTheme {
 
   static ThemeData _createTheme(Brightness brightness) {
     final bool isDark = brightness == Brightness.dark;
+    final appColors = isDark ? AppColors.dark : AppColors.light;
     
     final colorScheme = ColorScheme(
       brightness: brightness,
-      primary: AppColors.primary,
+      primary: appColors.primary,
       onPrimary: Colors.white,
-      secondary: AppColors.primaryDark,
+      secondary: appColors.primaryDark,
       onSecondary: Colors.white,
-      surface: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-      onSurface: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-      background: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-      onBackground: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-      error: AppColors.statusError,
+      surface: appColors.surface,
+      onSurface: appColors.textPrimary,
+      background: appColors.background,
+      onBackground: appColors.textPrimary,
+      surfaceVariant: appColors.input,
+      onSurfaceVariant: appColors.textSecondary,
+      error: appColors.error,
       onError: Colors.white,
-      outline: isDark ? AppColors.borderDark : AppColors.borderLight,
+      outline: appColors.border,
     );
 
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: colorScheme,
+      extensions: [appColors], // ✅ Injecting the AppColors extension
       fontFamily: AppTypography.fontFamily,
-      scaffoldBackgroundColor: colorScheme.background,
-      dividerColor: colorScheme.outline,
+      scaffoldBackgroundColor: appColors.background,
+      dividerColor: appColors.border,
       
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        iconTheme: IconThemeData(color: colorScheme.onSurface),
+        iconTheme: IconThemeData(color: appColors.textPrimary),
         titleTextStyle: AppTypography.headline3.copyWith(
-          color: colorScheme.onSurface,
+          color: appColors.textPrimary,
           fontSize: 18,
         ),
       ),
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark ? AppColors.inputDark : AppColors.inputLight,
+        fillColor: appColors.input,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppDimensions.paddingInput,
           vertical: 16,
         ),
-        hintStyle: AppTypography.body2.copyWith(color: AppColors.textHint),
-        border: _buildBorder(colorScheme.outline),
-        enabledBorder: _buildBorder(colorScheme.outline),
-        focusedBorder: _buildBorder(AppColors.primary, width: 2.0),
-        errorBorder: _buildBorder(AppColors.statusError),
-        focusedErrorBorder: _buildBorder(AppColors.statusError, width: 2.0),
+        hintStyle: AppTypography.body2.copyWith(color: appColors.textHint),
+        border: _buildBorder(appColors.border),
+        enabledBorder: _buildBorder(appColors.border),
+        focusedBorder: _buildBorder(appColors.primary, width: 2.0),
+        errorBorder: _buildBorder(appColors.error),
+        focusedErrorBorder: _buildBorder(appColors.error, width: 2.0),
       ),
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: appColors.primary,
           foregroundColor: Colors.white,
           textStyle: AppTypography.button,
           elevation: 0,
@@ -78,23 +82,23 @@ class AppTheme {
 
       switchTheme: SwitchThemeData(
         thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) return AppColors.primary;
+          if (states.contains(MaterialState.selected)) return appColors.primary;
           return null;
         }),
         trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) return AppColors.primary.withOpacity(0.5);
+          if (states.contains(MaterialState.selected)) return appColors.primary.withOpacity(0.5);
           return null;
         }),
       ),
       
       textTheme: TextTheme(
-        displayLarge: AppTypography.headline1.copyWith(color: colorScheme.onSurface),
-        displayMedium: AppTypography.headline2.copyWith(color: colorScheme.onSurface),
-        displaySmall: AppTypography.headline3.copyWith(color: colorScheme.onSurface),
-        bodyLarge: AppTypography.body1.copyWith(color: colorScheme.onSurface),
-        bodyMedium: AppTypography.body2.copyWith(color: colorScheme.onSurface),
-        labelLarge: AppTypography.button.copyWith(color: colorScheme.onSurface),
-        bodySmall: AppTypography.caption.copyWith(color: colorScheme.onSurface),
+        displayLarge: AppTypography.headline1.copyWith(color: appColors.textPrimary),
+        displayMedium: AppTypography.headline2.copyWith(color: appColors.textPrimary),
+        displaySmall: AppTypography.headline3.copyWith(color: appColors.textPrimary),
+        bodyLarge: AppTypography.body1.copyWith(color: appColors.textPrimary),
+        bodyMedium: AppTypography.body2.copyWith(color: appColors.textPrimary),
+        labelLarge: AppTypography.button.copyWith(color: appColors.textPrimary),
+        bodySmall: AppTypography.caption.copyWith(color: appColors.textPrimary),
       ),
     );
   }

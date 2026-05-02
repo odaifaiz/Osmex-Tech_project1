@@ -3,16 +3,16 @@ import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:go_router/go_router.dart';
+import 'package:city_fix_app/core/utils/extensions.dart';
 
-// تعريف نوع البحث لسهولة الاستخدام في التنقل
 enum SearchType { reports, notifications }
 
 class SearchScreen extends StatefulWidget {
-  final SearchType searchType; // نمرر النوع عند الانتقال للصفحة
+  final SearchType searchType;
 
   const SearchScreen({
     super.key, 
-    this.searchType = SearchType.reports, // القيمة الافتراضية هي البلاغات
+    this.searchType = SearchType.reports,
   });
 
   @override
@@ -30,27 +30,26 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // تحديد النصوص بناءً على نوع البحث
+    final colors = context.appColors;
     final bool isNotification = widget.searchType == SearchType.notifications;
     final String title = isNotification ? 'بحث الإشعارات' : 'بلاغاتي';
     final String hint = isNotification ? 'ابحث في الإشعارات...' : 'بلاغ رقم #';
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
-      // 1. الـ AppBar (بدون ناف بار سفلية كما اتفقنا)
+      backgroundColor: colors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: Text(title, style: AppTypography.headline3),
+        title: Text(title, style: AppTypography.headline3.copyWith(color: colors.textPrimary)),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.filter_list, color: Colors.white),
+          icon: Icon(Icons.filter_list, color: colors.textPrimary),
           onPressed: () {},
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.arrow_forward_ios, size: 20, color: Colors.white),
+            icon: Icon(Icons.arrow_forward_ios, size: 20, color: colors.textPrimary),
             onPressed: () => context.pop(),
           ),
         ],
@@ -62,32 +61,24 @@ class _SearchScreenState extends State<SearchScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- شريط البحث الدائري الجديد (مثل صورة الإشعارات) ---
-              _buildSearchInput(hint),
+              _buildSearchInput(hint, colors),
               const SizedBox(height: AppDimensions.spacingXL),
-
-              // --- قسم عمليات البحث الأخيرة (مشترك) ---
-              _buildSectionHeader('عمليات البحث الأخيرة', onActionPressed: () {
+              _buildSectionHeader('عمليات البحث الأخيرة', colors, onActionPressed: () {
                 // منطق مسح الكل
               }, actionText: 'مسح الكل'),
               const SizedBox(height: AppDimensions.spacingM),
-              
-              // بيانات تجريبية تتغير حسب النوع
               if (isNotification) ...[
-                _buildRecentSearchItem('تحديث حالة بلاغ الإنارة'),
-                _buildRecentSearchItem('إشعارات الأسبوع الماضي'),
+                _buildRecentSearchItem('تحديث حالة بلاغ الإنارة', colors),
+                _buildRecentSearchItem('إشعارات الأسبوع الماضي', colors),
               ] else ...[
-                _buildRecentSearchItem('بلاغ رقم #45821'),
-                _buildRecentSearchItem('حي النرجس، الرياض'),
-                _buildRecentSearchItem('تسرب مياه في الطريق الرئيسي'),
+                _buildRecentSearchItem('بلاغ رقم #45821', colors),
+                _buildRecentSearchItem('حي النرجس، الرياض', colors),
+                _buildRecentSearchItem('تسرب مياه في الطريق الرئيسي', colors),
               ],
-              
               const SizedBox(height: AppDimensions.spacingXL),
-
-              // --- قسم اقتراحات سريعة (يتغير كلياً حسب النوع) ---
-              _buildSectionHeader('اقتراحات سريعة'),
+              _buildSectionHeader('اقتراحات سريعة', colors),
               const SizedBox(height: AppDimensions.spacingM),
-              _buildQuickSuggestions(isNotification),
+              _buildQuickSuggestions(isNotification, colors),
             ],
           ),
         ),
@@ -95,24 +86,23 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // --- مكون حقل البحث بتصميم دائري عصري ---
-  Widget _buildSearchInput(String hint) {
+  Widget _buildSearchInput(String hint, AppColors colors) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A), // لون داكن جداً كما في الصورة الجديدة
-        borderRadius: BorderRadius.circular(30), // حواف دائرية بالكامل (Capsule)
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        color: colors.input,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: colors.border),
       ),
       child: TextField(
         controller: _searchController,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: colors.textPrimary),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
-          prefixIcon: const Icon(Icons.search, color: AppColors.primary),
+          hintStyle: TextStyle(color: colors.textHint),
+          prefixIcon: Icon(Icons.search, color: colors.primary),
           suffixIcon: _searchController.text.isNotEmpty 
             ? IconButton(
-                icon: const Icon(Icons.cancel, color: Colors.white54, size: 20),
+                icon: Icon(Icons.cancel, color: colors.textSecondary, size: 20),
                 onPressed: () {
                   _searchController.clear();
                   setState(() {});
@@ -127,78 +117,77 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // --- بناء الاقتراحات بناءً على النوع ---
-  Widget _buildQuickSuggestions(bool isNotification) {
+  Widget _buildQuickSuggestions(bool isNotification, AppColors colors) {
     return Wrap(
       spacing: 10,
       runSpacing: 10,
       children: isNotification
           ? [
-              _buildSuggestionChip('البريد', icon: Icons.mail_outline),
-              _buildSuggestionChip('المالية', icon: Icons.account_balance_wallet_outlined),
-              _buildSuggestionChip('الاجتماعي', icon: Icons.people_outline),
-              _buildSuggestionChip('الأمان', icon: Icons.shield_outlined),
+              _buildSuggestionChip('البريد', colors, icon: Icons.mail_outline),
+              _buildSuggestionChip('المالية', colors, icon: Icons.account_balance_wallet_outlined),
+              _buildSuggestionChip('الاجتماعي', colors, icon: Icons.people_outline),
+              _buildSuggestionChip('الأمان', colors, icon: Icons.shield_outlined),
             ]
           : [
-              _buildSuggestionChip('بلاغات مغلقة', isAccent: true),
-              _buildSuggestionChip('إنارة الشوارع'),
-              _buildSuggestionChip('النظافة العامة'),
-              _buildSuggestionChip('صيانة الطرق'),
+              _buildSuggestionChip('بلاغات مغلقة', colors, isAccent: true),
+              _buildSuggestionChip('إنارة الشوارع', colors),
+              _buildSuggestionChip('النظافة العامة', colors),
+              _buildSuggestionChip('صيانة الطرق', colors),
             ],
     );
   }
 
-  Widget _buildSectionHeader(String title, {VoidCallback? onActionPressed, String? actionText}) {
+  Widget _buildSectionHeader(String title, AppColors colors, {VoidCallback? onActionPressed, String? actionText}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: AppTypography.body1.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+        Text(title, style: AppTypography.body1.copyWith(fontWeight: FontWeight.bold, color: colors.textPrimary)),
         if (actionText != null)
           TextButton(
             onPressed: onActionPressed,
-            child: Text(actionText, style: const TextStyle(color: AppColors.primary, fontSize: 12)),
+            child: Text(actionText, style: TextStyle(color: colors.primary, fontSize: 12)),
           ),
       ],
     );
   }
 
-  Widget _buildRecentSearchItem(String text) {
+  Widget _buildRecentSearchItem(String text, AppColors colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
-          const Icon(Icons.history, color: Colors.white54, size: 20),
+          Icon(Icons.history, color: colors.textSecondary, size: 20),
           const SizedBox(width: 15),
           Expanded(
-            child: Text(text, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+            child: Text(text, style: TextStyle(color: colors.textSecondary, fontSize: 14)),
           ),
-          const Icon(Icons.north_west, color: Colors.white54, size: 16),
+          Icon(Icons.north_west, color: colors.textSecondary, size: 16),
         ],
       ),
     );
   }
 
-  Widget _buildSuggestionChip(String label, {bool isAccent = false, IconData? icon}) {
+  Widget _buildSuggestionChip(String label, AppColors colors, {bool isAccent = false, IconData? icon}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: isAccent ? AppColors.primary.withOpacity(0.15) : AppColors.backgroundCard,
+        color: isAccent ? colors.primary.withOpacity(0.15) : colors.surface,
         borderRadius: BorderRadius.circular(25),
         border: Border.all(
-          color: isAccent ? AppColors.primary.withOpacity(0.5) : AppColors.borderDefault,
+          color: isAccent ? colors.primary.withOpacity(0.5) : colors.border,
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 16, color: AppColors.primary),
+            Icon(icon, size: 16, color: colors.primary),
             const SizedBox(width: 8),
           ],
           Text(
             label,
             style: TextStyle(
-              color: isAccent ? AppColors.primary : Colors.white70,
+              color: isAccent ? colors.primary : colors.textSecondary,
               fontSize: 12,
               fontWeight: isAccent ? FontWeight.bold : FontWeight.normal,
             ),

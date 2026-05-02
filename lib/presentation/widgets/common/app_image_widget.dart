@@ -27,36 +27,37 @@ class AppImageWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imageUrl == null || imageUrl!.isEmpty) {
-      return _buildErrorPlaceholder();
+      return _buildErrorPlaceholder(context);
     }
 
-    // ✅ 1. Check if it's a local file path (Strict Rule: Local First)
-    if (imageUrl!.startsWith('file://') || !imageUrl!.startsWith('http')) {
+    final isLocal = imageUrl!.startsWith('file://') || 
+                   imageUrl!.startsWith('/') || 
+                   !imageUrl!.startsWith('http');
+
+    if (isLocal) {
       final cleanPath = imageUrl!.replaceAll('file://', '');
-      final file = File(cleanPath);
-      
-      if (file.existsSync()) {
-        return _buildClip(
-          child: Image.file(
-            file,
-            width: width,
-            height: height,
-            fit: fit,
-            errorBuilder: (_, __, ___) => _buildErrorPlaceholder(),
-          ),
-        );
-      }
+      return _buildClip(
+        child: Image.file(
+          File(cleanPath),
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) {
+            debugPrint('❌ [AppImageWidget] Error loading local file: $cleanPath');
+            return _buildErrorPlaceholder(context);
+          },
+        ),
+      );
     }
 
-    // ✅ 2. Fallback to Network with Caching
     return _buildClip(
       child: CachedNetworkImage(
         imageUrl: imageUrl!,
         width: width,
         height: height,
         fit: fit,
-        placeholder: (context, url) => _buildLoadingShimmer(),
-        errorWidget: (context, url, error) => _buildErrorPlaceholder(),
+        placeholder: (context, url) => _buildLoadingShimmer(context),
+        errorWidget: (context, url, error) => _buildErrorPlaceholder(context),
       ),
     );
   }
@@ -71,29 +72,31 @@ class AppImageWidget extends StatelessWidget {
     return child;
   }
 
-  Widget _buildLoadingShimmer() {
+  Widget _buildLoadingShimmer(BuildContext context) {
+    final colors = context.appColors;
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: colors.border.withOpacity(0.5),
+      highlightColor: colors.surface,
       child: Container(
         width: width,
         height: height,
-        color: Colors.white,
+        color: colors.surface,
       ),
     );
   }
 
-  Widget _buildErrorPlaceholder() {
+  Widget _buildErrorPlaceholder(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.backgroundInput,
+        color: colors.input,
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: Icon(
         errorIcon ?? Icons.image_not_supported_outlined,
-        color: AppColors.textHint,
+        color: colors.textHint,
         size: (width != null && width! < 50) ? 20 : 32,
       ),
     );

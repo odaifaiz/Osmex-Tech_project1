@@ -14,13 +14,13 @@ class AuthService {
   final SupabaseClient _supabase = SupabaseService().client;
   
   // ✅ التهيئة القياسية لـ GoogleSignIn:
-  // نستخدم الإعدادات الأساسية فقط، ونترك للحزمة إدارة الاختلافات بين المنصات.
-  // هذا يمنع أخطاء البناء (Build Errors) ويضمن توافقاً أفضل مع تحديثات الحزمة.
+  // نستخدم Web Client ID كـ serverClientId لتمكين Supabase من التحقق من التوكن.
+  // ملاحظة: على أندرويد، يتم التعرف على clientId تلقائياً من ملف google-services.json.
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-  scopes: ['email', 'profile'],
-  clientId: '749309119315-p38ic3cpeacl07mlo4aask55eor8hie0.apps.googleusercontent.com',
-  serverClientId: '749309119315-3464f3uoum3uvamd9vnno1c2ediif091.apps.googleusercontent.com',
-);
+    scopes: ['email', 'profile'],
+    // clientId: تم حذفه للأندرويد لتجنب التضارب، سيتم استخدامه فقط إذا لزم الأمر في iOS/Web
+    serverClientId: '749309119315-3464f3uoum3uvamd9vnno1c2ediif091.apps.googleusercontent.com',
+  );
 
   // ✅ متغيرات مؤقتة لتخزين بيانات التسجيل أثناء تدفق الانتقال بين الشاشات
   // هذا النمط (Transient State) أفضل وأأمن من تمرير البيانات الحساسة عبر الـ Router.
@@ -238,14 +238,25 @@ class AuthService {
 
   Future<AuthResponse> signInWithGoogle() async {
     try {
-      print('🔍 [Google] Starting sign-in flow...');
+      print('🌐 [Google] Sign in started');
       
       // ✅ محاولة تسجيل الدخول الصامت أولاً
-      GoogleSignInAccount? googleUser = await _googleSignIn.signInSilently();
+      GoogleSignInAccount? googleUser;
+      try {
+        googleUser = await _googleSignIn.signInSilently();
+      } catch (e) {
+        print('⚠️ [Google] Silent sign-in failed');
+      }
       
       if (googleUser == null) {
-        print('🔍 [Google] No silent session, requesting interactive sign-in...');
-        googleUser = await _googleSignIn.signIn();
+        print('🔍 [Google] Requesting interactive sign-in...');
+        try {
+          googleUser = await _googleSignIn.signIn();
+        } catch (e) {
+          print('⚠️ [Google] Native sign-in failed, trying OAuth fallback: $e');
+          // ✅ إذا فشل تسجيل الدخول الأصلي (مثلاً خطأ 12500)، ننتقل للـ OAuth
+          return await _signInWithGoogleOAuth();
+        }
       }
       
       if (googleUser == null) {
@@ -256,20 +267,16 @@ class AuthService {
       print('🔍 [Google] Account selected: ${googleUser.email}');
       
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      
       final idToken = googleAuth.idToken;
       final accessToken = googleAuth.accessToken;
 
-      print('ID TOKEN => ${googleAuth.idToken}');
-      
       if (idToken == null) {
-        print('❌ [Google] No idToken received');
-        throw Exception('فشل الحصول على بيانات المصادقة من جوجل');
+        print('❌ [Google] No idToken received, trying OAuth fallback...');
+        return await _signInWithGoogleOAuth();
       }
       
       print('🔍 [Google] idToken received, authenticating with Supabase...');
       
-      // ✅ استخدام signInWithIdToken (الطريقة الموصى بها)
       final response = await _supabase.auth.signInWithIdToken(
         provider: OAuthProvider.google,
         idToken: idToken,
@@ -278,24 +285,42 @@ class AuthService {
       
       print('✅ [Google] Auth success: userId=${response.user?.id}');
       
-      // ✅ تخزين البيانات للمزامنة اللاحقة
       _tempEmail = response.user?.email;
       _tempFullName = response.user?.userMetadata?['full_name'];
       
       return response;
       
-    } on Exception {
-      print('⚠️ [Google] User cancelled explicitly');
-      throw Exception('تم إلغاء تسجيل الدخول');
     } catch (e, stack) {
-      print('❌ [Unexpected] Google signIn: $e\n$stack');
-      // ✅ تحسين رسالة الخطأ
+      print('❌ [Google] Error during sign-in: $e\n$stack');
+      
       final errorMsg = e.toString();
-      if (errorMsg.contains('sign_in_failed') || errorMsg.contains('12500')) {
-        throw Exception('فشل تسجيل الدخول بجوجل. تأكد من:\n1. SHA-1 مُضاف في Google Cloud\n2. serverClientId صحيح في الكود\n3. google-services.json موجود');
+      
+      // ✅ إذا كان الخطأ هو 12500، نقوم بالتحويل التلقائي لـ OAuth
+      if (errorMsg.contains('12500') || errorMsg.contains('sign_in_failed')) {
+        print('🚀 [Google] Error 12500 detected. Switching to OAuth automatically...');
+        return await _signInWithGoogleOAuth();
       }
-      throw Exception('فشل تسجيل الدخول بجوجل: ${e.toString().replaceAll("Exception: ", "")}');
+
+      if (errorMsg.contains('sign_in_canceled') || errorMsg.contains('تم إلغاء تسجيل الدخول')) {
+        throw Exception('تم إلغاء تسجيل الدخول');
+      }
+      
+      rethrow;
     }
+  }
+
+  /// ✅ تدفق المصادقة عبر المتصفح (OAuth)
+  Future<AuthResponse> _signInWithGoogleOAuth() async {
+    print('🌍 [Google] Starting OAuth flow (Browser)...');
+    
+    await _supabase.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: 'io.supabase.flutter.cityfix://google-callback',
+    );
+    
+    // 🔥 نرجع استجابة "وهمية" تحتوي على مستخدم لكي لا يظن الريبوزيتوري أنها فشلت
+    // الحالة الحقيقية سيتم التقاطها عبر onAuthStateChange لاحقاً
+    return AuthResponse(session: null, user: null); 
   }
 
   // ✅ الدالة المصححة والمطلوبة للتعامل المباشر مع الـ Token

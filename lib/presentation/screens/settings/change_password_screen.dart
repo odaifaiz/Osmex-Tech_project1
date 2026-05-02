@@ -20,17 +20,14 @@ class ChangePasswordScreen extends StatefulWidget {
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  // Password visibility toggles
   bool _showCurrentPassword = false;
   bool _showNewPassword = false;
   bool _showConfirmPassword = false;
 
-  // Loading state
   bool _isLoading = false;
 
   @override
@@ -41,19 +38,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
-  /// التحقق من صحة البيانات وتغيير كلمة المرور
-  Future<void> _changePassword() async {
-    // التحقق من صحة النموذج
+  Future<void> _changePassword(AppColors colors) async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
 
-    // التحقق من أن كلمة المرور الجديدة مختلفة عن القديمة
     if (_currentPasswordController.text == _newPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('كلمة المرور الجديدة يجب أن تكون مختلفة عن القديمة'),
-          backgroundColor: AppColors.statusError,
+        SnackBar(
+          content: const Text('كلمة المرور الجديدة يجب أن تكون مختلفة عن القديمة'),
+          backgroundColor: colors.error,
         ),
       );
       return;
@@ -63,50 +57,41 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       _isLoading = true;
     });
 
-    // TODO: استدعاء API لتغيير كلمة المرور
-    // مثال:
-    // final result = await _authRepository.changePassword(
-    //   currentPassword: _currentPasswordController.text,
-    //   newPassword: _newPasswordController.text,
-    // );
-
-    // محاكاة طلب الشبكة (للتجربة)
     await Future.delayed(const Duration(seconds: 2));
 
     setState(() {
       _isLoading = false;
     });
 
-    // رسالة نجاح
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ تم تغيير كلمة المرور بنجاح'),
-          backgroundColor: AppColors.statusSuccess,
-          duration: Duration(seconds: 3),
+        SnackBar(
+          content: const Text('✅ تم تغيير كلمة المرور بنجاح'),
+          backgroundColor: colors.success,
+          duration: const Duration(seconds: 3),
         ),
       );
 
-      // العودة إلى الصفحة السابقة
       Navigator.pop(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: colors.background,
       appBar: AppBar(
         title: Text(
           'تغيير كلمة المرور',
-          style: AppTypography.headline3.copyWith(fontSize: 18),
+          style: AppTypography.headline3.copyWith(fontSize: 18, color: colors.textPrimary),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, color: colors.textPrimary),
           onPressed: () => context.pop(),
         ),
       ),
@@ -117,50 +102,47 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // أيقونة الأمان
               Center(
                 child: Container(
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: colors.primary.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.lock_outline,
-                    color: AppColors.primary,
+                    color: colors.primary,
                     size: 40,
                   ),
                 ),
               ),
               const SizedBox(height: AppDimensions.spacingL),
 
-              // العنوان
               Center(
                 child: Text(
                   'تغيير كلمة المرور',
-                  style: AppTypography.headline2,
+                  style: AppTypography.headline2.copyWith(color: colors.textPrimary),
                 ),
               ),
               const SizedBox(height: AppDimensions.spacingS),
 
-              // النص التوضيحي
               Center(
                 child: Text(
                   'يجب أن تكون كلمة المرور الجديدة قوية ومختلفة عن القديمة',
                   style: AppTypography.body2.copyWith(
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),
               ),
               const SizedBox(height: AppDimensions.spacingXXL),
 
-              // 1. كلمة المرور الحالية (مطلوبة للأمان)
               _buildPasswordField(
                 label: 'كلمة المرور الحالية',
                 controller: _currentPasswordController,
                 obscureText: !_showCurrentPassword,
+                colors: colors,
                 onToggle: () {
                   setState(() {
                     _showCurrentPassword = !_showCurrentPassword;
@@ -178,11 +160,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
               const SizedBox(height: AppDimensions.spacingXL),
 
-              // 2. كلمة المرور الجديدة
               _buildPasswordField(
                 label: 'كلمة المرور الجديدة',
                 controller: _newPasswordController,
                 obscureText: !_showNewPassword,
+                colors: colors,
                 onToggle: () {
                   setState(() {
                     _showNewPassword = !_showNewPassword;
@@ -192,17 +174,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
               const SizedBox(height: AppDimensions.spacingM),
 
-              // مؤشر قوة كلمة المرور
               AdvancedPasswordStrengthIndicator(
                 password: _newPasswordController.text,
               ),
               const SizedBox(height: AppDimensions.spacingXL),
 
-              // 3. تأكيد كلمة المرور الجديدة
               _buildPasswordField(
                 label: 'تأكيد كلمة المرور الجديدة',
                 controller: _confirmPasswordController,
                 obscureText: !_showConfirmPassword,
+                colors: colors,
                 onToggle: () {
                   setState(() {
                     _showConfirmPassword = !_showConfirmPassword;
@@ -220,30 +201,29 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
               const SizedBox(height: AppDimensions.spacingXXL),
 
-              // نصائح أمنية
               Container(
                 padding: const EdgeInsets.all(AppDimensions.spacingM),
                 decoration: BoxDecoration(
-                  color: AppColors.backgroundInput,
+                  color: colors.primary.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-                  border: Border.all(color: AppColors.borderDefault),
+                  border: Border.all(color: colors.primary.withOpacity(0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.shield_outlined,
-                          color: AppColors.primary,
+                          color: colors.primary,
                           size: 18,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           'نصائح أمنية',
                           style: AppTypography.body2.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            color: colors.primary,
                           ),
                         ),
                       ],
@@ -255,7 +235,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       '• يجب أن تحتوي على أرقام ورموز (!@#%)\n'
                       '• لا تستخدم نفس كلمة المرور في تطبيقات أخرى',
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                         height: 1.5,
                       ),
                     ),
@@ -264,31 +244,28 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
               const SizedBox(height: AppDimensions.spacingXXL),
 
-              // زر التغيير
               AppButton(
                 text: _isLoading ? 'جاري التغيير...' : 'تغيير كلمة المرور',
-                onPressed: _isLoading ? null : _changePassword,
+                onPressed: _isLoading ? null : () => _changePassword(colors),
                 useGradient: true,
               ),
               const SizedBox(height: AppDimensions.spacingL),
 
-              // رابط "نسيت كلمة المرور؟" (للمستخدم الذي لا يتذكر القديمة)
               Center(
                 child: TextButton(
                   onPressed: () {
-                    // الانتقال إلى شاشة استعادة كلمة المرور
                     context.pushNamed(RouteConstants.forgotPasswordRouteName);
                   },
                   child: Text.rich(
                     TextSpan(
                       text: 'هل نسيت كلمة المرور الحالية؟ ',
                       style: AppTypography.body2.copyWith(
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                       children: [
                         TextSpan(
                           text: 'استعادة الحساب',
-                          style: AppTypography.link,
+                          style: AppTypography.link.copyWith(color: colors.primary),
                         ),
                       ],
                     ),
@@ -303,12 +280,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
   }
 
-  /// حقل كلمة المرور المخصص
   Widget _buildPasswordField({
     required String label,
     required TextEditingController controller,
     required bool obscureText,
     required VoidCallback onToggle,
+    required AppColors colors,
     required String? Function(String?)? validator,
   }) {
     return Column(
@@ -317,52 +294,51 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         Text(
           label,
           style: AppTypography.body2.copyWith(
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
           ),
         ),
         const SizedBox(height: AppDimensions.spacingS),
         TextFormField(
           controller: controller,
           obscureText: obscureText,
-          style: AppTypography.body1,
+          style: AppTypography.body1.copyWith(color: colors.textPrimary),
           decoration: InputDecoration(
             prefixIcon:
-                const Icon(Icons.lock_outline, color: AppColors.iconDefault),
+                Icon(Icons.lock_outline, color: colors.textSecondary),
             suffixIcon: IconButton(
               icon: Icon(
                 obscureText
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
-                color: AppColors.iconDefault,
+                color: colors.textSecondary,
               ),
               onPressed: onToggle,
             ),
             hintText: '********',
-            hintStyle: AppTypography.body2.copyWith(color: AppColors.textHint),
+            hintStyle: AppTypography.body2.copyWith(color: colors.textHint),
             filled: true,
-            fillColor: AppColors.backgroundInput,
+            fillColor: colors.input,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppDimensions.radiusCircular),
-              borderSide: const BorderSide(color: AppColors.borderDefault),
+              borderSide: BorderSide(color: colors.border.withOpacity(0.5)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppDimensions.radiusCircular),
-              borderSide:
-                  const BorderSide(color: AppColors.borderDefault, width: 1.5),
+              borderSide: BorderSide(color: colors.border.withOpacity(0.5), width: 1.5),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppDimensions.radiusCircular),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+              borderSide: BorderSide(color: colors.primary, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppDimensions.radiusCircular),
               borderSide:
-                  const BorderSide(color: AppColors.statusError, width: 1.5),
+                  BorderSide(color: colors.error, width: 1.5),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppDimensions.radiusCircular),
               borderSide:
-                  const BorderSide(color: AppColors.statusError, width: 2),
+                  BorderSide(color: colors.error, width: 2),
             ),
           ),
           validator: validator,

@@ -20,7 +20,7 @@ class LocalReports extends Table {
   TextColumn get categoryIcon => text().nullable()();
   TextColumn get title => text()();
   TextColumn get description => text()();
-  TextColumn get status => text().withDefault(const Constant('pending'))();
+  TextColumn get status => text().withDefault(const Constant('new'))();
   RealColumn get latitude => real()();
   RealColumn get longitude => real()();
   TextColumn get address => text()();

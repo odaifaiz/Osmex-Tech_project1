@@ -7,7 +7,6 @@ import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/widgets/cards/stats_card.dart';
 import 'package:city_fix_app/presentation/widgets/cards/report_card.dart';
 
-/// ✅ بطاقة الترحيب في الصفحة الرئيسية
 class WelcomeCard extends StatelessWidget {
   final String userName;
   final VoidCallback? onAddPressed;
@@ -20,14 +19,20 @@ class WelcomeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       padding: const EdgeInsets.all(AppDimensions.spacingL),
       decoration: BoxDecoration(
-        gradient: AppColors.darkGradient,
+        gradient: LinearGradient(
+          colors: [colors.primary, colors.primary.withOpacity(0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(AppDimensions.radiusXL),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: colors.primary.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -73,9 +78,8 @@ class WelcomeCard extends StatelessWidget {
   }
 }
 
-/// ✅ قسم الإحصائيات (3 بطاقات)
 class StatsSection extends StatelessWidget {
-  final List<Map<String, dynamic>> stats; // [{value, icon}]
+  final List<Map<String, dynamic>> stats;
 
   const StatsSection({
     super.key,
@@ -100,7 +104,6 @@ class StatsSection extends StatelessWidget {
   }
 }
 
-/// ✅ قسم آخر البلاغات مع زر "عرض الكل"
 class RecentReportsSection extends StatelessWidget {
   final List<Map<String, dynamic>> reports;
   final VoidCallback onViewAll;
@@ -115,6 +118,8 @@ class RecentReportsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Column(
       children: [
         Row(
@@ -122,19 +127,19 @@ class RecentReportsSection extends StatelessWidget {
           children: [
             Text(
               'آخر بلاغاتي',
-              style: AppTypography.headline3.copyWith(fontSize: 18),
+              style: AppTypography.headline3.copyWith(fontSize: 18, color: colors.textPrimary),
             ),
             TextButton(
               onPressed: onViewAll,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('عرض الكل', style: AppTypography.link),
+                  Text('عرض الكل', style: AppTypography.link.copyWith(color: colors.primary)),
                   const SizedBox(width: 4),
                   Icon(
                     Icons.arrow_forward_ios,
                     size: 14,
-                    color: AppTypography.link.color,
+                    color: colors.primary,
                   ),
                 ],
               ),

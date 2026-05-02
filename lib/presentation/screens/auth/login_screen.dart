@@ -1,6 +1,7 @@
 // lib/presentation/screens/auth/login_screen.dart
 
 import 'package:city_fix_app/presentation/provider/auth_provider.dart';
+import 'package:city_fix_app/core/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,7 +28,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _rememberMe = false;
-  bool _isSubmitting = false; // ✅ متغير محلي لمنع الإرسال المتكرر
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -36,10 +37,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  /// ✅ منطق تسجيل الدخول بالإيميل وكلمة المرور (معزول عن الـ UI)
-  Future<void> _handleLogin() async {
+  Future<void> _handleLogin(AppColors colors) async {
     if (!_formKey.currentState!.validate()) {
-      print('❌ [Login] Form validation failed');
+      _showError('يرجى إدخال البريد الإلكتروني وكلمة المرور بشكل صحيح', colors);
       return;
     }
     if (_isSubmitting) return;
@@ -47,101 +47,66 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
-    print('🔍 [Login] Attempting email login: $email');
     setState(() => _isSubmitting = true);
 
     try {
-      // ✅ استدعاء المنطق الموحد في الـ Provider
       final success = await ref.read(authProvider.notifier).login(email, password);
 
       if (!mounted) return;
 
       if (success) {
-        print('✅ [Login] Login successful. Navigating to Home');
-        // ✅ Supabase يحفظ الجلسة تلقائياً، لذا عند إعادة فتح التطبيق سيذهب مباشرة للرئيسية
         if (mounted) {
           context.goNamed(RouteConstants.homeRouteName);
         }
       } else {
-        print('❌ [Login] Login failed');
         final error = ref.read(authProvider).errorMessage;
-        _showError(error ?? 'البريد الإلكتروني أو كلمة المرور غير صحيحة');
+        _showError(error ?? 'البريد الإلكتروني أو كلمة المرور غير صحيحة', colors);
       }
-    } catch (e, stack) {
-      print('❌ [Login] Unexpected error: $e\n$stack');
+    } catch (e) {
       if (mounted) {
-        _showError('حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى');
+        _showError('حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى', colors);
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
-  /// ✅ منطق تسجيل الدخول بجوجل (معزول عن الـ UI)
-    /// ✅ منطق تسجيل الدخول بجوجل (يدعم الويب والموبايل بمنطق مختلف)
-  Future<void> _handleGoogleSignIn() async {
+  Future<void> _handleGoogleSignIn(AppColors colors) async {
     if (_isSubmitting) return;
 
-    print('🔍 [Login] Google Sign-In initiated (platform: ${kIsWeb ? "web" : "mobile"})');
     setState(() => _isSubmitting = true);
 
     try {
-      // ✅ على الويب: نستخدم تدفق الـ OAuth المباشر لتجنب مشاكل الـ Popups و COOP
       if (kIsWeb) {
-        print('🔍 [Login-Web] Using Supabase OAuth redirect flow');
-        
-        // ✅ signInWithOAuth يفتح صفحة جوجل في نفس النافذة (أكثر استقراراً على الويب)
-        // بع د النجاح، سيعود المستخدم للتطبيق وسيقوم الـ Auth State listener باستعادة الجلسة
         await ref.read(authProvider.notifier).signInWithOAuthWeb();
-        
-        // ⚠️ ملاحظة: على الويب، هذه الدالة قد تعيد تحميل الصفحة بعد النجاح
-        // لذا لا نحتاج لـ context.goNamed هنا، الـ Router سيتعامل مع التوجيه تلقائياً
-        print('✅ [Login-Web] OAuth flow initiated, waiting for redirect...');
-        
       } else {
-        // ✅ على الموبايل: نستخدم الطريقة العادية عبر google_sign_in package
-        print('🔍 [Login-Mobile] Using native Google Sign-In flow');
-        
         final success = await ref.read(authProvider.notifier).signInWithGoogle();
         
         if (!mounted) return;
 
-      if (success) {
-        print('✅ [Login] Google Sign-In successful');
-        
-        // ✅ توجيه لصفحة النجاح مع تمرير النوع كنص
-        if (mounted) {
-          context.pushNamed(
-            RouteConstants.verificationSuccessRouteName,
-            extra: {'verificationType': 'signup'}, // ✅ نص بسيط
-          );
-        }
-      } else {
-          print('❌ [Login-Mobile] Google Sign-In failed');
+        if (success) {
+          if (mounted) {
+            context.goNamed(RouteConstants.homeRouteName);
+          }
+        } else {
           final error = ref.read(authProvider).errorMessage;
-          _showError(error ?? 'فشل تسجيل الدخول بجوجل');
+          _showError(error ?? 'فشل تسجيل الدخول بجوجل', colors);
         }
       }
-      
-    } catch (e, stack) {
-      print('❌ [Login] Google Sign-In error: $e\n$stack');
+    } catch (e) {
       if (mounted) {
-        _showError('فشل تسجيل الدخول بجوجل، يرجى المحاولة مرة أخرى');
+        _showError('فشل تسجيل الدخول بجوجل، يرجى المحاولة مرة أخرى', colors);
       }
     } finally {
-      // ✅ على الويب لا نعيد _isSubmitting إلى false هنا لأن الصفحة قد تعاد تحميلها
-      // على الموبايل فقط نعيد الحالة
       if (!kIsWeb && mounted) {
         setState(() => _isSubmitting = false);
       }
     }
   }
 
-  /// ✅ دالة مساعدة لعرض الأخطاء
-    void _showError(String message) {
+  void _showError(String message, AppColors colors) {
     if (!mounted) return;
     
-    // ✅ تحسين رسالة الخطأ لمستخدمي جوجل
     String displayMessage = message;
     if (message.contains('جوجل') || message.contains('google')) {
       displayMessage = '🔐 هذا الحساب مسجل عبر جوجل.\n\n'
@@ -152,23 +117,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(displayMessage),
-        backgroundColor: AppColors.statusError,
+        backgroundColor: colors.error,
         behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 5), // أطول لعرض الرسالة الكاملة
+        duration: const Duration(seconds: 5),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // ✅ مراقبة حالة التحميل فقط، دون إعادة بناء كامل الشاشة
+    final colors = context.appColors;
     final isLoading = ref.watch(authLoadingProvider);
     final isProcessing = isLoading || _isSubmitting;
 
-    // ─────────────────────────────────────────────────────────────
-    // ✅ واجهة المستخدم: محفوظة تماماً كما أرسلتها (لم يتغير أي بكسل)
-    // ─────────────────────────────────────────────────────────────
     return Scaffold(
+      backgroundColor: colors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingXXL),
@@ -177,23 +140,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: AppDimensions.spacingXXL),
-                _buildLogoHeader(),
-                const SizedBox(height: AppDimensions.spacingXXL),
+                SizedBox(height: context.responsiveHeight(0.05)),
+                _buildLogoHeader(context, colors),
+                SizedBox(height: context.responsiveHeight(0.03)),
                 Text(
                   'مرحباً بعودتك!',
                   textAlign: TextAlign.center,
-                  style: AppTypography.headline1.copyWith(fontSize: 32),
+                  style: AppTypography.headline1.copyWith(fontSize: 32, color: colors.textPrimary),
                 ),
                 Text(
                   'سجل الدخول للمتابعة إلى حسابك',
                   textAlign: TextAlign.center,
-                  style: AppTypography.body2,
+                  style: AppTypography.body2.copyWith(color: colors.textSecondary),
                 ),
                 const SizedBox(height: 40),
 
                 _buildLabeledTextField(
                   label: 'البريد الإلكتروني',
+                  colors: colors,
                   child: AppTextField(
                     controller: _emailController,
                     hintText: 'name@example.com',
@@ -206,6 +170,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 _buildLabeledTextField(
                   label: 'كلمة المرور',
+                  colors: colors,
                   child: AppTextField(
                     controller: _passwordController,
                     hintText: 'أدخل كلمة المرور',
@@ -223,11 +188,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       onPressed: () {
                         context.pushNamed(RouteConstants.forgotPasswordRouteName);
                       },
-                      child: Text('نسيت كلمة المرور؟', style: AppTypography.link),
+                      child: Text('نسيت كلمة المرور؟', style: AppTypography.link.copyWith(color: colors.primary)),
                     ),
                     _buildClickableCheckbox(
                       label: 'تذكرني',
                       value: _rememberMe,
+                      colors: colors,
                       onChanged: (newValue) {
                         setState(() {
                           _rememberMe = newValue;
@@ -240,20 +206,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 AppButton(
                   text: isProcessing ? 'جاري الدخول...' : 'دخول',
-                  onPressed: isProcessing ? null : _handleLogin,
+                  onPressed: isProcessing ? null : () => _handleLogin(colors),
                   isLoading: isProcessing,
                 ),
                 const SizedBox(height: AppDimensions.spacingXL),
-                _buildDividerWithText('أو متابعة عبر'),
+                _buildDividerWithText('أو متابعة عبر', colors),
                 const SizedBox(height: AppDimensions.spacingXL),
 
-                // ✅ زر Google
                 AppButton(
                   text: isProcessing ? 'جاري الاتصال...' : 'تسجيل الدخول باستخدام Google',
-                  onPressed: isProcessing ? null : _handleGoogleSignIn,
+                  onPressed: isProcessing ? null : () => _handleGoogleSignIn(colors),
                   useGradient: false,
-                  backgroundColor: Colors.white,
-                  textColor: Colors.black87,
+                  backgroundColor: colors.card,
+                  textColor: colors.textPrimary,
                   icon: SvgPicture.asset(AssetConstants.googleLogo, height: 24),
                 ),
                 const SizedBox(height: 50),
@@ -264,11 +229,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     textAlign: TextAlign.center,
                     TextSpan(
                       text: 'ليس لديك حساب؟ ',
-                      style: AppTypography.body2,
+                      style: AppTypography.body2.copyWith(color: colors.textSecondary),
                       children: [
                         TextSpan(
                           text: 'إنشاء حساب',
-                          style: AppTypography.link.copyWith(fontWeight: FontWeight.bold),
+                          style: AppTypography.link.copyWith(fontWeight: FontWeight.bold, color: colors.primary),
                         ),
                       ],
                     ),
@@ -283,41 +248,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // ✅ Widgets مساعدة (محفوظة كما هي - تصميم فقط)
-  // ─────────────────────────────────────────────────────────────
-
-  Widget _buildLabeledTextField({required String label, required Widget child}) {
+  Widget _buildLabeledTextField({required String label, required Widget child, required AppColors colors}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTypography.body1.copyWith(fontWeight: FontWeight.w600)),
+        Text(label, style: AppTypography.body1.copyWith(fontWeight: FontWeight.bold, color: colors.textPrimary)),
         const SizedBox(height: AppDimensions.spacingS),
         child,
       ],
     );
   }
 
-  Widget _buildLogoHeader() {
+  Widget _buildLogoHeader(BuildContext context, AppColors colors) {
+    final logoSize = context.isTablet ? 120.0 : (context.isSmallScreen ? 70.0 : 90.0);
     return Column(
       children: [
         Container(
-          width: 90,
-          height: 90,
+          width: logoSize,
+          height: logoSize,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
-            gradient: LinearGradient(
-              colors: [
-                AppColors.primary.withOpacity(0.1),
-                AppColors.primary.withOpacity(0.05),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+            color: colors.card,
+            border: Border.all(color: colors.primary.withOpacity(0.2)),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.23),
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 25,
                 spreadRadius: 2,
               ),
@@ -330,7 +285,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               width: 150,
               height: 150,
               fit: BoxFit.fill,
-              errorBuilder: (_, __, ___) => const Icon(Icons.location_city, size: 60, color: AppColors.primary),
+              errorBuilder: (_, __, ___) => Icon(Icons.location_city, size: 60, color: colors.primary),
             ),
           ),
         ),
@@ -338,21 +293,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         Text(
           'نصلح مدينتك معاً',
           textAlign: TextAlign.center,
-          style: AppTypography.body1.copyWith(color: AppColors.primaryDark),
+          style: AppTypography.body1.copyWith(color: colors.primary, fontWeight: FontWeight.bold),
         ),
       ],
     );
   }
 
-  Widget _buildDividerWithText(String text) {
+  Widget _buildDividerWithText(String text, AppColors colors) {
     return Row(
       children: [
-        const Expanded(child: Divider(color: AppColors.borderDark, thickness: 1)),
+        Expanded(child: Divider(color: colors.divider, thickness: 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingM),
-          child: Text(text, style: AppTypography.body2),
+          child: Text(text, style: AppTypography.body2.copyWith(color: colors.textSecondary)),
         ),
-        const Expanded(child: Divider(color: AppColors.borderDark, thickness: 1)),
+        Expanded(child: Divider(color: colors.divider, thickness: 1)),
       ],
     );
   }
@@ -360,13 +315,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget _buildClickableCheckbox({
     required String label,
     required bool value,
+    required AppColors colors,
     required Function(bool) onChanged,
   }) {
     return InkWell(
       onTap: () => onChanged(!value),
       child: Row(
         children: [
-          Text(label, style: AppTypography.body2),
+          Text(label, style: AppTypography.body2.copyWith(color: colors.textSecondary)),
           const SizedBox(width: AppDimensions.spacingXS),
           SizedBox(
             width: 20,
@@ -374,8 +330,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Checkbox(
               value: value,
               onChanged: (val) => onChanged(val ?? false),
-              activeColor: AppColors.primary,
-              side: const BorderSide(color: AppColors.borderDark),
+              activeColor: colors.primary,
+              side: BorderSide(color: colors.border),
             ),
           ),
         ],

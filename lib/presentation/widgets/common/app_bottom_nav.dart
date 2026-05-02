@@ -17,40 +17,36 @@ class AppHomeBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colors = context.appColors;
 
     return SizedBox(
       height: 90,
       child: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 10,
-        color: Theme.of(context).colorScheme.surface,
+        color: colors.surface,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            // First item - Home
             _buildNavItem(
               context,
               icon: Icons.home_filled,
               label: l10n.home,
               index: 0,
             ),
-            // Second item - My Reports
             _buildNavItem(
               context,
               icon: Icons.assignment_outlined,
               label: l10n.myReports,
               index: 1,
             ),
-            // Empty space for FAB
             const SizedBox(width: 48),
-            // Third item - Map
             _buildNavItem(
               context,
               icon: Icons.map_outlined,
               label: l10n.map,
               index: 2,
             ),
-            // Fourth item - Profile
             _buildNavItem(
               context,
               icon: Icons.person_outline,
@@ -70,6 +66,7 @@ class AppHomeBottomNav extends StatelessWidget {
     required int index,
   }) {
     final bool isSelected = currentIndex == index;
+    final colors = context.appColors;
 
     return Expanded(
       child: InkWell(
@@ -80,7 +77,7 @@ class AppHomeBottomNav extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected ? AppColors.primary : AppColors.iconDefault,
+              color: isSelected ? colors.primary : colors.textHint,
               size: 24,
             ),
             const SizedBox(height: 4),
@@ -89,7 +86,7 @@ class AppHomeBottomNav extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontSize: 10,
                     height: 1,
-                    color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: isSelected ? colors.primary : colors.textSecondary,
                   ),
             ),
           ],

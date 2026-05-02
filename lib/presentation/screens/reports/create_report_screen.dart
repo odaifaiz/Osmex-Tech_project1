@@ -1,5 +1,6 @@
 // lib/presentation/screens/reports/create_report_screen.dart
 
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,12 +48,14 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).languageCode;
     final categoriesAsync = ref.watch(localizedCategoryNamesProvider(locale));
 
     return Scaffold(
-      appBar: _buildAppBar(context, l10n),
+      backgroundColor: colors.background,
+      appBar: _buildAppBar(context, l10n, colors),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimensions.spacingL),
         child: Form(
@@ -63,7 +66,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               const StepProgressIndicator(currentStep: 1),
               const SizedBox(height: AppDimensions.spacingL),
 
-              _buildLabel(l10n.captureImage),
+              _buildLabel(l10n.captureImage, colors),
               
               ImagePickerField(
                 maxImages: 4,
@@ -76,7 +79,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               
               const SizedBox(height: AppDimensions.spacingL),
 
-              _buildLabel(l10n.category, isRequired: true),
+              _buildLabel(l10n.category, colors, isRequired: true),
               categoriesAsync.when(
                 data: (categories) => CategoryDropdown(
                   items: categories,
@@ -84,12 +87,12 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                   hintText: l10n.selectCategory,
                   onChanged: (val) => setState(() => _selectedCategoryId = val),
                 ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, st) => Text(l10n.retry),
+                loading: () => Center(child: CircularProgressIndicator(color: colors.primary)),
+                error: (e, st) => Text(l10n.retry, style: TextStyle(color: colors.textSecondary)),
               ),
               const SizedBox(height: AppDimensions.spacingL),
 
-              _buildLabel(l10n.reportTitleLabel, isRequired: true),
+              _buildLabel(l10n.reportTitleLabel, colors, isRequired: true),
               AppTextField(
                 controller: _titleController,
                 hintText: l10n.reportTitleHint,
@@ -98,7 +101,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               ),
               const SizedBox(height: AppDimensions.spacingL),
 
-              _buildLabel(l10n.location, isRequired: true),
+              _buildLabel(l10n.location, colors, isRequired: true),
               LocationPickerField(
                 onLocationSelected: (lat, lng, address) {
                   setState(() {
@@ -110,7 +113,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               ),
               const SizedBox(height: AppDimensions.spacingL),
 
-              _buildLabel(l10n.reportDescription, isRequired: true),
+              _buildLabel(l10n.reportDescription, colors, isRequired: true),
               AppTextField(
                 controller: _descriptionController,
                 hintText: l10n.descriptionHint,
@@ -119,7 +122,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               ),
               const SizedBox(height: AppDimensions.spacingL),
 
-              _buildUrgentToggle(l10n),
+              _buildUrgentToggle(l10n, colors),
               const SizedBox(height: AppDimensions.spacingXL),
 
               AppButton(
@@ -128,18 +131,17 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                   if (!(_formKey.currentState?.validate() ?? false)) return;
                   if (_selectedLat == null || _selectedLng == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l10n.selectLocationError), backgroundColor: AppColors.statusError),
+                      SnackBar(content: Text(l10n.selectLocationError), backgroundColor: colors.error),
                     );
                     return;
                   }
                   if (_selectedCategoryId == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l10n.selectCategoryError), backgroundColor: AppColors.statusError),
+                      SnackBar(content: Text(l10n.selectCategoryError), backgroundColor: colors.error),
                     );
                     return;
                   }
 
-                  // Find name for review screen
                   final categoryName = categoriesAsync.value?.firstWhere((c) => c['id'] == _selectedCategoryId)['name'] ?? '';
 
                   final reportData = {
@@ -151,10 +153,10 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                     'longitude': _selectedLng,
                     'address': _selectedAddress,
                     'isUrgent': _isUrgent,
-                    'images': _selectedImages,
+                    'imagePaths': _selectedImages.map((f) => f.path).toList(),
                   };
                   
-                  context.pushNamed(RouteConstants.reportReviewRouteName, extra: reportData);
+                  context.pushNamed(RouteConstants.reportReviewRouteName, extra: jsonEncode(reportData));
                 },
               ),
               const SizedBox(height: AppDimensions.spacingXL),
@@ -165,49 +167,56 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, AppLocalizations l10n) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, AppLocalizations l10n, AppColors colors) {
     return AppBar(
-      leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, size: 20), onPressed: () => context.pop()),
-      title: Text(l10n.createReportTitle, style: AppTypography.headline3.copyWith(fontSize: 18)),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leading: IconButton(icon: Icon(Icons.arrow_back_ios_new, size: 20, color: colors.textPrimary), onPressed: () => context.pop()),
+      title: Text(l10n.createReportTitle, style: AppTypography.headline3.copyWith(fontSize: 18, color: colors.textPrimary)),
       centerTitle: true,
       actions: [
         Container(
           margin: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingM, vertical: 12),
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(AppDimensions.radiusM)),
-          child: Center(child: Text('1/3', style: AppTypography.caption.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold))),
+          decoration: BoxDecoration(color: colors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(AppDimensions.radiusM)),
+          child: Center(child: Text('1/3', style: AppTypography.caption.copyWith(color: colors.primary, fontWeight: FontWeight.bold))),
         ),
       ],
     );
   }
 
-  Widget _buildLabel(String text, {bool isRequired = false}) {
+  Widget _buildLabel(String text, AppColors colors, {bool isRequired = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppDimensions.spacingS),
       child: Row(
         children: [
-          Text(text, style: AppTypography.body2.copyWith(fontWeight: FontWeight.bold)),
-          if (isRequired) const Text(' *', style: TextStyle(color: AppColors.statusError)),
+          Text(text, style: AppTypography.body2.copyWith(fontWeight: FontWeight.bold, color: colors.textPrimary)),
+          if (isRequired) Text(' *', style: TextStyle(color: colors.error)),
         ],
       ),
     );
   }
 
-  Widget _buildUrgentToggle(AppLocalizations l10n) {
+  Widget _buildUrgentToggle(AppLocalizations l10n, AppColors colors) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingM, vertical: AppDimensions.spacingS),
       decoration: BoxDecoration(
-        color: AppColors.statusError.withOpacity(0.05),
+        color: colors.error.withOpacity(0.05),
         borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-        border: Border.all(color: AppColors.statusError.withOpacity(0.2)),
+        border: Border.all(color: colors.error.withOpacity(0.2)),
       ),
       child: Row(
         children: [
-          Switch(value: _isUrgent, onChanged: (val) => setState(() => _isUrgent = val), activeThumbColor: AppColors.statusError),
+          Switch(
+            value: _isUrgent, 
+            onChanged: (val) => setState(() => _isUrgent = val), 
+            activeTrackColor: colors.error.withOpacity(0.5),
+            activeColor: colors.error,
+          ),
           const Spacer(),
-          Text(l10n.urgentText, style: AppTypography.body2.copyWith(color: AppColors.statusError)),
+          Text(l10n.urgentText, style: AppTypography.body2.copyWith(color: colors.error, fontWeight: FontWeight.bold)),
           const SizedBox(width: 8),
-          const Icon(Icons.warning_amber_rounded, color: AppColors.statusError),
+          Icon(Icons.warning_amber_rounded, color: colors.error),
         ],
       ),
     );

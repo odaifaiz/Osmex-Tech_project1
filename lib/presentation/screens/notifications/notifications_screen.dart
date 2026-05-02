@@ -9,6 +9,7 @@ import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/provider/notification_provider.dart';
 import 'package:city_fix_app/domain/entities/notification.dart';
+import 'package:city_fix_app/presentation/provider/auth_provider.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -24,21 +25,24 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final notificationsAsync =
         ref.watch(filteredNotificationsProvider(_selectedFilter));
     final unreadCountAsync = ref.watch(unreadCountProvider);
+    final user = ref.watch(currentUserProvider);
+    final userId = user?.id ?? '';
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: colors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('الإشعارات', style: AppTypography.headline3),
+        title: Text('الإشعارات', style: AppTypography.headline3.copyWith(color: colors.textPrimary)),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.arrow_forward_ios,
-                color: Colors.white, size: 20),
+            icon: Icon(Icons.arrow_forward_ios,
+                color: colors.textPrimary, size: 20),
             onPressed: () => context.pop(),
           ),
         ],
@@ -48,26 +52,19 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         textDirection: TextDirection.rtl,
         child: Column(
           children: [
-            // بطاقة الإشعارات غير المقروءة
             unreadCountAsync.when(
-              data: (count) => _buildUnreadCounterCard(count),
-              loading: () => _buildUnreadCounterCard(0),
-              error: (_, __) => _buildUnreadCounterCard(0),
+              data: (count) => _buildUnreadCounterCard(count, colors, userId),
+              loading: () => _buildUnreadCounterCard(0, colors, userId),
+              error: (_, __) => _buildUnreadCounterCard(0, colors, userId),
             ),
-
-            // شريط البحث
-            _buildSearchInput(),
-
-            // شريط الفلترة
-            _buildFilterTabs(),
-
-            // قائمة الإشعارات
+            _buildSearchInput(colors),
+            _buildFilterTabs(colors),
             Expanded(
               child: notificationsAsync.when(
-                data: (notifications) => _buildNotificationsList(notifications),
-                loading: () => const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (error, __) => _buildErrorState(error.toString()),
+                data: (notifications) => _buildNotificationsList(notifications, colors),
+                loading: () => Center(
+                    child: CircularProgressIndicator(color: colors.primary)),
+                error: (error, __) => _buildErrorState(error.toString(), colors),
               ),
             ),
           ],
@@ -76,25 +73,24 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
-  /// ✅ بطاقة الإشعارات غير المقروءة
-  Widget _buildUnreadCounterCard(int unreadCount) {
+  Widget _buildUnreadCounterCard(int unreadCount, AppColors colors, String userId) {
     if (unreadCount == 0) {
       return Container(
         margin: const EdgeInsets.all(AppDimensions.spacingM),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppDimensions.radiusXL),
-          border: Border.all(color: AppColors.borderDark),
-          color: AppColors.cardDark,
+          border: Border.all(color: colors.border.withOpacity(0.5)),
+          color: colors.card,
         ),
         child: Row(
           children: [
-            const Icon(Icons.done_all_outlined,
-                color: AppColors.statusSuccess, size: 20),
+            Icon(Icons.done_all_outlined,
+                color: colors.success, size: 20),
             const SizedBox(width: 8),
             Text('لا توجد إشعارات غير مقروءة',
                 style: AppTypography.body2
-                    .copyWith(color: AppColors.textSecondaryLight)),
+                    .copyWith(color: colors.textSecondary)),
           ],
         ),
       );
@@ -105,20 +101,20 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppDimensions.radiusXL),
-        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-        color: AppColors.primary.withOpacity(0.05),
+        border: Border.all(color: colors.primary.withOpacity(0.3)),
+        color: colors.primary.withOpacity(0.05),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.notifications_active_outlined,
-                  color: AppColors.primary, size: 20),
+              Icon(Icons.notifications_active_outlined,
+                  color: colors.primary, size: 20),
               const SizedBox(width: 8),
               Text(
                 'لديك $unreadCount إشعارات غير مقروءة',
-                style: AppTypography.body1.copyWith(color: AppColors.primary),
+                style: AppTypography.body1.copyWith(color: colors.primary),
               ),
             ],
           ),
@@ -127,8 +123,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             height: 32,
             child: ElevatedButton(
               onPressed: () async {
+                if (userId.isEmpty) return;
                 final repository = ref.read(notificationRepositoryProvider);
-                final success = await repository.markAllAsRead(tempUserId);
+                final success = await repository.markAllAsRead(userId);
                 if (success) {
                   ref.invalidate(notificationsProvider);
                   ref.invalidate(
@@ -136,22 +133,22 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   ref.invalidate(unreadCountProvider);
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('تم تحديد جميع الإشعارات كمقروءة'),
-                        backgroundColor: AppColors.statusSuccess,
+                      SnackBar(
+                        content: const Text('تم تحديد جميع الإشعارات كمقروءة'),
+                        backgroundColor: colors.success,
                       ),
                     );
                   }
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: colors.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
               child: const Text('تحديد الكل كمقروء',
-                  style: TextStyle(color: Colors.black, fontSize: 12)),
+                  style: TextStyle(color: Colors.white, fontSize: 12)),
             ),
           ),
         ],
@@ -159,40 +156,34 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
-  /// ✅ شريط البحث
-  Widget _buildSearchInput() {
+  Widget _buildSearchInput(AppColors colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingM),
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: AppColors.inputDark,
+          color: colors.input,
           borderRadius: BorderRadius.circular(50),
-          border: Border.all(
-              color: AppColors.borderDark, style: BorderStyle.none),
+          border: Border.all(color: colors.border.withOpacity(0.5)),
         ),
         child: TextField(
           controller: _searchController,
           textAlign: TextAlign.right,
-          style: const TextStyle(color: Colors.white, fontSize: 13),
-          onChanged: (value) {
-            // TODO: Filter notifications by search
-          },
-          decoration: const InputDecoration(
+          style: TextStyle(color: colors.textPrimary, fontSize: 13),
+          decoration: InputDecoration(
             hintText: 'ابحث في الإشعارات...',
-            hintStyle: TextStyle(color: AppColors.textHint, fontSize: 12),
+            hintStyle: TextStyle(color: colors.textHint, fontSize: 12),
             prefixIcon:
-                Icon(Icons.search, color: AppColors.cardDark, size: 20),
+                Icon(Icons.search, color: colors.textSecondary, size: 20),
             border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(vertical: 12),
           ),
         ),
       ),
     );
   }
 
-  /// ✅ أزرار الفلترة
-  Widget _buildFilterTabs() {
+  Widget _buildFilterTabs(AppColors colors) {
     final filters = ['الكل', 'غير مقروء', 'مقروء', 'نظام', 'جهة'];
     return Container(
       height: 38,
@@ -216,18 +207,17 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 18),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color:
-                    isSelected ? AppColors.primary : AppColors.cardDark,
+                color: isSelected ? colors.primary : colors.card,
                 borderRadius: BorderRadius.circular(19),
                 border: Border.all(
                     color: isSelected
                         ? Colors.transparent
-                        : AppColors.borderDark),
+                        : colors.border.withOpacity(0.5)),
               ),
               child: Text(
                 filter,
                 style: TextStyle(
-                  color: isSelected ? Colors.black : AppColors.textSecondaryLight,
+                  color: isSelected ? Colors.white : colors.textSecondary,
                   fontSize: 11,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -239,13 +229,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
-  /// ✅ قائمة الإشعارات
-  Widget _buildNotificationsList(List<NotificationEntity> notifications) {
+  Widget _buildNotificationsList(List<NotificationEntity> notifications, AppColors colors) {
     if (notifications.isEmpty) {
-      return _buildEmptyState();
+      return _buildEmptyState(colors);
     }
 
-    // تجميع الإشعارات حسب التاريخ
     final Map<String, List<NotificationEntity>> grouped = {};
     for (var notification in notifications) {
       String key = _getDateKey(notification.createdAt);
@@ -261,208 +249,185 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTimeSection(entry.key),
+            _buildTimeSection(entry.key, colors),
             ...entry.value
-                .map((notification) => _buildNotificationCard(notification)),
+                .map((notification) => _buildNotificationCard(notification, colors)),
           ],
         );
       }).toList(),
     );
   }
 
-  /// ✅ بطاقة الإشعار
-  Widget _buildNotificationCard(NotificationEntity notification) {
-  final isSystem = notification.type == 'system';
-  final icon = isSystem ? Icons.campaign_outlined : Icons.check_circle_outline;
-  final buttonText = isSystem ? 'عرض التفاصيل' : 'تتبع البلاغ';
+  Widget _buildNotificationCard(NotificationEntity notification, AppColors colors) {
+    final isSystem = notification.type == 'system';
+    final icon = isSystem ? Icons.campaign_outlined : Icons.check_circle_outline;
+    final buttonText = isSystem ? 'عرض التفاصيل' : 'تتبع البلاغ';
 
-  return Container(
-    margin: const EdgeInsets.only(bottom: 12, left: 8, right: 8),
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: notification.isRead
-          ? AppColors.cardDark.withOpacity(0.6)
-          : AppColors.cardDark,
-      borderRadius: BorderRadius.circular(25),
-      border: Border.all(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12, left: 8, right: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
         color: notification.isRead
-            ? AppColors.borderDark
-            : AppColors.primary.withOpacity(0.3),
+            ? colors.card.withOpacity(0.6)
+            : colors.card,
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(
+          color: notification.isRead
+              ? colors.border.withOpacity(0.5)
+              : colors.primary.withOpacity(0.3),
+        ),
       ),
-    ),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // الأيقونة
-        Container(
-          padding: const EdgeInsets.all(9),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: AppColors.primary, size: 18),
-        ),
-        const SizedBox(width: 12),
-
-        // المحتوى
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      notification.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                  if (!notification.isRead)
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                notification.body,
-                style: const TextStyle(
-                  color: AppColors.textSecondaryLight,
-                  fontSize: 11,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.right,
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: () async {
-                  print('📌 تم الضغط على الزر');
-                  print('📌 نوع الإشعار: ${notification.type}');
-                  print('📌 reportId: ${notification.reportId}');
-                  print('📌 العنوان: ${notification.title}');
-                  // ✅ تحديث حالة القراءة
-                  if (!notification.isRead) {
-                    final repository = ref.read(notificationRepositoryProvider);
-                    await repository.markAsRead(notification.id);
-                    ref.invalidate(notificationsProvider);
-                    ref.invalidate(filteredNotificationsProvider(_selectedFilter));
-                    ref.invalidate(unreadCountProvider);
-                  }
-
-                  // ✅ التنقل إلى صفحة تفاصيل البلاغ
-                  if (mounted) {
-                    if (notification.type == 'entity' && notification.reportId != null) {
-                       print('✅ سيتم الانتقال إلى صفحة تفاصيل البلاغ مع reportId: ${notification.reportId}');
-                      context.pushNamed(
-                        RouteConstants.reportDetailsRouteName,
-                        extra: notification.reportId,
-                      );
-                    } else if (notification.type == 'system') {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('هذا إشعار عام من النظام')),
-                      );
-                    }
-                    else {
-                      print('❌ الشرط لم يتحقق: type=${notification.type}, reportId=${notification.reportId}');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('لا يمكن عرض تفاصيل هذا الإشعار (type: ${notification.type})')),
-                      );
-                    }
-                  }
-                },
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.primary, width: 0.9),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  minimumSize: const Size(100, 30),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                ),
-                child: Text(
-                  buttonText,
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(width: 10),
-
-        // الوقت
-        Text(
-          _formatTime(notification.createdAt),
-          style: const TextStyle(color: AppColors.textHint, fontSize: 10),
-        ),
-      ],
-    ),
-  );
-}
-
-  /// ✅ قسم الوقت
-  Widget _buildTimeSection(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12, top: 8, right: 8),
-      child: Text(
-        title,
-        style: const TextStyle(
-            color: AppColors.primary,
-            fontSize: 12,
-            fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
-  /// ✅ حالة عدم وجود إشعارات
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.notifications_none_outlined,
-              size: 80, color: AppColors.cardDark),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد إشعارات',
-            style: AppTypography.headline3
-                .copyWith(color: AppColors.textSecondaryLight),
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: colors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: colors.primary, size: 18),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        notification.title,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    if (!notification.isRead)
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: colors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  notification.body,
+                  style: TextStyle(
+                    color: colors.textSecondary,
+                    fontSize: 11,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: () async {
+                    if (!notification.isRead) {
+                      final repository = ref.read(notificationRepositoryProvider);
+                      await repository.markAsRead(notification.id);
+                      ref.invalidate(notificationsProvider);
+                      ref.invalidate(filteredNotificationsProvider(_selectedFilter));
+                      ref.invalidate(unreadCountProvider);
+                    }
+
+                    if (mounted) {
+                      if (notification.type == 'entity' && notification.reportId != null) {
+                        context.pushNamed(
+                          RouteConstants.reportDetailsRouteName,
+                          extra: notification.reportId,
+                        );
+                      } else if (notification.type == 'system') {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('هذا إشعار عام من النظام')),
+                        );
+                      }
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: colors.primary, width: 0.9),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    minimumSize: const Size(100, 30),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                  ),
+                  child: Text(
+                    buttonText,
+                    style: TextStyle(
+                      color: colors.primary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
           Text(
-            'ستظهر لك الإشعارات هنا عندما تصلك تحديثات جديدة',
-            style: AppTypography.body2.copyWith(color: AppColors.textHint),
+            _formatTime(notification.createdAt),
+            style: TextStyle(color: colors.textSecondary, fontSize: 10),
           ),
         ],
       ),
     );
   }
 
-  /// ✅ حالة الخطأ
-  Widget _buildErrorState(String error) {
+  Widget _buildTimeSection(String title, AppColors colors) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12, top: 8, right: 8),
+      child: Text(
+        title,
+        style: TextStyle(
+            color: colors.primary,
+            fontSize: 12,
+            fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(AppColors colors) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline,
-              size: 60, color: AppColors.statusError),
+          Icon(Icons.notifications_none_outlined,
+              size: 80, color: colors.primary),
           const SizedBox(height: 16),
-          Text('حدث خطأ في تحميل الإشعارات', style: AppTypography.body1),
+          Text(
+            'لا توجد إشعارات',
+            style: AppTypography.headline3
+                .copyWith(color: colors.textSecondary),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'ستظهر لك الإشعارات هنا عندما تصلك تحديثات جديدة',
+            style: AppTypography.body2.copyWith(color: colors.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String error, AppColors colors) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline,
+              size: 60, color: colors.error),
+          const SizedBox(height: 16),
+          Text('حدث خطأ في تحميل الإشعارات', style: AppTypography.body1.copyWith(color: colors.textPrimary)),
           const SizedBox(height: 8),
           Text(error,
-              style: AppTypography.caption.copyWith(color: AppColors.textHint)),
+              style: AppTypography.caption.copyWith(color: colors.textHint)),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
@@ -470,16 +435,15 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               ref.invalidate(filteredNotificationsProvider(_selectedFilter));
               ref.invalidate(unreadCountProvider);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            style: ElevatedButton.styleFrom(backgroundColor: colors.primary),
             child: const Text('إعادة المحاولة',
-                style: TextStyle(color: Colors.black)),
+                style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
   }
 
-  /// ✅ تنسيق التاريخ
   String _getDateKey(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -495,7 +459,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     }
   }
 
-  /// ✅ تنسيق الوقت
   String _formatTime(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);

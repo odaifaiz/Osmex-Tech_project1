@@ -1,5 +1,6 @@
 // lib/presentation/screens/reports/report_success_screen.dart
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:city_fix_app/core/constants/route_constants.dart';
@@ -15,6 +16,7 @@ class ReportSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final extra = GoRouterState.of(context).extra;
     final l10n = AppLocalizations.of(context)!;
     
@@ -24,7 +26,15 @@ class ReportSuccessScreen extends StatelessWidget {
     String? address;
 
     if (extra is String) {
-      reportId = extra;
+      try {
+        final Map<String, dynamic> extraMap = jsonDecode(extra);
+        reportId = extraMap['id']?.toString() ?? 'R-2024-001';
+        latitude = extraMap['latitude']?.toDouble();
+        longitude = extraMap['longitude']?.toDouble();
+        address = extraMap['address']?.toString();
+      } catch (_) {
+        reportId = extra;
+      }
     } else if (extra is Map) {
       reportId = extra['id']?.toString() ?? extra['reportId']?.toString() ?? 'R-2024-001';
       latitude = extra['latitude']?.toDouble();
@@ -33,7 +43,7 @@ class ReportSuccessScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: colors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -42,7 +52,7 @@ class ReportSuccessScreen extends StatelessWidget {
         title: Text(
           l10n.reportSent,
           style: AppTypography.headline3.copyWith(
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             fontSize: 16,
           ),
         ),
@@ -55,11 +65,11 @@ class ReportSuccessScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildProgressDot(active: true),
+                  _buildProgressDot(active: true, colors: colors),
                   const SizedBox(width: 6),
-                  _buildProgressDot(active: true),
+                  _buildProgressDot(active: true, colors: colors),
                   const SizedBox(width: 6),
-                  _buildProgressDot(active: true),
+                  _buildProgressDot(active: true, colors: colors),
                 ],
               ),
               const SizedBox(height: AppDimensions.spacingL),
@@ -71,12 +81,12 @@ class ReportSuccessScreen extends StatelessWidget {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: AppColors.statusSuccess.withOpacity(0.1),
+                      color: colors.success.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.check,
-                      color: AppColors.statusSuccess,
+                      color: colors.success,
                       size: 45,
                     ),
                   ),
@@ -87,9 +97,9 @@ class ReportSuccessScreen extends StatelessWidget {
                       width: 24,
                       height: 24,
                       decoration: BoxDecoration(
-                        color: AppColors.statusSuccess,
+                        color: colors.success,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.backgroundDark, width: 2),
+                        border: Border.all(color: colors.background, width: 2),
                       ),
                       child: const Icon(
                         Icons.check,
@@ -106,7 +116,7 @@ class ReportSuccessScreen extends StatelessWidget {
                 l10n.successTitle,
                 style: AppTypography.headline1.copyWith(
                   fontSize: 20,
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -115,7 +125,7 @@ class ReportSuccessScreen extends StatelessWidget {
               Text(
                 l10n.successMessage,
                 style: AppTypography.body2.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -124,9 +134,9 @@ class ReportSuccessScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppDimensions.spacingM),
                 decoration: BoxDecoration(
-                  color: AppColors.backgroundCard,
+                  color: colors.card,
                   borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-                  border: Border.all(color: AppColors.borderDefault),
+                  border: Border.all(color: colors.border.withOpacity(0.5)),
                 ),
                 child: Row(
                   children: [
@@ -134,12 +144,12 @@ class ReportSuccessScreen extends StatelessWidget {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: colors.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(AppDimensions.radiusM),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.description,
-                        color: AppColors.primary,
+                        color: colors.primary,
                         size: 20,
                       ),
                     ),
@@ -151,14 +161,14 @@ class ReportSuccessScreen extends StatelessWidget {
                           Text(
                             l10n.reportIdLabel,
                             style: AppTypography.caption.copyWith(
-                              color: AppColors.textSecondary,
+                              color: colors.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                              '#$reportId',
                             style: AppTypography.headline3.copyWith(
-                              color: AppColors.primary,
+                              color: colors.primary,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -174,17 +184,17 @@ class ReportSuccessScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppDimensions.spacingM),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.05),
+                  color: colors.primary.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                  border: Border.all(color: colors.primary.withOpacity(0.2)),
                 ),
                 child: Row(
                   children: [
                     Container(
                       width: 36,
                       height: 36,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
+                      decoration: BoxDecoration(
+                        color: colors.primary,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -199,7 +209,7 @@ class ReportSuccessScreen extends StatelessWidget {
                         l10n.reviewPeriod,
                         style: AppTypography.body2.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
                           fontSize: 13,
                         ),
                       ),
@@ -214,7 +224,7 @@ class ReportSuccessScreen extends StatelessWidget {
                   height: 180,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-                    border: Border.all(color: AppColors.borderDefault),
+                    border: Border.all(color: colors.border.withOpacity(0.5)),
                   ),
                   clipBehavior: Clip.hardEdge,
                   child: Stack(
@@ -247,20 +257,20 @@ class ReportSuccessScreen extends StatelessWidget {
                         margin: const EdgeInsets.all(8),
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.backgroundCard.withOpacity(0.95),
+                          color: colors.surface.withOpacity(0.95),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppColors.borderDefault),
+                          border: Border.all(color: colors.border.withOpacity(0.5)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.location_on, color: AppColors.primary, size: 12),
+                            Icon(Icons.location_on, color: colors.primary, size: 12),
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
                                 address ?? l10n.location,
                                 style: AppTypography.caption.copyWith(
-                                  color: AppColors.textPrimary,
+                                  color: colors.textPrimary,
                                   fontSize: 10,
                                 ),
                                 maxLines: 1,
@@ -289,7 +299,7 @@ class ReportSuccessScreen extends StatelessWidget {
                         );
                       },
                       useGradient: true,
-                      icon: Icon(Directionality.of(context) == TextDirection.rtl ? Icons.arrow_back : Icons.arrow_forward, size: 18),
+                      icon: Icon(Directionality.of(context) == TextDirection.rtl ? Icons.arrow_back : Icons.arrow_forward, size: 18, color: Colors.white),
                     ),
                   ),
                   const SizedBox(height: AppDimensions.spacingM),
@@ -302,8 +312,8 @@ class ReportSuccessScreen extends StatelessWidget {
                         context.goNamed(RouteConstants.homeRouteName);
                       },
                       useGradient: false,
-                      backgroundColor: AppColors.backgroundCard,
-                      textColor: AppColors.textSecondary,
+                      backgroundColor: colors.input,
+                      textColor: colors.textSecondary,
                     ),
                   ),
                 ],
@@ -316,12 +326,12 @@ class ReportSuccessScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressDot({required bool active}) {
+  Widget _buildProgressDot({required bool active, required AppColors colors}) {
     return Container(
       width: 30,
       height: 3,
       decoration: BoxDecoration(
-        color: active ? AppColors.primary : AppColors.borderDefault,
+        color: active ? colors.primary : colors.border.withOpacity(0.3),
         borderRadius: BorderRadius.circular(2),
       ),
     );

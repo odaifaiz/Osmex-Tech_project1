@@ -26,11 +26,12 @@ class _ImagePickerFieldState extends State<ImagePickerField> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(ImageSource source) async {
+    final colors = context.appColors;
     if (_images.length >= widget.maxImages) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('يمكنك إضافة ${widget.maxImages} صور كحد أقصى'),
-          backgroundColor: AppColors.statusWarning,
+          backgroundColor: colors.warning,
         ),
       );
       return;
@@ -51,11 +52,10 @@ class _ImagePickerFieldState extends State<ImagePickerField> {
         widget.onImagesSelected(_images);
       }
     } catch (e) {
-      print('❌ خطأ في اختيار الصورة: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('حدث خطأ: ${e.toString()}'),
-          backgroundColor: AppColors.statusError,
+          backgroundColor: colors.error,
         ),
       );
     }
@@ -70,32 +70,30 @@ class _ImagePickerFieldState extends State<ImagePickerField> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.backgroundInput,
+        color: colors.input,
         borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-        border: Border.all(color: AppColors.borderDefault, width: 1.5),
+        border: Border.all(color: colors.border, width: 1.5),
       ),
       child: Column(
         children: [
-          // عرض الصور المختارة (إن وجدت)
           if (_images.isNotEmpty)
             Container(
               padding: const EdgeInsets.all(AppDimensions.spacingM),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // عنوان القسم
                   Text(
                     'الصور المختارة (${_images.length}/${widget.maxImages})',
                     style: AppTypography.body2.copyWith(
-                      color: AppColors.primary,
+                      color: colors.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: AppDimensions.spacingM),
                   
-                  // الصور في صف أفقي
                   SizedBox(
                     height: 100,
                     child: ListView.separated(
@@ -122,8 +120,8 @@ class _ImagePickerFieldState extends State<ImagePickerField> {
                                 onTap: () => _removeImage(index),
                                 child: Container(
                                   padding: const EdgeInsets.all(3),
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.statusError,
+                                  decoration: BoxDecoration(
+                                    color: colors.error,
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
@@ -144,11 +142,9 @@ class _ImagePickerFieldState extends State<ImagePickerField> {
               ),
             ),
 
-          // زر إضافة الصور (يظهر دائماً)
           if (_images.isEmpty)
-            _buildAddButton(),
+            _buildAddButton(colors),
           
-          // ✅ بعد أول صورة: يظهر زرين
           if (_images.isNotEmpty)
             Padding(
               padding: const EdgeInsets.all(AppDimensions.spacingM),
@@ -158,7 +154,7 @@ class _ImagePickerFieldState extends State<ImagePickerField> {
                     child: _buildActionButton(
                       icon: Icons.photo_camera,
                       label: 'كاميرا',
-                      color: AppColors.primary,
+                      color: colors.primary,
                       onTap: () => _pickImage(ImageSource.camera),
                     ),
                   ),
@@ -167,7 +163,7 @@ class _ImagePickerFieldState extends State<ImagePickerField> {
                     child: _buildActionButton(
                       icon: Icons.photo_library,
                       label: 'معرض',
-                      color: AppColors.primary,
+                      color: colors.primary,
                       onTap: () => _pickImage(ImageSource.gallery),
                     ),
                   ),
@@ -179,33 +175,32 @@ class _ImagePickerFieldState extends State<ImagePickerField> {
     );
   }
 
-  /// زر إضافة الصورة الأولي (عند عدم وجود صور)
-  Widget _buildAddButton() {
+  Widget _buildAddButton(AppColors colors) {
     return GestureDetector(
       onTap: () => _showPickerOptions(context),
       child: Container(
         height: 160,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColors.backgroundInput,
+          color: colors.input,
           borderRadius: BorderRadius.circular(AppDimensions.radiusL),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.add_a_photo_outlined,
-              color: AppColors.iconDefault,
+              color: colors.textHint,
               size: 40,
             ),
             const SizedBox(height: AppDimensions.spacingS),
             Text(
               'اضغط لإضافة صورة للمشكلة',
-              style: AppTypography.body2.copyWith(color: AppColors.textHint),
+              style: AppTypography.body2.copyWith(color: colors.textHint),
             ),
             Text(
               '(يمكنك إضافة ${widget.maxImages} صور كحد أقصى)',
-              style: AppTypography.caption.copyWith(color: AppColors.textHint),
+              style: AppTypography.caption.copyWith(color: colors.textHint),
             ),
           ],
         ),
@@ -213,7 +208,6 @@ class _ImagePickerFieldState extends State<ImagePickerField> {
     );
   }
 
-  /// زر الإجراء المخصص
   Widget _buildActionButton({
     required IconData icon,
     required String label,
@@ -246,9 +240,10 @@ class _ImagePickerFieldState extends State<ImagePickerField> {
   }
 
   void _showPickerOptions(BuildContext context) {
+    final colors = context.appColors;
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.backgroundCard,
+      backgroundColor: colors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -257,16 +252,16 @@ class _ImagePickerFieldState extends State<ImagePickerField> {
           child: Wrap(
             children: <Widget>[
               ListTile(
-                leading: const Icon(Icons.photo_library, color: AppColors.iconDefault),
-                title: Text('المعرض', style: AppTypography.body1),
+                leading: Icon(Icons.photo_library, color: colors.textSecondary),
+                title: Text('المعرض', style: AppTypography.body1.copyWith(color: colors.textPrimary)),
                 onTap: () {
                   _pickImage(ImageSource.gallery);
                   Navigator.of(context).pop();
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_camera, color: AppColors.iconDefault),
-                title: Text('الكاميرا', style: AppTypography.body1),
+                leading: Icon(Icons.photo_camera, color: colors.textSecondary),
+                title: Text('الكاميرا', style: AppTypography.body1.copyWith(color: colors.textPrimary)),
                 onTap: () {
                   _pickImage(ImageSource.camera);
                   Navigator.of(context).pop();

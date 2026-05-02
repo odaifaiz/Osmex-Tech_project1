@@ -15,6 +15,8 @@ class PageIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(pageCount, (index) {
@@ -23,9 +25,9 @@ class PageIndicator extends StatelessWidget {
           duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 4.0),
           height: 8,
-          width: isActive ? 24 : 8, // Active indicator is wider
+          width: isActive ? 24 : 8,
           decoration: BoxDecoration(
-            color: isActive ? AppColors.primary : AppColors.borderDefault,
+            color: isActive ? colors.primary : colors.border,
             borderRadius: BorderRadius.circular(12),
           ),
         );

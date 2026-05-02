@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/provider/app_settings_provider.dart';
@@ -14,20 +15,23 @@ class PrivacyScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(appSettingsProvider);
     final notifier = ref.read(appSettingsProvider.notifier);
-    final theme = Theme.of(context);
+    final colors = context.appColors;
 
     return Scaffold(
+      backgroundColor: colors.background,
       appBar: AppBar(
-        title: const Text('الخصوصية'),
+        title: Text('الخصوصية', style: AppTypography.headline3.copyWith(fontSize: 18, color: colors.textPrimary)),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
+          icon: Icon(Icons.arrow_back_ios_new, color: colors.textPrimary),
           onPressed: () => context.pop(),
         ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(AppDimensions.spacingL),
         children: [
-          // إخفاء الهوية
           _buildSwitchItem(
             context,
             title: 'إخفاء الهوية',
@@ -35,10 +39,10 @@ class PrivacyScreen extends ConsumerWidget {
             icon: Icons.visibility_off_outlined,
             value: settings.hideIdentity,
             onChanged: (val) => notifier.updateSetting('hideIdentity', val),
+            colors: colors,
           ),
-          const Divider(height: 32),
+          Divider(color: colors.divider, height: 32),
 
-          // الموقع الدقيق
           _buildSwitchItem(
             context,
             title: 'الموقع الدقيق',
@@ -46,26 +50,27 @@ class PrivacyScreen extends ConsumerWidget {
             icon: Icons.location_on_outlined,
             value: settings.preciseLocation,
             onChanged: (val) => notifier.updateSetting('preciseLocation', val),
+            colors: colors,
           ),
-          const Divider(height: 32),
+          Divider(color: colors.divider, height: 32),
 
-          // بيانات الاستخدام
           _buildMenuItem(
             context,
             title: 'بيانات الاستخدام',
             subtitle: 'كيفية معالجة بياناتك',
             icon: Icons.analytics_outlined,
-            onTap: () => _showUsageDataDialog(context),
+            onTap: () => _showUsageDataDialog(context, colors),
+            colors: colors,
           ),
-          const Divider(height: 32),
+          Divider(color: colors.divider, height: 32),
 
-          // سياسة الخصوصية والشروط
           _buildMenuItem(
             context,
             title: 'سياسة الخصوصية والشروط',
             subtitle: 'المستندات القانونية للتطبيق',
             icon: Icons.description_outlined,
-            onTap: () => _showPrivacyPolicyDialog(context),
+            onTap: () => _showPrivacyPolicyDialog(context, colors),
+            colors: colors,
           ),
         ],
       ),
@@ -79,8 +84,8 @@ class PrivacyScreen extends ConsumerWidget {
     required IconData icon,
     required bool value,
     required Function(bool) onChanged,
+    required AppColors colors,
   }) {
-    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingM),
       child: Row(
@@ -89,23 +94,27 @@ class PrivacyScreen extends ConsumerWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant,
+              color: colors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(AppDimensions.radiusM),
             ),
-            child: Icon(icon, color: theme.colorScheme.primary, size: 22),
+            child: Icon(icon, color: colors.primary, size: 22),
           ),
           const SizedBox(width: AppDimensions.spacingM),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: AppTypography.body1.copyWith(fontWeight: FontWeight.w500)),
+                Text(title, style: AppTypography.body1.copyWith(fontWeight: FontWeight.w500, color: colors.textPrimary)),
                 const SizedBox(height: 4),
-                Text(subtitle, style: AppTypography.caption.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                Text(subtitle, style: AppTypography.caption.copyWith(color: colors.textSecondary)),
               ],
             ),
           ),
-          Switch(value: value, onChanged: onChanged),
+          Switch(
+            value: value, 
+            onChanged: onChanged,
+            activeColor: colors.primary,
+          ),
         ],
       ),
     );
@@ -117,8 +126,8 @@ class PrivacyScreen extends ConsumerWidget {
     required String subtitle,
     required IconData icon,
     VoidCallback? onTap,
+    required AppColors colors,
   }) {
-    final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppDimensions.radiusM),
@@ -130,65 +139,69 @@ class PrivacyScreen extends ConsumerWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant,
+                color: colors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppDimensions.radiusM),
               ),
-              child: Icon(icon, color: theme.colorScheme.primary, size: 22),
+              child: Icon(icon, color: colors.primary, size: 22),
             ),
             const SizedBox(width: AppDimensions.spacingM),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: AppTypography.body1.copyWith(fontWeight: FontWeight.w500)),
+                  Text(title, style: AppTypography.body1.copyWith(fontWeight: FontWeight.w500, color: colors.textPrimary)),
                   const SizedBox(height: 4),
-                  Text(subtitle, style: AppTypography.caption.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  Text(subtitle, style: AppTypography.caption.copyWith(color: colors.textSecondary)),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 14),
+            Icon(Icons.arrow_forward_ios, size: 14, color: colors.textSecondary),
           ],
         ),
       ),
     );
   }
 
-  void _showUsageDataDialog(BuildContext context) {
+  void _showUsageDataDialog(BuildContext context, AppColors colors) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('بيانات الاستخدام'),
-        content: const Text(
+        backgroundColor: colors.surface,
+        title: Text('بيانات الاستخدام', style: TextStyle(color: colors.textPrimary)),
+        content: Text(
           'نحن نجمع بيانات الاستخدام لتحسين أداء التطبيق وتجربة المستخدم. '
           'تشمل هذه البيانات: عدد البلاغات، وقت الاستخدام، والميزات المستخدمة.',
+          style: TextStyle(color: colors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('فهمت'),
+            child: Text('فهمت', style: TextStyle(color: colors.primary)),
           ),
         ],
       ),
     );
   }
 
-  void _showPrivacyPolicyDialog(BuildContext context) {
+  void _showPrivacyPolicyDialog(BuildContext context, AppColors colors) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('سياسة الخصوصية'),
-        content: const SingleChildScrollView(
+        backgroundColor: colors.surface,
+        title: Text('سياسة الخصوصية', style: TextStyle(color: colors.textPrimary)),
+        content: SingleChildScrollView(
           child: Text(
             'الخصوصية والأمان هما أولويتنا.\n\n'
             '1. جمع البيانات: نجمع فقط البيانات اللازمة.\n'
             '2. استخدام البيانات: لتحسين تجربتك فقط.\n'
             '3. مشاركة البيانات: لا نشاركها مع أطراف خارجية.',
+            style: TextStyle(color: colors.textSecondary),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إغلاق'),
+            child: Text('إغلاق', style: TextStyle(color: colors.primary)),
           ),
         ],
       ),

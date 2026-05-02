@@ -21,13 +21,15 @@ class BadgeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Opacity(
       opacity: isUnlocked ? 1.0 : 0.4,
       child: Container(
         padding: const EdgeInsets.all(AppDimensions.paddingCard),
         decoration: BoxDecoration(
-          color: AppColors.backgroundCard,
+          color: colors.card,
           borderRadius: BorderRadius.circular(AppDimensions.radiusL),
+          border: Border.all(color: colors.border.withOpacity(0.5)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -35,18 +37,18 @@ class BadgeCard extends StatelessWidget {
             Icon(
               icon,
               size: 48,
-              color: isUnlocked ? AppColors.primary : AppColors.iconDefault,
+              color: isUnlocked ? colors.primary : colors.textHint,
             ),
             const SizedBox(height: AppDimensions.spacingS),
             Text(
               name,
-              style: AppTypography.body1.copyWith(fontWeight: FontWeight.w600),
+              style: AppTypography.body1.copyWith(fontWeight: FontWeight.w600, color: colors.textPrimary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppDimensions.spacingXXS),
             Text(
               description,
-              style: AppTypography.caption,
+              style: AppTypography.caption.copyWith(color: colors.textSecondary),
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,

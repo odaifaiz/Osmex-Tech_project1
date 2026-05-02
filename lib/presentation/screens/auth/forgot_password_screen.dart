@@ -1,9 +1,10 @@
 // lib/presentation/screens/auth/forgot_password_screen.dart
-// ✅ التعديل: تغيير المنطق لاستخدام تدفق الـ OTP بدلاً من رابط إعادة التعيين التقليدي
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:city_fix_app/core/utils/extensions.dart';
 import 'package:city_fix_app/core/constants/route_constants.dart';
 import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_dimensions.dart';
@@ -23,7 +24,7 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  bool _isSubmitting = false; // ✅ متغير محلي لمنع الإرسال المتكرر
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -31,89 +32,49 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  /// ✅ منطق إرسال طلب استعادة كلمة المرور (باستخدام تدفق OTP)
-    /// ✅ منطق إرسال طلب استعادة كلمة المرور (باستخدام التدفق الصحيح: رابط سحري)
-   /// ✅ منطق إرسال طلب استعادة كلمة المرور (متوافق مع تدفق الـ OTP الديناميكي)
-  Future<void> _handleResetRequest() async {
-    // 1. التحقق من صحة النموذج
+  Future<void> _handleResetRequest(AppColors colors) async {
     if (!_formKey.currentState!.validate()) {
-      print('❌ [Reset] Form validation failed');
       return;
     }
     if (_isSubmitting) return;
 
     final email = _emailController.text.trim();
-    print('🔍 [Reset] Requesting password reset: $email');
     setState(() => _isSubmitting = true);
 
     try {
-      // ✅ 2. إرسال طلب إعادة التعيين (يولد كود 6 أرقام من نوع 'recovery')
       final success = await ref.read(authProvider.notifier).sendOtpForPasswordReset(email);
 
       if (!mounted) return;
 
       if (success) {
-        print('✅ [Reset] Reset code sent, navigating to OTP screen');
-        
-        // ✅ 3. الانتقال لصفحة OTP مع تحديد نوع العملية (هذا هو الرابط مع التعديل الأخير!)
-        // عندما يدخل المستخدم الرمز، سيقوم _verifyOtp بقراءة 'auth_type' واستخدام OtpType.recovery
         if (mounted) {
           context.pushNamed(
             RouteConstants.otpVerificationRouteName,
-            extra: {
+            extra: jsonEncode({
               'email': email,
-              'auth_type': 'reset_password', // ✅ هذا المفتاح الذي يفعّل التدفق الديناميكي
-            },
+              'auth_type': 'reset_password',
+            }),
           );
         }
       } else {
-        print('❌ [Reset] Failed to send reset code');
         final error = ref.read(authProvider).errorMessage;
-        _showError(error ?? 'فشل إرسال رمز إعادة التعيين، يرجى المحاولة مرة أخرى');
+        _showError(error ?? 'فشل إرسال رمز إعادة التعيين، يرجى المحاولة مرة أخرى', colors);
       }
-    } catch (e, stack) {
-      print('❌ [Reset] Unexpected error: $e\n$stack');
+    } catch (e) {
       if (mounted) {
-        _showError('حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى');
+        _showError('حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى', colors);
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
-
-  /// ✅ تنظيف أخطاء إعادة التعيين لعرضها للمستخدم
-  String _cleanResetError(String error) {
-    final msg = error.replaceAll('Exception: ', '').replaceAll('Error: ', '');
-    if (msg.contains('User not found') || msg.contains('not registered')) {
-      return 'هذا البريد الإلكتروني غير مسجل في نظامنا';
-    }
-    if (msg.contains('rate_limit')) {
-      return 'لقد طلبت رابطاً مؤخراً، يرجى الانتظار دقيقة ثم المحاولة مرة أخرى';
-    }
-    return 'فشل إرسال الرابط، يرجى التحقق من بريدك والمحاولة مرة أخرى';
-  }
-
-  /// ✅ عرض رسالة نجاح
-  void _showSuccess(String message) {
+  void _showError(String message, AppColors colors) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: AppColors.statusSuccess,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 4),
-      ),
-    );
-  }
-
-  /// ✅ دالة مساعدة لعرض الأخطاء
-  void _showError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.statusError,
+        backgroundColor: colors.error,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -121,21 +82,19 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ مراقبة حالة التحميل فقط، دون إعادة بناء كامل الشاشة
+    final colors = context.appColors;
     final isLoading = ref.watch(authLoadingProvider);
     final isProcessing = isLoading || _isSubmitting;
 
-    // ─────────────────────────────────────────────────────────────
-    // ✅ واجهة المستخدم: محفوظة تماماً كما أرسلتها (لم يتغير أي عنصر واجهة)
-    // ─────────────────────────────────────────────────────────────
     return Scaffold(
+      backgroundColor: colors.background,
       appBar: AppBar(
-        title: Text('إعادة تعيين كلمة المرور', style: AppTypography.headline3),
+        title: Text('إعادة تعيين كلمة المرور', style: AppTypography.headline3.copyWith(color: colors.textPrimary)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_forward_ios),
+          icon: Icon(Icons.arrow_forward_ios, color: colors.textPrimary),
           onPressed: () => context.pop(),
         ),
       ),
@@ -149,39 +108,37 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               children: [
                 const Spacer(flex: 2),
 
-                // Icon with Background and Glow
                 Container(
-                  width: 90,
-                  height: 90,
+                  width: context.isSmallScreen ? 70 : 90,
+                  height: context.isSmallScreen ? 70 : 90,
                   decoration: BoxDecoration(
-                    color: AppColors.backgroundDark,
+                    color: colors.card,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.25),
+                        color: Colors.black.withOpacity(0.05),
                         blurRadius: 30,
                         spreadRadius: 2,
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.refresh_rounded, color: AppColors.primary, size: 50),
+                  child: Icon(Icons.refresh_rounded, color: colors.primary, size: 50),
                 ),
                 const SizedBox(height: AppDimensions.spacingXXL),
 
-                // Centered and Padded Texts
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingM),
                   child: Column(
                     children: [
                       Text(
                         'إعادة تعيين كلمة المرور',
-                        style: AppTypography.headline2,
+                        style: AppTypography.headline2.copyWith(color: colors.textPrimary, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: AppDimensions.spacingM),
                       Text(
                         'أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور',
-                        style: AppTypography.body1.copyWith(color: AppColors.textSecondaryDark),
+                        style: AppTypography.body1.copyWith(color: colors.textSecondary),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -189,9 +146,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: AppDimensions.spacingXXL),
 
-                // Email Field
                 _buildLabeledTextField(
                   label: 'البريد الإلكتروني',
+                  colors: colors,
                   child: AppTextField(
                     controller: _emailController,
                     hintText: 'example@mail.com',
@@ -201,24 +158,22 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: AppDimensions.spacingXL),
 
-                // Submit Button: مرتبط بـ _handleResetRequest مع حالة تحميل موحدة
                 AppButton(
                   text: isProcessing ? 'جاري الإرسال...' : 'إرسال الرابط',
-                  onPressed: isProcessing ? null : _handleResetRequest,
+                  onPressed: isProcessing ? null : () => _handleResetRequest(colors),
                   isLoading: isProcessing,
                 ),
                 const Spacer(flex: 3),
 
-                // Footer
                 InkWell(
                   onTap: () => context.goNamed(RouteConstants.loginRouteName),
                   child: Text.rich(
                     textAlign: TextAlign.center,
                     TextSpan(
                       text: 'هل تتذكر كلمة المرور؟ ',
-                      style: AppTypography.body2,
+                      style: AppTypography.body2.copyWith(color: colors.textSecondary),
                       children: [
-                        TextSpan(text: 'تسجيل الدخول', style: AppTypography.link),
+                        TextSpan(text: 'تسجيل الدخول', style: AppTypography.link.copyWith(color: colors.primary, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -232,15 +187,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // ✅ Widgets مساعدة (محفوظة كما هي - تصميم فقط)
-  // ─────────────────────────────────────────────────────────────
-
-  Widget _buildLabeledTextField({required String label, required Widget child}) {
+  Widget _buildLabeledTextField({required String label, required Widget child, required AppColors colors}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTypography.body1.copyWith(fontWeight: FontWeight.w600)),
+        Text(label, style: AppTypography.body1.copyWith(fontWeight: FontWeight.bold, color: colors.textPrimary)),
         const SizedBox(height: AppDimensions.spacingS),
         child,
       ],

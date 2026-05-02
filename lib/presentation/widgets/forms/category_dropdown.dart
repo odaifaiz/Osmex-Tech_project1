@@ -5,8 +5,8 @@ import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 
 class CategoryDropdown extends StatelessWidget {
-  final String? selectedValue; // This should be the Category ID
-  final List<Map<String, String>> items; // List of {'id': ..., 'name': ...}
+  final String? selectedValue;
+  final List<Map<String, String>> items;
   final String hintText;
   final void Function(String?)? onChanged;
 
@@ -14,28 +14,29 @@ class CategoryDropdown extends StatelessWidget {
     super.key,
     this.selectedValue,
     required this.items,
-    this.hintText = 'Select a category',
+    this.hintText = 'اختر الفئة',
     this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return DropdownButtonFormField<String>(
       value: selectedValue,
-      hint: Text(hintText, style: AppTypography.body2.copyWith(color: AppColors.textHint)),
+      hint: Text(hintText, style: AppTypography.body2.copyWith(color: colors.textHint)),
       isExpanded: true,
       onChanged: onChanged,
-      icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.iconDefault),
-      style: AppTypography.body1,
-      dropdownColor: AppColors.backgroundCard,
-      decoration: const InputDecoration(
-        prefixIcon: Icon(Icons.category_outlined, color: AppColors.iconDefault),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      icon: Icon(Icons.keyboard_arrow_down, color: colors.textSecondary),
+      style: AppTypography.body1.copyWith(color: colors.textPrimary),
+      dropdownColor: colors.surface,
+      decoration: InputDecoration(
+        prefixIcon: Icon(Icons.category_outlined, color: colors.textSecondary),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
       items: items.map<DropdownMenuItem<String>>((Map<String, String> item) {
         return DropdownMenuItem<String>(
           value: item['id'],
-          child: Text(item['name'] ?? ''),
+          child: Text(item['name'] ?? '', style: TextStyle(color: colors.textPrimary)),
         );
       }).toList(),
     );

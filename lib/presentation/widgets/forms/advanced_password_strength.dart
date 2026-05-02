@@ -12,7 +12,8 @@ class AdvancedPasswordStrengthIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // --- Password Strength Logic ---
+    final colors = context.appColors;
+
     bool has8Chars = password.length >= 8;
     bool hasNumber = password.contains(RegExp(r'[0-9]'));
     bool hasSymbol = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
@@ -22,36 +23,38 @@ class AdvancedPasswordStrengthIndicator extends StatelessWidget {
     if (hasNumber) strengthScore++;
     if (hasSymbol) strengthScore++;
     if (password.contains(RegExp(r'[A-Z]'))) {
-      strengthScore++; // Optional: check for uppercase
+      strengthScore++;
     }
 
     double strengthPercent = strengthScore / 4.0;
     if (password.isEmpty) strengthPercent = 0;
 
     Color strengthColor;
+    String strengthText;
     if (strengthPercent < 0.5) {
-      strengthColor = AppColors.strengthWeak;
+      strengthColor = colors.strengthWeak;
+      strengthText = 'ضعيفة';
     } else if (strengthPercent < 0.75) {
-      strengthColor = AppColors.strengthFair;
+      strengthColor = colors.strengthFair;
+      strengthText = 'متوسطة';
     } else {
-      strengthColor = AppColors.strengthGood;
+      strengthColor = colors.strengthGood;
+      strengthText = 'قوية جداً';
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // --- Strength Bar and Percentage ---
         Row(
           children: [
             Text(
               'قوة كلمة المرور',
-              style:
-                  AppTypography.body2.copyWith(color: AppColors.textSecondary),
+              style: AppTypography.body2.copyWith(color: colors.textSecondary),
             ),
             const Spacer(),
             Text(
-              'قوية جداً (${(strengthPercent * 100).toInt()}%)',
-              style: AppTypography.body2.copyWith(color: strengthColor),
+              '$strengthText (${(strengthPercent * 100).toInt()}%)',
+              style: AppTypography.body2.copyWith(color: strengthColor, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -60,41 +63,42 @@ class AdvancedPasswordStrengthIndicator extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppDimensions.radiusS),
           child: LinearProgressIndicator(
             value: strengthPercent,
-            backgroundColor: AppColors.borderDefault,
+            backgroundColor: colors.border,
             color: strengthColor,
             minHeight: 6,
           ),
         ),
         const SizedBox(height: AppDimensions.spacingM),
 
-        // --- Validation Checklist ---
         _buildValidationCheck(
           text: '8 أحرف على الأقل',
           isValid: has8Chars,
+          colors: colors,
         ),
         _buildValidationCheck(
           text: 'أرقام ورموز',
           isValid: hasNumber && hasSymbol,
+          colors: colors,
         ),
       ],
     );
   }
 
-  Widget _buildValidationCheck({required String text, required bool isValid}) {
+  Widget _buildValidationCheck({required String text, required bool isValid, required AppColors colors}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.0),
       child: Row(
         children: [
           Icon(
             isValid ? Icons.check_circle : Icons.cancel,
-            color: isValid ? AppColors.strengthGood : AppColors.strengthWeak,
+            color: isValid ? colors.strengthGood : colors.textHint,
             size: 18,
           ),
           const SizedBox(width: AppDimensions.spacingS),
           Text(
             text,
             style: AppTypography.body2.copyWith(
-              color: isValid ? AppColors.textSecondary : AppColors.textHint,
+              color: isValid ? colors.textSecondary : colors.textHint,
             ),
           ),
         ],

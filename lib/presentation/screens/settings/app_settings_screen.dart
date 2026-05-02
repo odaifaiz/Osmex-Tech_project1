@@ -1,5 +1,6 @@
 // lib/presentation/screens/settings/app_settings_screen.dart
 
+import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,49 +14,53 @@ class AppSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.appColors;
     final settings = ref.watch(appSettingsProvider);
     final notifier = ref.read(appSettingsProvider.notifier);
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
+      backgroundColor: colors.background,
       appBar: AppBar(
-        title: Text(l10n.appSettings),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(l10n.appSettings, style: TextStyle(color: colors.textPrimary)),
+        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
+          icon: Icon(Icons.arrow_back_ios_new, color: colors.textPrimary),
           onPressed: () => context.pop(),
         ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(AppDimensions.spacingL),
+        
         children: [
-          // Language
           _buildMenuItem(
             context,
+            colors: colors,
             title: l10n.language,
             value: settings.language == 'ar' ? l10n.arabic : l10n.english,
             icon: Icons.language_outlined,
-            onTap: () => _showLanguageDialog(context, settings, notifier, l10n),
+            onTap: () => _showLanguageDialog(context, settings, notifier, l10n, colors),
           ),
-          const Divider(height: 32),
+          Divider(height: 32, color: colors.divider),
 
-          // Theme / Appearance
           _buildMenuItem(
             context,
+            colors: colors,
             title: l10n.appearance,
             value: _getThemeLabel(settings.themeMode, l10n),
             icon: Icons.dark_mode_outlined,
-            onTap: () => _showThemeDialog(context, settings, notifier, l10n),
+            onTap: () => _showThemeDialog(context, settings, notifier, l10n, colors),
           ),
-          const Divider(height: 32),
+          Divider(height: 32, color: colors.divider),
 
-          // Font Scale
-          _buildFontSizeSlider(context, settings, notifier, l10n),
-          const Divider(height: 32),
+          _buildFontSizeSlider(context, settings, notifier, l10n, colors),
+          Divider(height: 32, color: colors.divider),
 
-          // Clear Cache
           _buildMenuItem(
             context,
+            colors: colors,
             title: l10n.clearCache,
             value: '64 MB',
             icon: Icons.cleaning_services_outlined,
@@ -63,7 +68,7 @@ class AppSettingsScreen extends ConsumerWidget {
               await notifier.clearCache();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.cacheCleared)),
+                  SnackBar(content: Text(l10n.cacheCleared), backgroundColor: colors.info),
                 );
               }
             },
@@ -75,12 +80,12 @@ class AppSettingsScreen extends ConsumerWidget {
 
   Widget _buildMenuItem(
     BuildContext context, {
+    required AppColors colors,
     required String title,
     required String value,
     required IconData icon,
     VoidCallback? onTap,
   }) {
-    final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppDimensions.radiusM),
@@ -92,32 +97,31 @@ class AppSettingsScreen extends ConsumerWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant,
+                color: colors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppDimensions.radiusM),
               ),
-              child: Icon(icon, color: theme.colorScheme.primary, size: 22),
+              child: Icon(icon, color: colors.primary, size: 22),
             ),
             const SizedBox(width: AppDimensions.spacingM),
             Expanded(
               child: Text(
                 title,
-                style: AppTypography.body1.copyWith(fontWeight: FontWeight.w500),
+                style: AppTypography.body1.copyWith(fontWeight: FontWeight.w500, color: colors.textPrimary),
               ),
             ),
             Text(
               value,
-              style: AppTypography.body2.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: AppTypography.body2.copyWith(color: colors.textSecondary),
             ),
             const SizedBox(width: AppDimensions.spacingS),
-            const Icon(Icons.arrow_forward_ios, size: 14),
+            Icon(Icons.arrow_forward_ios, size: 14, color: colors.textSecondary),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFontSizeSlider(BuildContext context, settings, notifier, l10n) {
-    final theme = Theme.of(context);
+  Widget _buildFontSizeSlider(BuildContext context, settings, notifier, l10n, AppColors colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingM),
       child: Column(
@@ -129,21 +133,21 @@ class AppSettingsScreen extends ConsumerWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceVariant,
+                  color: colors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppDimensions.radiusM),
                 ),
-                child: Icon(Icons.text_fields_outlined, color: theme.colorScheme.primary, size: 22),
+                child: Icon(Icons.text_fields_outlined, color: colors.primary, size: 22),
               ),
               const SizedBox(width: AppDimensions.spacingM),
               Expanded(
                 child: Text(
                   l10n.fontSize,
-                  style: AppTypography.body1.copyWith(fontWeight: FontWeight.w500),
+                  style: AppTypography.body1.copyWith(fontWeight: FontWeight.w500, color: colors.textPrimary),
                 ),
               ),
               Text(
                 _getFontSizeLabel(settings.fontScale, l10n),
-                style: AppTypography.body2.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: AppTypography.body2.copyWith(color: colors.textSecondary),
               ),
             ],
           ),
@@ -153,6 +157,8 @@ class AppSettingsScreen extends ConsumerWidget {
             min: 0.8,
             max: 1.5,
             divisions: 7,
+            activeColor: colors.primary,
+            inactiveColor: colors.primary.withOpacity(0.2),
             onChanged: (value) => notifier.updateFontScale(value),
           ),
         ],
@@ -175,17 +181,19 @@ class AppSettingsScreen extends ConsumerWidget {
     }
   }
 
-  void _showLanguageDialog(BuildContext context, settings, notifier, AppLocalizations l10n) {
+  void _showLanguageDialog(BuildContext context, settings, notifier, AppLocalizations l10n, AppColors colors) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.chooseLanguage),
+        backgroundColor: colors.surface,
+        title: Text(l10n.chooseLanguage, style: TextStyle(color: colors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile<String>(
-              title: Text(l10n.arabic),
+              title: Text(l10n.arabic, style: TextStyle(color: colors.textPrimary)),
               value: 'ar',
+              activeColor: colors.primary,
               groupValue: settings.language,
               onChanged: (val) {
                 if (val != null) notifier.updateLanguage(val);
@@ -193,8 +201,9 @@ class AppSettingsScreen extends ConsumerWidget {
               },
             ),
             RadioListTile<String>(
-              title: Text(l10n.english),
+              title: Text(l10n.english, style: TextStyle(color: colors.textPrimary)),
               value: 'en',
+              activeColor: colors.primary,
               groupValue: settings.language,
               onChanged: (val) {
                 if (val != null) notifier.updateLanguage(val);
@@ -207,17 +216,19 @@ class AppSettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showThemeDialog(BuildContext context, settings, notifier, AppLocalizations l10n) {
+  void _showThemeDialog(BuildContext context, settings, notifier, AppLocalizations l10n, AppColors colors) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.chooseTheme),
+        backgroundColor: colors.surface,
+        title: Text(l10n.chooseTheme, style: TextStyle(color: colors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile<ThemeMode>(
-              title: Text(l10n.light),
+              title: Text(l10n.light, style: TextStyle(color: colors.textPrimary)),
               value: ThemeMode.light,
+              activeColor: colors.primary,
               groupValue: settings.themeMode,
               onChanged: (val) {
                 if (val != null) notifier.updateThemeMode(val);
@@ -225,8 +236,9 @@ class AppSettingsScreen extends ConsumerWidget {
               },
             ),
             RadioListTile<ThemeMode>(
-              title: Text(l10n.dark),
+              title: Text(l10n.dark, style: TextStyle(color: colors.textPrimary)),
               value: ThemeMode.dark,
+              activeColor: colors.primary,
               groupValue: settings.themeMode,
               onChanged: (val) {
                 if (val != null) notifier.updateThemeMode(val);
@@ -234,8 +246,9 @@ class AppSettingsScreen extends ConsumerWidget {
               },
             ),
             RadioListTile<ThemeMode>(
-              title: Text(l10n.autoSystem),
+              title: Text(l10n.autoSystem, style: TextStyle(color: colors.textPrimary)),
               value: ThemeMode.system,
+              activeColor: colors.primary,
               groupValue: settings.themeMode,
               onChanged: (val) {
                 if (val != null) notifier.updateThemeMode(val);

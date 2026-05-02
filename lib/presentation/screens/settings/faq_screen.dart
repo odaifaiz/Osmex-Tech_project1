@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
+import 'package:city_fix_app/core/utils/extensions.dart';
 
 class FaqScreen extends StatelessWidget {
   const FaqScreen({super.key});
@@ -12,7 +13,7 @@ class FaqScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: context.colorScheme.background,
       appBar: AppBar(
         title: Text(
           'الأسئلة الشائعة',
@@ -22,8 +23,7 @@ class FaqScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, color: context.colorScheme.onSurface),
           onPressed: () => context.pop(),
         ),
       ),
@@ -89,9 +89,9 @@ class FaqScreen extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.backgroundCard,
+        color: context.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-        border: Border.all(color: AppColors.borderDefault),
+        border: Border.all(color: context.colorScheme.outline),
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -103,13 +103,13 @@ class FaqScreen extends StatelessWidget {
             question,
             style: AppTypography.body1.copyWith(fontWeight: FontWeight.w600),
           ),
-          iconColor: AppColors.primary,
-          collapsedIconColor: AppColors.iconDefault,
+          iconColor: context.appColors.primary,
+          collapsedIconColor: context.appColors.iconDefault,
           children: [
             Text(
               answer,
               style:
-                  AppTypography.body2.copyWith(color: AppColors.textSecondary),
+                  AppTypography.body2.copyWith(color: context.colorScheme.onSurfaceVariant),
             ),
           ],
         ),

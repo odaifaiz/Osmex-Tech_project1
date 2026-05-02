@@ -25,9 +25,9 @@ class AppRatingBar extends StatelessWidget {
       allowHalfRating: true,
       itemCount: 5,
       itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
-      itemBuilder: (context, _) => const Icon(
+      itemBuilder: (context, _) => Icon(
         Icons.star,
-        color: AppColors.statusWarning,
+        color: context.appColors.warning,
       ),
       onRatingUpdate: onRatingUpdate,
     );

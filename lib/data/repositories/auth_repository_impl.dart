@@ -72,7 +72,14 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       print('🔍 [Repo] بدء تسجيل الدخول بجوجل');
       final response = await _authService.signInWithGoogle();
-      if (response.user == null) throw Exception('فشل تسجيل الدخول بجوجل');
+      
+      // ✅ إذا كان المستخدم null، فهذا يعني أننا في تدفق OAuth (المتصفح)
+      // وسنقوم بالانتظار حتى يأتي الرد عبر المستمع (onAuthStateChange)
+      if (response.user == null) {
+        print('⏳ [Repo] OAuth started — Waiting for browser callback...');
+        // نرجع كائن فارغ مؤقتاً، الـ Notifier سيتعامل معه
+        return User(id: '', email: '', password: '', createdAt: DateTime.now(), isActive: true, isEmailVerified: false);
+      }
 
       print('✅ [Repo] نجاح المصادقة بجوجل: userId=${response.user!.id}');
       return _convertToUser(response.user!);

@@ -1,5 +1,6 @@
 // lib/presentation/screens/profile/edit_profile_screen.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,7 @@ import 'package:city_fix_app/presentation/widgets/common/app_button.dart';
 import 'package:city_fix_app/presentation/widgets/common/app_text_field.dart';
 import 'package:city_fix_app/core/utils/validators.dart';
 import 'package:city_fix_app/presentation/provider/auth_provider.dart';
+import 'package:city_fix_app/core/utils/extensions.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -65,9 +67,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ تم حفظ التغييرات بنجاح'),
-            backgroundColor: AppColors.statusSuccess,
+          SnackBar(
+            content: const Text('✅ تم حفظ التغييرات بنجاح'),
+            backgroundColor: context.appColors.statusSuccess,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -89,7 +91,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: AppColors.statusError,
+        backgroundColor: context.appColors.statusError,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -100,7 +102,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final avatarUrl = ref.watch(currentUserProvider)?.photoURL;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: context.colorScheme.background,
       appBar: AppBar(
         title: Text(
           'تعديل الملف الشخصي',
@@ -110,8 +112,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: AppColors.textPrimaryLight),
+          icon: Icon(Icons.arrow_back_ios_new,
+              color: context.colorScheme.onSurface),
           onPressed: () => context.pop(),
         ),
         actions: [
@@ -121,7 +123,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               'حفظ',
               style: AppTypography.link.copyWith(
                 fontWeight: FontWeight.w600,
-                color: _isSaving ? AppColors.textHint : AppColors.primary,
+                color: _isSaving ? context.colorScheme.onSurfaceVariant : context.appColors.primary,
               ),
             ),
           ),
@@ -167,31 +169,30 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 children: [
                   Text('البريد الإلكتروني',
                       style: AppTypography.body2
-                          .copyWith(color: AppColors.textSecondaryLight)),
+                          .copyWith(color: context.colorScheme.onSurfaceVariant)),
                   const SizedBox(height: AppDimensions.spacingS),
                   Container(
                     padding: const EdgeInsets.all(AppDimensions.spacingM),
                     decoration: BoxDecoration(
-                      color: AppColors.inputDark
-                          .withOpacity(0.5),
+                      color: context.colorScheme.surfaceVariant,
                       borderRadius:
                           BorderRadius.circular(AppDimensions.radiusM),
-                      border: Border.all(color: AppColors.borderDark),
+                      border: Border.all(color: context.colorScheme.outline),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.email_outlined,
-                            size: 20, color: AppColors.cardDark),
+                        Icon(Icons.email_outlined,
+                            size: 20, color: context.colorScheme.onSurfaceVariant),
                         const SizedBox(width: AppDimensions.spacingM),
                         Expanded(
                           child: Text(
                             _emailController.text,
                             style: AppTypography.body1
-                                .copyWith(color: AppColors.textSecondaryLight),
+                                .copyWith(color: context.colorScheme.onSurfaceVariant),
                           ),
                         ),
-                        const Icon(Icons.lock_outline,
-                            size: 16, color: AppColors.cardDark),
+                        Icon(Icons.lock_outline,
+                            size: 16, color: context.colorScheme.onSurfaceVariant),
                       ],
                     ),
                   ),
@@ -200,7 +201,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     child: Text(
                       'لا يمكن تغيير البريد الإلكتروني',
                       style: AppTypography.caption
-                          .copyWith(color: AppColors.textHint),
+                          .copyWith(color: context.appColors.textHint),
                     ),
                   ),
                 ],
@@ -219,8 +220,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 text: 'إلغاء',
                 onPressed: () => context.pop(),
                 useGradient: false,
-                backgroundColor: AppColors.cardDark,
-                textColor: AppColors.textSecondaryLight,
+                backgroundColor: context.colorScheme.surfaceVariant,
+                textColor: context.colorScheme.onSurfaceVariant,
               ),
             ],
           ),
@@ -240,21 +241,20 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             shape: BoxShape.circle,
             gradient: LinearGradient(
               colors: [
-                AppColors.primary.withOpacity(0.3),
-                AppColors.primary.withOpacity(0.1),
+                context.appColors.primary.withOpacity(0.3),
+                context.appColors.primary.withOpacity(0.1),
               ],
             ),
             border: Border.all(
-                color: AppColors.primary.withOpacity(0.5), width: 3),
+                color: context.appColors.primary.withOpacity(0.5), width: 3),
           ),
           child: avatarUrl != null && avatarUrl.isNotEmpty
               ? ClipOval(
-                  child: Image.network(avatarUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          const Icon(Icons.person, size: 60, color: AppColors.primary)))
-              : const Icon(Icons.person, size: 60, color: AppColors.primary),
+                  child: _buildAvatarImage(avatarUrl),
+                )
+              : Icon(Icons.person, size: 60, color: context.appColors.primary),
         ),
+
         Positioned(
           bottom: 8,
           right: 8,
@@ -271,16 +271,34 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: AppColors.primary,
+                color: context.appColors.primary,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.backgroundDark, width: 2),
+                border: Border.all(color: context.colorScheme.background, width: 2),
               ),
-              child: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
+              child: Icon(Icons.camera_alt, size: 18, color: Theme.of(context).colorScheme.onPrimary),
             ),
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildAvatarImage(String url) {
+    final isLocal = url.startsWith('file://') || url.startsWith('/') || !url.startsWith('http');
+
+    if (isLocal) {
+      return Image.file(
+        File(url.replaceAll('file://', '')),
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Icon(Icons.person, size: 60, color: context.appColors.primary),
+      );
+    } else {
+      return Image.network(
+        url,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Icon(Icons.person, size: 60, color: context.appColors.primary),
+      );
+    }
   }
 
   Widget _buildTextFieldSection({
@@ -295,7 +313,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       children: [
         Text(label,
             style: AppTypography.body2
-                .copyWith(color: AppColors.textSecondaryLight)),
+                .copyWith(color: context.colorScheme.onSurfaceVariant)),
         const SizedBox(height: AppDimensions.spacingS),
         AppTextField(
           controller: controller,

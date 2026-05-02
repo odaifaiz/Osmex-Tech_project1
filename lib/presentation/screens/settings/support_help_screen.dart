@@ -7,6 +7,7 @@ import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:city_fix_app/core/utils/extensions.dart';
 
 class SupportHelpScreen extends StatelessWidget {
   const SupportHelpScreen({super.key});
@@ -39,7 +40,7 @@ class SupportHelpScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: context.colorScheme.background,
       appBar: AppBar(
         title: Text(
           'الدعم والمساعدة',
@@ -49,7 +50,7 @@ class SupportHelpScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, color: context.colorScheme.onSurface),
           onPressed: () => context.pop(),
         ),
       ),
@@ -61,7 +62,8 @@ class SupportHelpScreen extends StatelessWidget {
             title: 'الأسئلة الشائعة',
             subtitle: 'حلول للمشاكل المتكررة',
             icon: Icons.help_outline,
-            color: AppColors.primary,
+            color: context.appColors.primary,
+            context: context,
             onTap: () {
               context.pushNamed(RouteConstants.faqRouteName);
             },
@@ -73,7 +75,8 @@ class SupportHelpScreen extends StatelessWidget {
             title: 'المحادثة المباشرة',
             subtitle: 'تواصل فوري مع فريق الدعم',
             icon: Icons.chat_outlined,
-            color: AppColors.strengthGood,
+            color: context.appColors.strengthGood,
+            context: context,
             onTap: () {
               // TODO: Open live chat
               ScaffoldMessenger.of(context).showSnackBar(
@@ -91,7 +94,8 @@ class SupportHelpScreen extends StatelessWidget {
             title: 'اتصل بنا',
             subtitle: '920000000',
             icon: Icons.phone_outlined,
-            color: AppColors.statusWarning,
+            color: context.appColors.statusWarning,
+            context: context,
             onTap: _makePhoneCall,
           ),
           const SizedBox(height: AppDimensions.spacingM),
@@ -101,17 +105,19 @@ class SupportHelpScreen extends StatelessWidget {
             title: 'البريد الإلكتروني',
             subtitle: 'support@cityfix.com',
             icon: Icons.email_outlined,
-            color: AppColors.textSecondary,
+            color: context.appColors.textSecondary,
+            context: context,
             onTap: _sendEmail,
           ),
           const SizedBox(height: AppDimensions.spacingM),
 
           // تقييم التطبيق
           _buildSupportCard(
+            context: context,
             title: 'تقييم التطبيق',
             subtitle: 'شاركنا رأيك في المتجر',
             icon: Icons.star_outline,
-            color: AppColors.statusWarning,
+            color: context.appColors.statusWarning,
             onTap: _openAppStore,
           ),
         ],
@@ -125,6 +131,7 @@ class SupportHelpScreen extends StatelessWidget {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
+    required BuildContext context,
   }) {
     return InkWell(
       onTap: onTap,
@@ -132,9 +139,9 @@ class SupportHelpScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppDimensions.spacingM),
         decoration: BoxDecoration(
-          color: AppColors.backgroundCard,
+          color: context.colorScheme.surface,
           borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-          border: Border.all(color: AppColors.borderDefault),
+          border: Border.all(color: context.colorScheme.outline),
         ),
         child: Row(
           children: [
@@ -159,12 +166,12 @@ class SupportHelpScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                    style: AppTypography.caption.copyWith(color: context.colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.iconDefault),
+            Icon(Icons.arrow_forward_ios, size: 16, color: context.colorScheme.onSurfaceVariant),
           ],
         ),
       ),

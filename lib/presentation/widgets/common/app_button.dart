@@ -27,35 +27,31 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // A primary button is defined as one that uses the gradient.
-    // This will be our condition to show the glow effect.
+    final colors = context.appColors; // ✅ Access theme extension
     final bool isPrimaryButton = useGradient;
 
     return Container(
       height: AppDimensions.buttonHeight,
       decoration: BoxDecoration(
-        gradient: isPrimaryButton ? AppColors.primaryButtonGradient : null,
-        color: isPrimaryButton ? null : backgroundColor,
+        gradient: isPrimaryButton ? colors.primaryGradient : null,
+        color: isPrimaryButton ? null : (backgroundColor ?? colors.surface),
         borderRadius: BorderRadius.circular(AppDimensions.radiusCircular),
-        
-        // --- THIS IS THE ADDED/MODIFIED PART FOR THE GLOW EFFECT ---
         boxShadow: isPrimaryButton
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.35), // The glow color
-                  blurRadius: 16.0, // How soft the shadow is
-                  spreadRadius: 1, // How far the shadow extends
-                  offset: const Offset(0, 6), // Position of the shadow (slightly below)
+                  color: colors.primary.withOpacity(0.35),
+                  blurRadius: 16.0,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 6),
                 ),
               ]
-            : [], // No shadow for non-primary buttons (like the Google button)
-        // -----------------------------------------------------------
+            : [],
       ),
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent, // Important to keep this transparent
+          shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimensions.radiusCircular),
           ),
@@ -76,9 +72,15 @@ class AppButton extends StatelessWidget {
                     icon!,
                     const SizedBox(width: AppDimensions.spacingS),
                   ],
-                  Text(
-                    text,
-                    style: AppTypography.button.copyWith(color: textColor ?? AppColors.textPrimary),
+                  Flexible(
+                    child: Text(
+                      text,
+                      style: AppTypography.button.copyWith(
+                        color: textColor ?? (useGradient ? Colors.white : colors.textPrimary),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ],
               ),

@@ -13,7 +13,6 @@ class AppTypography {
   // --- Base Text Style ---
   static const TextStyle _base = TextStyle(
     fontFamily: fontFamily,
-    color: AppColors.textPrimaryDark,
     fontWeight: FontWeight.w400, // Regular
   );
 
@@ -39,7 +38,6 @@ class AppTypography {
   static final TextStyle body2 = _base.copyWith(
     fontSize: 14,
     fontWeight: FontWeight.w400, // Regular
-    color: AppColors.textSecondaryDark,
   );
 
   // --- Buttons & Links ---
@@ -51,13 +49,11 @@ class AppTypography {
   static final TextStyle link = _base.copyWith(
     fontSize: 14,
     fontWeight: FontWeight.w500, // Medium
-    color: AppColors.textHint,
   );
 
   // --- Captions & Overlines ---
   static final TextStyle caption = _base.copyWith(
     fontSize: 12,
     fontWeight: FontWeight.w400, // Regular
-    color: AppColors.textHint,
   );
 }

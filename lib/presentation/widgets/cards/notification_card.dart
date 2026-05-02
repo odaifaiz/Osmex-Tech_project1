@@ -23,38 +23,37 @@ class NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return InkWell(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(AppDimensions.paddingCard),
         decoration: BoxDecoration(
           color: isRead
-              ? AppColors.backgroundCard.withOpacity(0.5)
-              : AppColors.backgroundCard,
-          border: const Border(bottom: BorderSide(color: AppColors.divider, width: 0.5)),
+              ? colors.card.withOpacity(0.5)
+              : colors.card,
+          border: Border(bottom: BorderSide(color: colors.divider, width: 0.5)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Icon ---
             CircleAvatar(
-              backgroundColor: AppColors.primary.withOpacity(0.1),
-              child: const Icon(Icons.notifications, color: AppColors.primary),
+              backgroundColor: colors.primary.withOpacity(0.1),
+              child: Icon(Icons.notifications, color: colors.primary),
             ),
             const SizedBox(width: AppDimensions.spacingM),
-            // --- Content ---
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: AppTypography.body1.copyWith(fontWeight: FontWeight.w600),
+                    style: AppTypography.body1.copyWith(fontWeight: FontWeight.w600, color: colors.textPrimary),
                   ),
                   const SizedBox(height: AppDimensions.spacingXXS),
                   Text(
                     body,
-                    style: AppTypography.body2,
+                    style: AppTypography.body2.copyWith(color: colors.textSecondary),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -62,16 +61,15 @@ class NotificationCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppDimensions.spacingS),
-            // --- Time & Read Status ---
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(timeAgo, style: AppTypography.caption),
+                Text(timeAgo, style: AppTypography.caption.copyWith(color: colors.textHint)),
                 if (!isRead) ...[
                   const SizedBox(height: AppDimensions.spacingXS),
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 5,
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: colors.primary,
                   ),
                 ]
               ],

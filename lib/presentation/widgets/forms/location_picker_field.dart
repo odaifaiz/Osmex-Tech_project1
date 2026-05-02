@@ -27,21 +27,13 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
   String _city = '';
   String _fullAddress = '';
 
-  /// ✅ فتح إعدادات الموقع في الهاتف
-  // Future<void> _openLocationSettings() async {
-  //   await Geolocator.openLocationSettings();
-  // }
-
-  /// ✅ طلب صلاحية الموقع
   Future<bool> _checkAndRequestPermission() async {
     LocationPermission permission = await Geolocator.checkPermission();
 
-    // الحالة 1: لم يُطلب الإذن بعد
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
 
       if (permission == LocationPermission.denied) {
-        // رفض مؤقت - نعرض رسالة
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -54,12 +46,9 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
       }
     }
 
-    // الحالة 2: تم الرفض نهائياً
     if (permission == LocationPermission.deniedForever) {
-      // نفتح إعدادات الهاتف مباشرة
       final opened = await Geolocator.openAppSettings();
       if (opened) {
-        // انتظر قليلاً ثم حاول مرة أخرى
         Future.delayed(const Duration(milliseconds: 500), () {
           _getCurrentLocation();
         });
@@ -67,7 +56,6 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
       return false;
     }
 
-    // الحالة 3: تم منح الإذن
     if (permission == LocationPermission.whileInUse ||
         permission == LocationPermission.always) {
       return true;
@@ -76,18 +64,15 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
     return false;
   }
 
-  /// زر GPS: جلب الموقع الحالي بدقة عالية
   Future<void> _getCurrentLocation() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // التحقق من أن خدمات الموقع مفعلة
       final isLocationServiceEnabled =
           await Geolocator.isLocationServiceEnabled();
       if (!isLocationServiceEnabled) {
-        // إذا كان GPS مغلقاً، نفتح إعدادات الموقع
         setState(() => _isLoading = false);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -107,7 +92,6 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
         return;
       }
 
-      // جلب الموقع بدقة عالية
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
@@ -129,7 +113,6 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      print('❌ خطأ في جلب الموقع: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('خطأ في جلب الموقع: $e')),
@@ -138,9 +121,8 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
     }
   }
 
-  /// ✅ زر الخريطة: فتح شاشة لاختيار موقع يدوي
   Future<void> _openManualMapPicker() async {
-    final result = await Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ManualLocationPicker(
@@ -149,7 +131,6 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
             _longitude = lng;
             _fullAddress = address;
 
-            // تحويل الإحداثيات إلى تفاصيل عنوان
             await _getAddressFromLatLng(lat, lng);
 
             if (widget.onLocationSelected != null) {
@@ -165,7 +146,6 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
     );
   }
 
-  /// ✅ تحويل الإحداثيات إلى عنوان نصي (Reverse Geocoding)
   Future<void> _getAddressFromLatLng(double lat, double lng) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
@@ -192,75 +172,74 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
       }
     } catch (e) {
       _fullAddress = 'خطأ في تحويل الموقع';
-      debugPrint('Reverse geocoding error: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
       decoration: BoxDecoration(
-        color: AppColors.backgroundInput,
+        color: colors.input,
         borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-        border: Border.all(color: AppColors.borderDefault),
+        border: Border.all(color: colors.border),
       ),
       child: _isLoading
-          ? const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
+          ? Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircularProgressIndicator(color: AppColors.primary),
-                    SizedBox(height: 12),
+                    CircularProgressIndicator(color: colors.primary),
+                    const SizedBox(height: 12),
                     Text(
                       'جاري جلب موقعك...',
-                      style: TextStyle(
-                          color: AppColors.textSecondary, fontSize: 12),
+                      style: TextStyle(color: colors.textSecondary, fontSize: 12),
                     ),
                   ],
                 ),
               ),
             )
           : _hasLocation
-              ? _buildLocationCard()
-              : _buildLocationSelector(),
+              ? _buildLocationCard(colors)
+              : _buildLocationSelector(colors),
     );
   }
 
-  /// ✅ قبل التحديد: زرين منفصلين (GPS تلقائي + خريطة يدوي)
-  Widget _buildLocationSelector() {
+  Widget _buildLocationSelector(AppColors colors) {
     return Padding(
       padding: const EdgeInsets.all(AppDimensions.spacingM),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'الموقع',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            style: TextStyle(color: colors.textSecondary, fontSize: 12),
           ),
           const SizedBox(height: AppDimensions.spacingM),
           Row(
             children: [
-              // زر GPS (تحديد تلقائي)
               Expanded(
                 child: _buildActionButton(
                   icon: Icons.my_location,
                   label: 'تحديد تلقائي',
-                  color: AppColors.primary,
+                  color: colors.primary,
                   onTap: _getCurrentLocation,
+                  colors: colors,
                 ),
               ),
               const SizedBox(width: AppDimensions.spacingM),
-              // زر الخريطة (يدوي)
               Expanded(
                 child: _buildActionButton(
                   icon: Icons.map_outlined,
                   label: 'اختيار من الخريطة',
-                  color: AppColors.primary,
+                  color: colors.primary,
                   onTap: _openManualMapPicker,
+                  colors: colors,
                 ),
               ),
             ],
@@ -270,12 +249,12 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
     );
   }
 
-  /// ✅ زر الإجراء المخصص
   Widget _buildActionButton({
     required IconData icon,
     required String label,
     required Color color,
     required VoidCallback onTap,
+    required AppColors colors,
   }) {
     return InkWell(
       onTap: onTap,
@@ -303,41 +282,38 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
     );
   }
 
-  /// ✅ بعد التحديد: بطاقة معلومات موسعة (مشتركة لكلا الزرين)
-  Widget _buildLocationCard() {
+  Widget _buildLocationCard(AppColors colors) {
     return Padding(
       padding: const EdgeInsets.all(AppDimensions.spacingM),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // رأس البطاقة
           Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: colors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppDimensions.radiusM),
                 ),
-                child: const Icon(Icons.location_on,
-                    color: AppColors.primary, size: 20),
+                child: Icon(Icons.location_on, color: colors.primary, size: 20),
               ),
               const SizedBox(width: AppDimensions.spacingM),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'الموقع المحدد',
                       style: TextStyle(
-                          color: AppColors.primary,
+                          color: colors.primary,
                           fontWeight: FontWeight.bold,
                           fontSize: 12),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       _fullAddress,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: colors.textPrimary, fontSize: 13),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -348,53 +324,52 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
           ),
           const SizedBox(height: AppDimensions.spacingM),
 
-          // تفاصيل العنوان
           Container(
             padding: const EdgeInsets.all(AppDimensions.spacingM),
             decoration: BoxDecoration(
-              color: AppColors.backgroundDark,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(AppDimensions.radiusM),
+              border: Border.all(color: colors.border.withOpacity(0.5)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildDetailRow(Icons.streetview, 'الشارع',
-                    _street.isEmpty ? 'غير محدد' : _street),
+                    _street.isEmpty ? 'غير محدد' : _street, colors),
                 const SizedBox(height: 8),
                 _buildDetailRow(Icons.location_city, 'الحي',
-                    _neighborhood.isEmpty ? 'غير محدد' : _neighborhood),
+                    _neighborhood.isEmpty ? 'غير محدد' : _neighborhood, colors),
                 const SizedBox(height: 8),
                 _buildDetailRow(Icons.location_on, 'المدينة',
-                    _city.isEmpty ? 'غير محدد' : _city),
+                    _city.isEmpty ? 'غير محدد' : _city, colors),
                 const SizedBox(height: 8),
                 _buildDetailRow(Icons.map, 'الإحداثيات',
-                    '${_latitude?.toStringAsFixed(6) ?? '0'}, ${_longitude?.toStringAsFixed(6) ?? '0'}'),
+                    '${_latitude?.toStringAsFixed(6) ?? '0'}, ${_longitude?.toStringAsFixed(6) ?? '0'}', colors),
               ],
             ),
           ),
 
           const SizedBox(height: AppDimensions.spacingM),
 
-          // أزرار التحديث والتغيير (أسفل البطاقة)
           Row(
             children: [
-              // زر GPS (تحديث الموقع الحالي)
               Expanded(
                 child: _buildSmallButton(
                   icon: Icons.my_location,
                   label: 'تحديث',
-                  color: AppColors.primary,
+                  color: colors.primary,
                   onTap: _getCurrentLocation,
+                  colors: colors,
                 ),
               ),
               const SizedBox(width: AppDimensions.spacingM),
-              // زر الخريطة (تغيير الموقع يدوياً)
               Expanded(
                 child: _buildSmallButton(
                   icon: Icons.edit_location_alt_outlined,
                   label: 'تغيير',
-                  color: AppColors.primary,
+                  color: colors.primary,
                   onTap: _openManualMapPicker,
+                  colors: colors,
                 ),
               ),
             ],
@@ -404,12 +379,12 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
     );
   }
 
-  /// ✅ زر صغير للاستخدام داخل البطاقة
   Widget _buildSmallButton({
     required IconData icon,
     required String label,
     required Color color,
     required VoidCallback onTap,
+    required AppColors colors,
   }) {
     return InkWell(
       onTap: onTap,
@@ -437,25 +412,23 @@ class _LocationPickerFieldState extends State<LocationPickerField> {
     );
   }
 
-  /// ✅ صف تفاصيل العنوان
-  Widget _buildDetailRow(IconData icon, String label, String value) {
+  Widget _buildDetailRow(IconData icon, String label, String value, AppColors colors) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: AppColors.iconDefault),
+        Icon(icon, size: 14, color: colors.textHint),
         const SizedBox(width: 8),
         SizedBox(
           width: 55,
           child: Text(
             label,
-            style:
-                const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+            style: TextStyle(color: colors.textSecondary, fontSize: 11),
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
+            style: TextStyle(color: colors.textPrimary, fontSize: 12),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),

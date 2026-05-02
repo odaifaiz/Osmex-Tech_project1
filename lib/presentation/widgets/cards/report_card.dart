@@ -6,6 +6,7 @@ import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/widgets/common/app_status_pill.dart';
 import 'package:city_fix_app/presentation/widgets/common/app_image_widget.dart';
+import 'package:city_fix_app/core/utils/extensions.dart';
 
 class ReportCard extends StatelessWidget {
   final String title;
@@ -35,7 +36,7 @@ class ReportCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppColors.backgroundCard,
+            color: context.colorScheme.surface,
             borderRadius: BorderRadius.circular(AppDimensions.radiusL),
           ),
           child: Row(

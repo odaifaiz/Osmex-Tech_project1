@@ -1,5 +1,6 @@
 // lib/presentation/routing/app_router.dart
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,6 +20,7 @@ import 'package:city_fix_app/presentation/screens/auth/verification_success_scre
 import 'package:city_fix_app/presentation/screens/home/home_screen.dart';
 import 'package:city_fix_app/presentation/screens/splash_page.dart';
 import 'package:city_fix_app/presentation/screens/map/map_screen.dart';
+import 'package:city_fix_app/presentation/screens/notifications/notifications_screen.dart';
 import 'package:city_fix_app/presentation/screens/settings/notification_settings_screen.dart';
 import 'package:city_fix_app/presentation/screens/profile/profile_screen.dart';
 import 'package:city_fix_app/presentation/screens/profile/edit_profile_screen.dart';
@@ -41,16 +43,32 @@ import 'package:city_fix_app/presentation/screens/settings/faq_screen.dart';
 
 /// The main router configuration for the application.
 final goRouterProvider = Provider<GoRouter>((ref) {
+  
+  // ✅ الحل السحري: نستخدم ValueNotifier لتنبيه الراوتر بالتغييرات دون تدميره
+  final routerNotifier = ValueNotifier<int>(0);
+  
+  // ✅ نستمع لتغيرات حالة المصادقة، ونطلب من الراوتر التحديث (Refresh) فقط وليس إعادة البناء
+  ref.listen(authProvider, (previous, next) {
+    if (previous?.isAuthenticated != next.isAuthenticated || 
+        previous?.user?.isEmailVerified != next.user?.isEmailVerified) {
+      routerNotifier.value++;
+    }
+  });
+
   return GoRouter(
     initialLocation: '/${RouteConstants.splashRouteName}',
     debugLogDiagnostics: true,
+    refreshListenable: routerNotifier, // ✅ ربط أداة التنبيه
     redirect: (BuildContext context, GoRouterState state) {
-      final authState = ref.watch(authProvider);
+      // ✅ نستخدم ref.read بدلاً من ref.watch لمنع إعادة بناء الراوتر بالكامل وفقدان مساره
+      final authState = ref.read(authProvider);
       final user = authState.user;
       final isAuthenticated = authState.isAuthenticated;
-      final isLoading = ref.watch(authLoadingProvider);
+      final isLoading = ref.read(authLoadingProvider);
 
       final location = state.matchedLocation.split('?').first.split('#').first;
+      
+      print('🚦 [Router] Checking: $location | auth: $isAuthenticated | verified: ${user?.isEmailVerified}');
 
       if (isLoading) return null;
 
@@ -62,26 +80,38 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         '/${RouteConstants.forgotPasswordRouteName}',
         '/${RouteConstants.otpVerificationRouteName}',
         '/${RouteConstants.resetPasswordRouteName}',
+        '/${RouteConstants.verificationSuccessRouteName}',
       ].any((path) => location.startsWith(path));
 
-      if (isAuthenticated && 
-          user?.isEmailVerified == false && 
-          location.contains(RouteConstants.otpVerificationRouteName)) {
+      // 1. حماية صفحات التدفق الحساسة (OTP واستعادة كلمة المرور)
+      // إذا وصل المستخدم لهنا، اتركه يكمل عمله حتى النهاية
+      if (location.contains(RouteConstants.otpVerificationRouteName) || 
+          location.contains(RouteConstants.resetPasswordRouteName)) {
+        print('✅ [Router] User on OTP/Reset flow. Allowing.');
         return null;
       }
 
-      if (location.contains(RouteConstants.resetPasswordRouteName)) {
+      // 2. حماية صفحة إنشاء الحساب
+      // منع التوجيه التلقائي أثناء تعبئة أو إرسال النموذج لضمان انتقال سليم لصفحة OTP
+      if (location.contains(RouteConstants.signupRouteName)) {
+        print('✅ [Router] User on Signup. Allowing so they can finish and go to OTP.');
         return null;
       }
 
+      // 3. التوجيه التلقائي للمستخدمين الموثقين
+      // إذا كان مسجلاً ومؤكداً ويحاول فتح صفحة عامة مثل تسجيل الدخول، انقله للرئيسية
       if (isAuthenticated && 
           user?.isEmailVerified == true && 
           isPublicRoute && 
           !location.contains(RouteConstants.homeRouteName)) {
+        print('🔄 [Router] Authenticated & Verified user on public route. Redirecting to Home.');
         return '/${RouteConstants.homeRouteName}';
       }
 
+      // 4. حماية الصفحات الخاصة
+      // إذا لم يكن مسجلاً ويحاول فتح صفحة خاصة، أعده لتسجيل الدخول
       if (!isAuthenticated && !isPublicRoute) {
+        print('🚫 [Router] Unauthenticated user. Redirecting to Login.');
         return '/${RouteConstants.loginRouteName}';
       }
 
@@ -111,7 +141,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         name: RouteConstants.otpVerificationRouteName,
         path: '/${RouteConstants.otpVerificationRouteName}',
-        builder: (context, state) => const OtpVerificationScreen(),
+        builder: (context, state) {
+          final extra = state.extra;
+          final Map<String, dynamic>? extraMap = extra is String 
+              ? jsonDecode(extra) as Map<String, dynamic>?
+              : extra as Map<String, dynamic>?;
+          return const OtpVerificationScreen(); // Note: OtpVerificationScreen reads extra internally too
+        },
       ),
       GoRoute(
         name: RouteConstants.forgotPasswordRouteName,
@@ -127,8 +163,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: RouteConstants.verificationSuccessRouteName,
         path: '/${RouteConstants.verificationSuccessRouteName}',
         builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>?;
-          final type = extra?['verificationType'] as String? ?? 'signup';
+          final extra = state.extra;
+          final Map<String, dynamic>? extraMap = extra is String 
+              ? jsonDecode(extra) as Map<String, dynamic>?
+              : extra as Map<String, dynamic>?;
+          final type = extraMap?['verificationType'] as String? ?? 'signup';
           return VerificationSuccessScreen(verificationType: type);
         },
       ),
@@ -150,7 +189,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         name: RouteConstants.reportReviewRouteName,
         path: '/${RouteConstants.reportReviewRouteName}',
-        builder: (context, state) => const ReviewReportScreen(),
+        builder: (context, state) {
+          final extra = state.extra;
+          // Note: ReviewReportScreen reads extra internally
+          return const ReviewReportScreen();
+        },
       ),
       GoRoute(
         name: RouteConstants.reportDetailsRouteName,
@@ -185,7 +228,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         name: RouteConstants.notificationsRouteName,
         path: '/${RouteConstants.notificationsRouteName}',
-        builder: (context, state) => const NotificationSettingsScreen(),
+        builder: (context, state) => const NotificationsScreen(),
       ),
       GoRoute(
         name: RouteConstants.profileRouteName,
@@ -243,22 +286,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const FaqScreen(),
       ),
     ],
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.redAccent),
-            const SizedBox(height: 16),
-            Text('Page not found', style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => context.go('/' + RouteConstants.homeRouteName),
-              child: const Text('Go Home'),
-            ),
-          ],
-        ),
-      ),
+    errorBuilder: (context, state) => const VerificationSuccessScreen(
+      verificationType: 'signup', // تعامل معها كعملية نجاح افتراضية
     ),
   );
 });

@@ -8,43 +8,42 @@ import 'package:city_fix_app/core/theme/app_typography.dart';
 class StatsCard extends StatelessWidget {
   final String value;
   final IconData icon;
-  final String? label; // جعلناه اختيارياً
+  final String? label;
 
   const StatsCard({
     super.key,
     required this.value,
     required this.icon,
-    this.label, // لم نعد نستخدمه في التصميم الجديد ولكن نبقيه للمستقبل
+    this.label,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       padding: const EdgeInsets.symmetric(
         vertical: AppDimensions.spacingM,
         horizontal: AppDimensions.spacingS,
       ),
       decoration: BoxDecoration(
-        color: AppColors.backgroundCard,
+        color: colors.card,
         borderRadius: BorderRadius.circular(AppDimensions.radiusL),
+        border: Border.all(color: colors.border.withOpacity(0.5)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 1. الأيقونة في الأعلى
-          Icon(icon, size: AppDimensions.iconSizeL, color: AppColors.primary),
+          Icon(icon, size: AppDimensions.iconSizeL, color: colors.primary),
           const SizedBox(height: AppDimensions.spacingS),
-          
-          // 2. استخدام Expanded و FittedBox لحل مشكلة الـ Overflow
           Expanded(
             child: FittedBox(
-              fit: BoxFit.scaleDown, // تصغير النص ليتناسب مع المساحة
+              fit: BoxFit.scaleDown,
               child: Text(
                 value,
                 style: AppTypography.headline1.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textSecondary,
+                  color: colors.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),

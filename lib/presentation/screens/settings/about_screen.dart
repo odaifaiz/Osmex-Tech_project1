@@ -6,6 +6,7 @@ import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/core/constants/asset_constants.dart';
+import 'package:city_fix_app/core/utils/extensions.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -13,7 +14,7 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: context.colorScheme.background,
       appBar: AppBar(
         title: Text(
           'حول التطبيق',
@@ -23,7 +24,7 @@ class AboutScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, color: context.colorScheme.onSurface),
           onPressed: () => context.pop(),
         ),
       ),
@@ -36,9 +37,9 @@ class AboutScreen extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppColors.backgroundCard,
+                color: context.colorScheme.surface,
                 borderRadius: BorderRadius.circular(AppDimensions.radiusXL),
-                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                border: Border.all(color: context.appColors.primary.withOpacity(0.3)),
               ),
               child: Image.asset(
                 AssetConstants.logo,
@@ -53,7 +54,7 @@ class AboutScreen extends StatelessWidget {
               'CityFix',
               style: AppTypography.headline1.copyWith(
                 fontSize: 28,
-                color: AppColors.primary,
+                color: context.appColors.primary,
               ),
             ),
             const SizedBox(height: AppDimensions.spacingS),
@@ -61,7 +62,7 @@ class AboutScreen extends StatelessWidget {
             // الشعار النصي
             Text(
               ' لمدينة اجمل.. ',
-              style: AppTypography.body2.copyWith(color: AppColors.textSecondary),
+              style: AppTypography.body2.copyWith(color: context.colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: AppDimensions.spacingXXL),
 
@@ -69,24 +70,28 @@ class AboutScreen extends StatelessWidget {
             _buildInfoRow(
               label: 'اسم التطبيق',
               value: 'CityFix - لمدينة اجملً',
+              context: context,
             ),
-            const Divider(color: AppColors.borderDefault, height: 32),
+            Divider(color: context.appColors.borderDefault, height: 32),
 
             _buildInfoRow(
               label: 'رقم النسخة',
               value: '1.0.0',
+              context: context,
             ),
-            const Divider(color: AppColors.borderDefault, height: 32),
+            Divider(color: context.appColors.borderDefault, height: 32),
 
             _buildInfoRow(
               label: 'المطور',
               value: 'OSMEX TECH ',
+              context: context,
             ),
-            const Divider(color: AppColors.borderDefault, height: 32),
+            Divider(color: context.appColors.borderDefault, height: 32),
 
             _buildInfoRow(
               label: 'تاريخ الإصدار',
               value: '2026',
+              context: context,
             ),
             const SizedBox(height: AppDimensions.spacingXXL),
 
@@ -94,6 +99,7 @@ class AboutScreen extends StatelessWidget {
             _buildActionButton(
               title: 'التراخيص',
               icon: Icons.description_outlined,
+              context: context,
               onTap: () {
                 _showLicensesDialog(context);
               },
@@ -103,6 +109,7 @@ class AboutScreen extends StatelessWidget {
             _buildActionButton(
               title: 'تقييم التطبيق',
               icon: Icons.star_outline,
+              context: context,
               onTap: () {
                 // TODO: Open app store
               },
@@ -112,6 +119,7 @@ class AboutScreen extends StatelessWidget {
             _buildActionButton(
               title: 'مشاركة التطبيق',
               icon: Icons.share_outlined,
+              context: context,
               onTap: () {
                 // TODO: Share app
               },
@@ -121,7 +129,7 @@ class AboutScreen extends StatelessWidget {
             // حقوق النشر
             Text(
               '© 2026 CityFix. جميع الحقوق محفوظة',
-              style: AppTypography.caption.copyWith(color: AppColors.textHint),
+              style: AppTypography.caption.copyWith(color: context.appColors.textHint),
             ),
             const SizedBox(height: AppDimensions.spacingL),
           ],
@@ -133,6 +141,7 @@ class AboutScreen extends StatelessWidget {
   Widget _buildInfoRow({
     required String label,
     required String value,
+    required BuildContext context,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,14 +150,14 @@ class AboutScreen extends StatelessWidget {
           width: 100,
           child: Text(
             label,
-            style: AppTypography.body2.copyWith(color: AppColors.textSecondary),
+            style: AppTypography.body2.copyWith(color: context.colorScheme.onSurfaceVariant),
           ),
         ),
         const SizedBox(width: AppDimensions.spacingM),
         Expanded(
           child: Text(
             value,
-            style: AppTypography.body1.copyWith(color: AppColors.textPrimary),
+            style: AppTypography.body1.copyWith(color: context.colorScheme.onSurface),
           ),
         ),
       ],
@@ -159,6 +168,7 @@ class AboutScreen extends StatelessWidget {
     required String title,
     required IconData icon,
     required VoidCallback onTap,
+    required BuildContext context,
   }) {
     return InkWell(
       onTap: onTap,
@@ -166,13 +176,13 @@ class AboutScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppDimensions.spacingM),
         decoration: BoxDecoration(
-          color: AppColors.backgroundCard,
+          color: context.colorScheme.surface,
           borderRadius: BorderRadius.circular(AppDimensions.radiusL),
-          border: Border.all(color: AppColors.borderDefault),
+          border: Border.all(color: context.colorScheme.outline),
         ),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.primary, size: 24),
+            Icon(icon, color: context.appColors.primary, size: 24),
             const SizedBox(width: AppDimensions.spacingM),
             Expanded(
               child: Text(
@@ -180,7 +190,7 @@ class AboutScreen extends StatelessWidget {
                 style: AppTypography.body1.copyWith(fontWeight: FontWeight.w500),
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.iconDefault),
+            Icon(Icons.arrow_forward_ios, size: 16, color: context.colorScheme.onSurfaceVariant),
           ],
         ),
       ),
@@ -191,7 +201,7 @@ class AboutScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.backgroundCard,
+        backgroundColor: context.colorScheme.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusL),
         ),

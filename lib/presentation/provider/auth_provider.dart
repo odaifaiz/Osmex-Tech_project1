@@ -261,6 +261,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final user = await _authRepository.signInWithGoogle();
+      
+      // ✅ إذا كان الـ ID فارغاً، فهذا يعني أننا ننتظر رد المتصفح (OAuth)
+      if (user.id.isEmpty) {
+        print('⏳ [Google] Waiting for browser callback... keeping loading state');
+        // لا نغير الحالة ولا نرجع نجاح، لكي لا يتم الانتقال للشاشة الرئيسية
+        return false; 
+      }
+
       print('✅ [Google] Success: ${user.email}');
       await _authRepository.syncUserProfile(
         userId: user.id,

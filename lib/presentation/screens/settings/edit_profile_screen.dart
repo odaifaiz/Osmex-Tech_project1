@@ -1,4 +1,4 @@
-// lib/presentation/screens/settings/edit_profile_screen.dart (معدل)
+// lib/presentation/screens/settings/edit_profile_screen.dart
 
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -51,33 +51,30 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
   }
 
-  Future<void> _saveProfile() async {
+  Future<void> _saveProfile(AppColors colors) async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
-      // ✅ استخدام authProvider بدلاً من authServiceProvider
       final authNotifier = ref.read(authProvider.notifier);
 
-      // ✅ رفع الصورة أولاً إذا وُجدت
       String? avatarUrl;
       if (_selectedImage != null) {
         avatarUrl = await _uploadAvatar(_selectedImage!);
       }
 
-      // ✅ استدعاء updateProfile من AuthNotifier
       final success = await authNotifier.updateProfile(
         fullName: _nameController.text.trim(),
         phone: _phoneController.text.trim(),
-        avatarUrl: avatarUrl, // ✅ تمرير URL إذا رُفعت الصورة
+        avatarUrl: avatarUrl,
       );
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم تحديث الملف الشخصي بنجاح'),
-            backgroundColor: AppColors.statusSuccess,
+          SnackBar(
+            content: const Text('تم تحديث الملف الشخصي بنجاح'),
+            backgroundColor: colors.success,
           ),
         );
         context.pop();
@@ -86,7 +83,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(error ?? 'حدث خطأ'),
-            backgroundColor: AppColors.statusError,
+            backgroundColor: colors.error,
           ),
         );
       }
@@ -95,7 +92,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('خطأ: $e'),
-            backgroundColor: AppColors.statusError,
+            backgroundColor: colors.error,
           ),
         );
       }
@@ -104,27 +101,25 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
   }
 
-  // ✅ دالة مساعدة لرفع الصورة
   Future<String?> _uploadAvatar(File file) async {
-    // يمكنك استخدام Supabase Storage مباشرة هنا
-    // أو إضافة منطق الرفع في AuthRepository
-    return null; // TODO: implement upload
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final user = ref.watch(currentUserProvider);
     final isLoading = ref.watch(authLoadingProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        title: Text('تعديل الملف الشخصي', style: AppTypography.headline3.copyWith(fontSize: 18)),
+        title: Text('تعديل الملف الشخصي', style: AppTypography.headline3.copyWith(fontSize: 18, color: colors.textPrimary)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, color: colors.textPrimary),
           onPressed: () => context.pop(),
         ),
       ),
@@ -134,19 +129,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           key: _formKey,
           child: Column(
             children: [
-              // صورة المستخدم
               GestureDetector(
                 onTap: _pickImage,
                 child: Stack(
                   children: [
                     CircleAvatar(
                       radius: 60,
-                      backgroundColor: AppColors.backgroundInput,
+                      backgroundColor: colors.input,
                       backgroundImage: _selectedImage != null
                           ? FileImage(_selectedImage!)
                           : (user?.photoURL != null ? NetworkImage(user!.photoURL!) : null) as ImageProvider?,
                       child: _selectedImage == null && user?.photoURL == null
-                          ? const Icon(Icons.person, size: 60, color: AppColors.iconDefault)
+                          ? Icon(Icons.person, size: 60, color: colors.textSecondary)
                           : null,
                     ),
                     Positioned(
@@ -155,11 +149,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
+                          color: colors.primary,
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.backgroundDark, width: 2),
+                          border: Border.all(color: colors.background, width: 2),
                         ),
-                        child: const Icon(Icons.camera_alt, size: 20, color: Colors.black),
+                        child: const Icon(Icons.camera_alt, size: 20, color: Colors.white),
                       ),
                     ),
                   ],
@@ -186,7 +180,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
               AppButton(
                 text: isLoading || _isLoading ? 'جاري الحفظ...' : 'حفظ التغييرات',
-                onPressed: (isLoading || _isLoading) ? null : _saveProfile,
+                onPressed: (isLoading || _isLoading) ? null : () => _saveProfile(colors),
               ),
             ],
           ),

@@ -24,9 +24,9 @@ class AppToast {
   static Color _getBackgroundColor(ToastType type) {
     switch (type) {
       case ToastType.success:
-        return AppColors.statusSuccess;
+        return AppColors.light.success;
       case ToastType.error:
-        return AppColors.statusError;
+        return AppColors.light.error;
       case ToastType.info:
         return Colors.black.withOpacity(0.7);
     }

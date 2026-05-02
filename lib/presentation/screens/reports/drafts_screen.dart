@@ -1,3 +1,5 @@
+// lib/presentation/screens/reports/drafts_screen.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,7 +8,6 @@ import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/provider/report_provider.dart';
 
-// --- [1] مكون بطاقة المسودة المحدث (DraftCard) ---
 class DraftCard extends StatelessWidget {
   final String title;
   final String category;
@@ -29,25 +30,32 @@ class DraftCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       margin: const EdgeInsets.only(bottom: AppDimensions.spacingM),
       padding: const EdgeInsets.all(AppDimensions.spacingM),
       decoration: BoxDecoration(
-        color: AppColors.cardDark,
+        color: colors.card,
         borderRadius: BorderRadius.circular(AppDimensions.radiusXL),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: colors.border.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
           Row(
             children: [
-              // 1. الوقت (جهة اليسار)
               Text(
                 time,
-                style: AppTypography.caption.copyWith(color: AppColors.textSecondaryLight, fontSize: 10),
+                style: AppTypography.caption.copyWith(color: colors.textSecondary, fontSize: 10),
               ),
               const Spacer(),
-              // 2. النصوص (في المنتصف - محاذاة لليمين)
               Expanded(
                 flex: 4,
                 child: Column(
@@ -55,7 +63,7 @@ class DraftCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: AppTypography.headline3.copyWith(fontSize: 15),
+                      style: AppTypography.headline3.copyWith(fontSize: 15, color: colors.textPrimary),
                       textAlign: TextAlign.right,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -63,21 +71,20 @@ class DraftCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       category,
-                      style: AppTypography.caption.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11),
+                      style: AppTypography.caption.copyWith(color: colors.primary, fontWeight: FontWeight.bold, fontSize: 11),
                       textAlign: TextAlign.right,
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
-              // 3. الصورة الدائرية (جهة اليمين)
               Container(
                 width: 70,
                 height: 70,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.cardDark,
-                  border: Border.all(color: AppColors.borderLight, width: 1.5),
+                  color: colors.input,
+                  border: Border.all(color: colors.border.withOpacity(0.5), width: 1.5),
                   image: imageUrl != null && imageUrl!.startsWith('http')
                       ? DecorationImage(image: NetworkImage(imageUrl!), fit: BoxFit.cover)
                       : (imageUrl != null && imageUrl!.isNotEmpty)
@@ -85,39 +92,38 @@ class DraftCard extends StatelessWidget {
                           : null,
                 ),
                 child: (imageUrl == null || imageUrl!.isEmpty)
-                    ? const Icon(Icons.image_outlined, color: AppColors.primary, size: 24)
+                    ? Icon(Icons.image_outlined, color: colors.primary, size: 24)
                     : null,
               ),
             ],
           ),
           const SizedBox(height: 16),
-          // 4. أزرar التحكم (أرسل، تعديل، حذف)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // زر حذف (مع نص)
               _buildActionButton(
                 label: 'حذف',
                 icon: Icons.delete_outline,
                 onTap: onDelete,
-                color: AppColors.statusError,
+                color: colors.error,
                 isOutline: true,
+                colors: colors,
               ),
-              // زر تعديل
               _buildActionButton(
                 label: 'تعديل',
                 icon: Icons.edit_outlined,
                 onTap: onEdit,
-                color: AppColors.primary,
+                color: colors.primary,
                 isOutline: true,
+                colors: colors,
               ),
-              // زر أرسل
               _buildActionButton(
                 label: 'مزامنة',
                 icon: Icons.sync,
                 onTap: onSend,
-                color: AppColors.primary,
+                color: colors.primary,
                 isOutline: false,
+                colors: colors,
               ),
             ],
           ),
@@ -132,6 +138,7 @@ class DraftCard extends StatelessWidget {
     VoidCallback? onTap,
     required Color color,
     required bool isOutline,
+    required AppColors colors,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -167,22 +174,23 @@ class DraftCard extends StatelessWidget {
   }
 }
 
-// --- [2] شاشة المسودات (DraftsScreen) ---
 class DraftsScreen extends ConsumerWidget {
   const DraftsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.appColors;
     final pendingReportsAsync = ref.watch(pendingReportsProvider);
 
     return Scaffold(
-      appBar: _buildAppBar(context, ref),
+      backgroundColor: colors.background,
+      appBar: _buildAppBar(context, ref, colors),
       body: SafeArea(
         child: pendingReportsAsync.when(
           data: (reports) {
             if (reports.isEmpty) {
               return Center(
-                child: Text('لا توجد مسودات معلقة', style: AppTypography.body1),
+                child: Text('لا توجد مسودات معلقة', style: AppTypography.body1.copyWith(color: colors.textPrimary)),
               );
             }
             return Column(
@@ -193,7 +201,6 @@ class DraftsScreen extends ConsumerWidget {
                     itemCount: reports.length,
                     itemBuilder: (context, index) {
                       final report = reports[index];
-                      // Show the first local image, if any
                       final imagePath = (report.imageUrls != null && report.imageUrls!.isNotEmpty) 
                           ? report.imageUrls!.first 
                           : null;
@@ -204,7 +211,6 @@ class DraftsScreen extends ConsumerWidget {
                         time: 'طابور المزامنة',
                         imageUrl: imagePath,
                         onSend: () {
-                          // Trigger manual sync
                           ref.read(syncEngineRefProvider).syncAll();
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('جاري محاولة المزامنة...')),
@@ -219,26 +225,26 @@ class DraftsScreen extends ConsumerWidget {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(AppDimensions.spacingL),
-                  child: _buildSendAllButton(ref, context),
+                  child: _buildSendAllButton(ref, context, colors),
                 ),
               ],
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, st) => Center(child: Text('خطأ في جلب المسودات: $e')),
+          loading: () => Center(child: CircularProgressIndicator(color: colors.primary)),
+          error: (e, st) => Center(child: Text('خطأ في جلب المسودات: $e', style: TextStyle(color: colors.error))),
         ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, WidgetRef ref) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, WidgetRef ref, AppColors colors) {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: true,
       title: Text(
         'المسودات (بدون إنترنت)',
-        style: AppTypography.headline3.copyWith(fontSize: 18),
+        style: AppTypography.headline3.copyWith(fontSize: 18, color: colors.textPrimary),
       ),
       leadingWidth: 90,
       leading: TextButton(
@@ -248,7 +254,7 @@ class DraftsScreen extends ConsumerWidget {
         child: Text(
           'مسح الكل',
           style: AppTypography.body2.copyWith(
-            color: AppColors.statusError,
+            color: colors.error,
             fontWeight: FontWeight.bold,
             fontSize: 12,
           ),
@@ -256,14 +262,14 @@ class DraftsScreen extends ConsumerWidget {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.arrow_forward_ios, size: 20),
+          icon: Icon(Icons.arrow_forward_ios, size: 20, color: colors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
       ],
     );
   }
 
-  Widget _buildSendAllButton(WidgetRef ref, BuildContext context) {
+  Widget _buildSendAllButton(WidgetRef ref, BuildContext context, AppColors colors) {
     return GestureDetector(
       onTap: () {
         ref.read(syncEngineRefProvider).syncAll();
@@ -275,11 +281,11 @@ class DraftsScreen extends ConsumerWidget {
         height: 54,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColors.primary,
+          color: colors.primary,
           borderRadius: BorderRadius.circular(27),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.3),
+              color: colors.primary.withOpacity(0.3),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),

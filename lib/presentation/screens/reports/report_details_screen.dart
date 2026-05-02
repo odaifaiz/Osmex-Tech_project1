@@ -5,6 +5,7 @@ import 'package:city_fix_app/presentation/provider/report_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:city_fix_app/core/utils/extensions.dart';
 import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
@@ -23,61 +24,62 @@ class ReportDetailsScreen extends ConsumerStatefulWidget {
 class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final reportId = GoRouterState.of(context).extra as String?;
     final l10n = AppLocalizations.of(context)!;
 
     if (reportId == null) {
-      return _buildErrorScreen(l10n.reportNotFound);
+      return _buildErrorScreen(l10n.reportNotFound, colors);
     }
 
     final reportAsync = ref.watch(reportDetailsProvider(reportId));
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
-      appBar: _buildAppBar(context, l10n),
+      backgroundColor: colors.background,
+      appBar: _buildAppBar(context, l10n, colors),
       body: reportAsync.when(
-        data: (report) => _buildContent(report, l10n),
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-        error: (error, __) => _buildErrorScreen(error.toString()),
+        data: (report) => _buildContent(report, l10n, colors),
+        loading: () => Center(child: CircularProgressIndicator(color: colors.primary)),
+        error: (error, __) => _buildErrorScreen(error.toString(), colors),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, AppLocalizations l10n) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, AppLocalizations l10n, AppColors colors) {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: true,
-      title: Text(l10n.reportDetails, style: AppTypography.headline3),
+      title: Text(l10n.reportDetails, style: AppTypography.headline3.copyWith(color: colors.textPrimary)),
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+        icon: Icon(Icons.arrow_back_ios_new, color: colors.textPrimary),
         onPressed: () => context.pop(),
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.share_outlined, color: Colors.white),
+          icon: Icon(Icons.share_outlined, color: colors.textPrimary),
           onPressed: () {},
         ),
       ],
     );
   }
 
-  Widget _buildErrorScreen(String message) {
+  Widget _buildErrorScreen(String message, AppColors colors) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: colors.background,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 60, color: AppColors.statusError),
+            Icon(Icons.error_outline, size: 60, color: colors.error),
             const SizedBox(height: 16),
-            Text(message, style: AppTypography.body1),
+            Text(message, style: AppTypography.body1.copyWith(color: colors.textPrimary)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => context.pop(),
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: Text(l10n.back, style: const TextStyle(color: Colors.black)),
+              style: ElevatedButton.styleFrom(backgroundColor: colors.primary),
+              child: Text(l10n.back, style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -85,21 +87,20 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
     );
   }
 
-  Widget _buildContent(Report report, AppLocalizations l10n) {
+  Widget _buildContent(Report report, AppLocalizations l10n, AppColors colors) {
     final statusText = _getStatusText(context, report.status);
-    final statusColor = _getStatusColor(report.status);
+    final statusColor = _getStatusColor(report.status, colors);
     final imageUrl = report.imageUrls?.isNotEmpty == true ? report.imageUrls!.first : '';
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // صورة البلاغ - Hybrid Support
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: AppImageWidget(
               imageUrl: imageUrl,
-              height: 200,
+              height: context.responsiveHeight(0.25),
               width: double.infinity,
               borderRadius: AppDimensions.radiusL,
               fit: BoxFit.cover,
@@ -111,35 +112,28 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // رقم البلاغ والحالة
-                _buildHeaderSection(report, statusText, statusColor, l10n),
+                _buildHeaderSection(report, statusText, statusColor, l10n, colors),
                 const SizedBox(height: 8),
 
-                // العنوان
                 Text(
                   report.title,
-                  style: AppTypography.headline1.copyWith(fontSize: 22),
+                  style: AppTypography.headline1.copyWith(fontSize: 22, color: colors.textPrimary),
                 ),
                 const SizedBox(height: 16),
 
-                // بطاقة الموقع (عرض على الخريطة)
-                _buildLocationCard(report, l10n),
+                _buildLocationCard(report, l10n, colors),
                 const SizedBox(height: 16),
 
-                // بطاقة وصف البلاغ
-                _buildDescriptionCard(report, l10n),
+                _buildDescriptionCard(report, l10n, colors),
                 const SizedBox(height: 24),
 
-                // قسم التقييم
-                _buildRatingCard(l10n),
+                _buildRatingCard(l10n, colors),
                 const SizedBox(height: 30),
 
-                // مراحل التنفيذ
-                _buildTimelineSection(report, l10n),
+                _buildTimelineSection(report, l10n, colors),
                 const SizedBox(height: 40),
 
-                // أزرار المشاركة ونسخ الرقم
-                _buildBottomActions(report, l10n),
+                _buildBottomActions(report, l10n, colors),
                 const SizedBox(height: 20),
               ],
             ),
@@ -149,13 +143,13 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
     );
   }
 
-  Widget _buildHeaderSection(Report report, String statusText, Color statusColor, AppLocalizations l10n) {
+  Widget _buildHeaderSection(Report report, String statusText, Color statusColor, AppLocalizations l10n, AppColors colors) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           'R-${report.id.substring(0, 8)}',
-          style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16),
+          style: TextStyle(color: colors.primary, fontWeight: FontWeight.bold, fontSize: 16),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -163,19 +157,19 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
             color: statusColor.withOpacity(0.15),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Text(statusText, style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w500)),
+          child: Text(statusText, style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold)),
         ),
       ],
     );
   }
 
-  Widget _buildLocationCard(Report report, AppLocalizations l10n) {
+  Widget _buildLocationCard(Report report, AppLocalizations l10n, AppColors colors) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.cardDark,
+        color: colors.card,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: colors.border.withOpacity(0.5)),
       ),
       child: Row(
         children: [
@@ -186,13 +180,13 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.location_on, color: AppColors.primary, size: 20),
+                    Icon(Icons.location_on, color: colors.primary, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         report.address.split('،').first,
-                        style: const TextStyle(
-                          color: Colors.white, 
+                        style: TextStyle(
+                          color: colors.textPrimary, 
                           fontWeight: FontWeight.bold, 
                           fontSize: 15
                         ),
@@ -205,7 +199,7 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
                 const SizedBox(height: 6),
                 Text(
                   report.address,
-                  style: const TextStyle(color: AppColors.textSecondaryLight, fontSize: 12),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 12),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -217,7 +211,7 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
             height: 40,
             width: 1,
             margin: const EdgeInsets.symmetric(horizontal: 12),
-            color: AppColors.borderLight,
+            color: colors.divider,
           ),
 
           Expanded(
@@ -230,15 +224,15 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: colors.primary.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.map_outlined, color: AppColors.primary, size: 20),
+                    child: Icon(Icons.map_outlined, color: colors.primary, size: 20),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     l10n.onMap,
-                    style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: colors.primary, fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -249,57 +243,57 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
     );
   }
 
-  Widget _buildDescriptionCard(Report report, AppLocalizations l10n) {
+  Widget _buildDescriptionCard(Report report, AppLocalizations l10n, AppColors colors) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.cardDark,
+        color: colors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: colors.border.withOpacity(0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.description_outlined, color: AppColors.primary, size: 18),
+              Icon(Icons.description_outlined, color: colors.primary, size: 18),
               const SizedBox(width: 6),
               Text(
                 l10n.reportDescription,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             report.description,
-            style: const TextStyle(color: AppColors.textSecondaryLight, fontSize: 13, height: 1.4),
+            style: TextStyle(color: colors.textSecondary, fontSize: 13, height: 1.4),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildRatingCard(AppLocalizations l10n) {
+  Widget _buildRatingCard(AppLocalizations l10n, AppColors colors) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.cardDark,
+        color: colors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+        border: Border.all(color: colors.primary.withOpacity(0.3)),
       ),
       child: Row(
         children: [
           Expanded(
             child: Row(
               children: [
-                 const Icon(Icons.star_outline, color: AppColors.primary, size: 22),
+                 Icon(Icons.star_outline, color: colors.primary, size: 22),
                  const SizedBox(width: 8),
                  Expanded(
                   child: Text(
                     l10n.ratingText,
-                    style: const TextStyle(
-                      color: Colors.white, 
+                    style: TextStyle(
+                      color: colors.textPrimary, 
                       fontWeight: FontWeight.w500, 
                       fontSize: 13
                     ),
@@ -317,8 +311,8 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.black,
+              backgroundColor: colors.primary,
+              foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -334,7 +328,7 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
     );
   }
 
-  Widget _buildTimelineSection(Report report, AppLocalizations l10n) {
+  Widget _buildTimelineSection(Report report, AppLocalizations l10n, AppColors colors) {
     final List<Map<String, dynamic>> steps = [
       {'title': l10n.timelineCreated, 'date': _formatDate(context, report.createdAt), 'completed': true},
       {'title': l10n.timelineReceived, 'date': report.updatedAt != null ? _formatDate(context, report.updatedAt!) : l10n.pendingWait, 'completed': report.status != 'pending'},
@@ -346,7 +340,7 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l10n.timeline, style: const TextStyle(color: AppColors.textSecondaryLight, fontSize: 14, fontWeight: FontWeight.bold)),
+        Text(l10n.timeline, style: TextStyle(color: colors.textPrimary, fontSize: 14, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         ...steps.asMap().entries.map((entry) {
           final index = entry.key;
@@ -357,6 +351,7 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
             date: step['date'],
             isCompleted: step['completed'],
             isLast: isLast,
+            colors: colors,
           );
         }),
       ],
@@ -367,6 +362,7 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
     required String title,
     required String date,
     required bool isCompleted,
+    required AppColors colors,
     bool isLast = false,
   }) {
     return Row(
@@ -378,13 +374,13 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: isCompleted ? AppColors.primary : AppColors.cardDark,
+                color: isCompleted ? colors.primary : colors.card,
                 shape: BoxShape.circle,
-                border: Border.all(color: isCompleted ? AppColors.primary : AppColors.borderLight, width: 1.5),
+                border: Border.all(color: isCompleted ? colors.primary : colors.border.withOpacity(0.5), width: 1.5),
               ),
-              child: Icon(isCompleted ? Icons.check : Icons.schedule, size: 12, color: isCompleted ? Colors.black : AppColors.textHint),
+              child: Icon(isCompleted ? Icons.check : Icons.schedule, size: 12, color: isCompleted ? Colors.white : colors.textSecondary),
             ),
-            if (!isLast) Container(width: 2, height: 45, color: isCompleted ? AppColors.primary : AppColors.borderLight),
+            if (!isLast) Container(width: 2, height: 45, color: isCompleted ? colors.primary : colors.divider),
           ],
         ),
         const SizedBox(width: 12),
@@ -392,9 +388,9 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(color: isCompleted ? Colors.white : AppColors.textHint, fontWeight: FontWeight.w600, fontSize: 13)),
+              Text(title, style: TextStyle(color: isCompleted ? colors.textPrimary : colors.textSecondary, fontWeight: FontWeight.bold, fontSize: 13)),
               const SizedBox(height: 4),
-              Text(date, style: const TextStyle(color: AppColors.textHint, fontSize: 10)),
+              Text(date, style: TextStyle(color: colors.textSecondary, fontSize: 10)),
               const SizedBox(height: 16),
             ],
           ),
@@ -403,7 +399,7 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
     );
   }
 
-  Widget _buildBottomActions(Report report, AppLocalizations l10n) {
+  Widget _buildBottomActions(Report report, AppLocalizations l10n, AppColors colors) {
     return Row(
       children: [
         Expanded(
@@ -412,8 +408,8 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
             icon: const Icon(Icons.share_outlined, size: 18),
             label: Text(l10n.share),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white,
-              side: const BorderSide(color: AppColors.borderLight),
+              foregroundColor: colors.textPrimary,
+              side: BorderSide(color: colors.border.withOpacity(0.5)),
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
@@ -423,13 +419,13 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.numberCopied)));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.numberCopied), backgroundColor: colors.info));
             },
             icon: const Icon(Icons.copy_outlined, size: 18),
             label: Text(l10n.copyNumber),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white,
-              side: const BorderSide(color: AppColors.borderLight),
+              foregroundColor: colors.textPrimary,
+              side: BorderSide(color: colors.border.withOpacity(0.5)),
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
@@ -442,6 +438,7 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
   String _getStatusText(BuildContext context, String status) {
     final l10n = AppLocalizations.of(context)!;
     switch (status) {
+      case 'new': return l10n.statusPending;
       case 'pending': return l10n.statusPending;
       case 'acknowledged': return l10n.statusInProgress;
       case 'in_progress': return l10n.statusInProgress;
@@ -452,15 +449,16 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
     }
   }
 
-  Color _getStatusColor(String status) {
+  Color _getStatusColor(String status, AppColors colors) {
     switch (status) {
-      case 'pending': return AppColors.statusError;
-      case 'acknowledged': return AppColors.statusWarning;
-      case 'in_progress': return AppColors.statusWarning;
-      case 'resolved': return AppColors.statusSuccess;
-      case 'rejected': return AppColors.statusError;
-      case 'closed': return AppColors.textSecondaryLight;
-      default: return AppColors.textSecondaryLight;
+      case 'new': return colors.error;
+      case 'pending': return colors.error;
+      case 'acknowledged': return colors.warning;
+      case 'in_progress': return colors.warning;
+      case 'resolved': return colors.success;
+      case 'rejected': return colors.error;
+      case 'closed': return colors.textSecondary;
+      default: return colors.textSecondary;
     }
   }
 

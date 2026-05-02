@@ -23,58 +23,54 @@ class MyReportsScreen extends ConsumerStatefulWidget {
 
 class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
   final int _currentTabIndex = 1;
-  String? _selectedFilter; // NULL means "ALL"
+  String? _selectedFilter;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final l10n = AppLocalizations.of(context)!;
     final reportsAsync = ref.watch(userReportsProvider(_selectedFilter));
     final statsAsync = ref.watch(userStatsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
-      appBar: _buildAppBar(l10n),
+      backgroundColor: colors.background,
+      appBar: _buildAppBar(l10n, colors),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.pushNamed(RouteConstants.createReportRouteName),
-        backgroundColor: AppColors.primary,
+        backgroundColor: colors.primary,
         shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: Colors.black, size: 32),
+        child: const Icon(Icons.add, color: Colors.white, size: 32),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       body: Column(
         children: [
-          // User Stats
           statsAsync.when(
-            data: (stats) => _buildStatsOverview(stats, l10n),
-            loading: () => _buildStatsLoading(l10n),
-            error: (_, __) => _buildStatsOverview({'total': 0, 'resolved': 0, 'inProgress': 0}, l10n),
+            data: (stats) => _buildStatsOverview(stats, l10n, colors),
+            loading: () => _buildStatsLoading(l10n, colors),
+            error: (_, __) => _buildStatsOverview({'total': 0, 'resolved': 0, 'inProgress': 0}, l10n, colors),
           ),
-          
-          // Filter Tabs
-          _buildFilterTabs(l10n),
-          
-          // Reports List
+          _buildFilterTabs(l10n, colors),
           Expanded(
             child: reportsAsync.when(
-              data: (reports) => _buildReportsList(reports, l10n),
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              data: (reports) => _buildReportsList(reports, l10n, colors),
+              loading: () => Center(child: CircularProgressIndicator(color: colors.primary)),
               error: (error, __) => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, size: 60, color: AppColors.statusError),
+                    Icon(Icons.error_outline, size: 60, color: colors.error),
                     const SizedBox(height: 16),
-                    Text(l10n.errorLoadingReports, style: AppTypography.body1),
+                    Text(l10n.errorLoadingReports, style: AppTypography.body1.copyWith(color: colors.textPrimary)),
                     const SizedBox(height: 8),
-                    Text(error.toString(), style: AppTypography.caption.copyWith(color: AppColors.textHint)),
+                    Text(error.toString(), style: AppTypography.caption.copyWith(color: colors.textSecondary)),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
                         ref.invalidate(userReportsProvider(_selectedFilter));
                         ref.invalidate(userStatsProvider);
                       },
-                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                      child: Text(l10n.retry, style: const TextStyle(color: Colors.black)),
+                      style: ElevatedButton.styleFrom(backgroundColor: colors.primary),
+                      child: Text(l10n.retry, style: const TextStyle(color: Colors.white)),
                     ),
                   ],
                 ),
@@ -103,7 +99,7 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
     );
   }
 
-  Widget _buildStatsOverview(Map<String, int> stats, AppLocalizations l10n) {
+  Widget _buildStatsOverview(Map<String, int> stats, AppLocalizations l10n, AppColors colors) {
     return Padding(
       padding: const EdgeInsets.all(AppDimensions.spacingM),
       child: Row(
@@ -112,7 +108,7 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
             child: StatsSummaryCard(
               title: l10n.total,
               value: '${stats['total'] ?? 0}',
-              color: Colors.cyanAccent,
+              color: colors.info,
             ),
           ),
           const SizedBox(width: 10),
@@ -120,7 +116,7 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
             child: StatsSummaryCard(
               title: l10n.resolved,
               value: '${stats['resolved'] ?? 0}',
-              color: Colors.greenAccent,
+              color: colors.success,
             ),
           ),
           const SizedBox(width: 10),
@@ -128,7 +124,7 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
             child: StatsSummaryCard(
               title: l10n.statusInProgress,
               value: '${stats['inProgress'] ?? 0}',
-              color: Colors.orangeAccent,
+              color: colors.warning,
             ),
           ),
         ],
@@ -136,26 +132,25 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
     );
   }
 
-  Widget _buildStatsLoading(AppLocalizations l10n) {
+  Widget _buildStatsLoading(AppLocalizations l10n, AppColors colors) {
     return Padding(
       padding: const EdgeInsets.all(AppDimensions.spacingM),
       child: Row(
         children: [
-          Expanded(child: StatsSummaryCard(title: l10n.total, value: '...', color: Colors.cyanAccent)),
+          Expanded(child: StatsSummaryCard(title: l10n.total, value: '...', color: colors.info)),
           const SizedBox(width: 10),
-          Expanded(child: StatsSummaryCard(title: l10n.resolved, value: '...', color: Colors.greenAccent)),
+          Expanded(child: StatsSummaryCard(title: l10n.resolved, value: '...', color: colors.success)),
           const SizedBox(width: 10),
-          Expanded(child: StatsSummaryCard(title: l10n.statusInProgress, value: '...', color: Colors.orangeAccent)),
+          Expanded(child: StatsSummaryCard(title: l10n.statusInProgress, value: '...', color: colors.warning)),
         ],
       ),
     );
   }
 
-  Widget _buildFilterTabs(AppLocalizations l10n) {
-    // Map Localized Labels to Backend Status Keys
+  Widget _buildFilterTabs(AppLocalizations l10n, AppColors colors) {
     final List<Map<String, String?>> filters = [
       {'label': l10n.all, 'key': null},
-      {'label': l10n.statusPending, 'key': 'pending'},
+      {'label': l10n.statusPending, 'key': 'new'},
       {'label': l10n.statusInProgress, 'key': 'in_progress'},
       {'label': l10n.statusResolved, 'key': 'resolved'},
       {'label': l10n.statusClosed, 'key': 'closed'},
@@ -176,20 +171,20 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
               setState(() {
                 _selectedFilter = filter['key'];
               });
-              // Automatic refresh via riverpod watch
             },
             child: Container(
               margin: const EdgeInsetsDirectional.only(end: 8),
               padding: const EdgeInsets.symmetric(horizontal: 18),
               decoration: BoxDecoration(
-                color: isActive ? AppColors.primary : AppColors.cardDark,
+                color: isActive ? colors.primary : colors.card,
                 borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: isActive ? Colors.transparent : colors.border.withOpacity(0.5)),
               ),
               child: Center(
                 child: Text(
                   filter['label']!,
                   style: TextStyle(
-                    color: isActive ? Colors.black : Colors.white,
+                    color: isActive ? Colors.white : colors.textSecondary,
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                   ),
@@ -202,17 +197,17 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
     );
   }
 
-  Widget _buildReportsList(List<Report> reports, AppLocalizations l10n) {
+  Widget _buildReportsList(List<Report> reports, AppLocalizations l10n, AppColors colors) {
     if (reports.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.inbox_outlined, size: 80, color: AppColors.cardDark),
+            Icon(Icons.inbox_outlined, size: 80, color: colors.textSecondary.withOpacity(0.3)),
             const SizedBox(height: 16),
-            Text(l10n.noReports, style: AppTypography.body1.copyWith(color: AppColors.textSecondaryLight)),
+            Text(l10n.noReports, style: AppTypography.body1.copyWith(color: colors.textSecondary)),
             const SizedBox(height: 8),
-            Text(l10n.createFirstReport, style: AppTypography.caption.copyWith(color: AppColors.textHint)),
+            Text(l10n.createFirstReport, style: AppTypography.caption.copyWith(color: colors.textSecondary.withOpacity(0.5))),
           ],
         ),
       );
@@ -223,16 +218,16 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Text(l10n.latestReports, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+          child: Text(l10n.latestReports, style: AppTypography.headline3.copyWith(fontSize: 18, color: colors.textPrimary)),
         ),
-        ...reports.map((report) => _buildReportCard(report, l10n)),
+        ...reports.map((report) => _buildReportCard(report, l10n, colors)),
       ],
     );
   }
 
-  Widget _buildReportCard(Report report, AppLocalizations l10n) {
+  Widget _buildReportCard(Report report, AppLocalizations l10n, AppColors colors) {
     final statusText = _getStatusText(context, report.status);
-    final statusColor = _getStatusColor(report.status);
+    final statusColor = _getStatusColor(report.status, colors);
     final imageUrl = report.imageUrls?.isNotEmpty == true ? report.imageUrls!.first : '';
     final timeAgo = _formatDate(context, report.createdAt);
 
@@ -241,8 +236,16 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
-          color: AppColors.cardDark,
+          color: colors.card,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: colors.border.withOpacity(0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,7 +256,7 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
                   imageUrl: imageUrl,
                   height: 160,
                   width: double.infinity,
-                  borderRadius: 20, // Should use a custom clipper or borderRadius for top only if needed
+                  borderRadius: 20,
                   fit: BoxFit.cover,
                 ),
                 PositionedDirectional(
@@ -264,10 +267,16 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
                     decoration: BoxDecoration(
                       color: statusColor,
                       borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: statusColor.withOpacity(0.3),
+                          blurRadius: 8,
+                        ),
+                      ],
                     ),
                     child: Text(
                       statusText,
-                      style: const TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -284,20 +293,20 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
                       Expanded(
                         child: Text(
                           report.title,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: AppTypography.headline3.copyWith(fontSize: 16, color: colors.textPrimary),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Text(timeAgo, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                      Text(timeAgo, style: AppTypography.caption.copyWith(color: colors.textSecondary)),
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(report.address, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                  Text(report.address, style: AppTypography.caption.copyWith(color: colors.textSecondary, fontSize: 11)),
                   const SizedBox(height: 8),
                   Text(
                     report.description,
-                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                    style: AppTypography.body2.copyWith(color: colors.textSecondary, fontSize: 13),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -313,6 +322,7 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
   String _getStatusText(BuildContext context, String status) {
     final l10n = AppLocalizations.of(context)!;
     switch (status) {
+      case 'new': return l10n.statusPending;
       case 'pending': return l10n.statusPending;
       case 'acknowledged': return l10n.statusInProgress;
       case 'in_progress': return l10n.statusInProgress;
@@ -323,15 +333,16 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
     }
   }
 
-  Color _getStatusColor(String status) {
+  Color _getStatusColor(String status, AppColors colors) {
     switch (status) {
-      case 'pending': return AppColors.statusError;
-      case 'acknowledged': return AppColors.statusWarning;
-      case 'in_progress': return AppColors.statusWarning;
-      case 'resolved': return AppColors.statusSuccess;
-      case 'rejected': return AppColors.statusError;
-      case 'closed': return AppColors.textSecondaryLight;
-      default: return AppColors.textSecondaryLight;
+      case 'new': return colors.error;
+      case 'pending': return colors.error;
+      case 'acknowledged': return colors.warning;
+      case 'in_progress': return colors.warning;
+      case 'resolved': return colors.success;
+      case 'rejected': return colors.error;
+      case 'closed': return colors.textSecondary;
+      default: return colors.textSecondary;
     }
   }
 
@@ -349,7 +360,7 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
     }
   }
 
-  PreferredSizeWidget _buildAppBar(AppLocalizations l10n) {
+  PreferredSizeWidget _buildAppBar(AppLocalizations l10n, AppColors colors) {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -359,35 +370,27 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const SizedBox(width: AppDimensions.spacingM),
-          Image.asset(
-            'assets/images/logo.png',
-            height: 32,
-            errorBuilder: (_, __, ___) => const Icon(
-              Icons.location_city,
-              color: AppColors.primary,
-              size: 28,
-            ),
-          ),
+          Icon(Icons.location_city, color: colors.primary, size: 28),
           const SizedBox(width: AppDimensions.spacingS),
           Text(
             l10n.myReports,
             style: AppTypography.headline3.copyWith(
               fontSize: 18,
-              color: AppColors.primary,
+              color: colors.primary,
             ),
           ),
         ],
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.drafts_outlined, color: Colors.white),
+          icon: Icon(Icons.drafts_outlined, color: colors.textPrimary),
           onPressed: () => context.pushNamed(RouteConstants.draftsRouteName),
           tooltip: l10n.drafts,
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingS),
           child: IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
+            icon: Icon(Icons.search, color: colors.textPrimary),
             onPressed: () => context.pushNamed(RouteConstants.searchReportsRouteName),
           ),
         ),

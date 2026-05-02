@@ -1,4 +1,4 @@
-// lib/presentation/screens/auth/onboarding_screen.dart (COMPLETE AND CORRECTED)
+// lib/presentation/screens/auth/onboarding_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -11,7 +11,6 @@ import 'package:city_fix_app/presentation/widgets/common/page_indicator.dart';
 import 'package:city_fix_app/presentation/provider/onboarding_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// A model to hold the data for each onboarding page
 class OnboardingItem {
   final IconData icon;
   final String title;
@@ -28,7 +27,6 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
-  // 1. REVERSE the data list to work correctly with reverse: true
   final List<OnboardingItem> _onboardingData = [
     OnboardingItem(
       icon: Icons.camera_alt_rounded,
@@ -45,9 +43,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       title: 'تابع الحل',
       description: 'تابع حالة بلاغك لحظة بلحظة على الخريطة',
     ),
-  ].reversed.toList(); // <-- The .reversed.toList() is crucial
+  ].reversed.toList();
 
-  // 2. Initialize PageController to the LAST page (which is now the first visually)
   late final PageController _pageController;
   int _currentPage = 0;
 
@@ -65,8 +62,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _onNext() {
-    if (_currentPage > 0) { // Condition is now reversed
-      _pageController.previousPage( // We use previousPage now
+    if (_currentPage > 0) {
+      _pageController.previousPage(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
@@ -76,28 +73,28 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _navigateToHome() async {
-    // ✅ حفظ حالة "تمت المشاهدة" في التخزين المحلي
     await ref.read(onboardingProvider.notifier).markAsSeen();
     
     if (mounted) {
-      context.goNamed(RouteConstants.loginRouteName); // Go to login, not home, because unauthenticated
+      context.goNamed(RouteConstants.loginRouteName);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(
             vertical: AppDimensions.spacingL,
             horizontal: AppDimensions.spacingL,
           ),
-          // 3. Use MainAxisAlignment.spaceBetween for better vertical spacing
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // --- Top section with Page Indicator ---
               SizedBox(
                 height: 50,
                 child: Align(
@@ -109,12 +106,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
               ),
 
-              // --- PageView for the main content ---
-              // 4. Use a flexible container instead of Expanded to control height
               SizedBox(
-                height: MediaQuery.of(context).size.height * 0.5, // Takes 50% of screen height
+                height: MediaQuery.of(context).size.height * 0.5,
                 child: PageView.builder(
-                  // 5. Add reverse: true for RTL swiping
                   reverse: true,
                   controller: _pageController,
                   itemCount: _onboardingData.length,
@@ -124,23 +118,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     });
                   },
                   itemBuilder: (context, index) {
-                    return _buildOnboardingPage(_onboardingData[index]);
+                    return _buildOnboardingPage(_onboardingData[index], colors);
                   },
                 ),
               ),
 
-              // --- Bottom navigation buttons ---
-              // This group is now naturally pushed up by MainAxisAlignment.spaceBetween
               Column(
                 children: [
                   TextButton(
                     onPressed: _navigateToHome,
-                    child: Text('تخطي', style: AppTypography.body1.copyWith(color: AppColors.textSecondaryLight)),
+                    child: Text('تخطي', style: AppTypography.body1.copyWith(color: colors.textSecondary)),
                   ),
                   const SizedBox(height: AppDimensions.spacingS),
                   AppButton(
                     text: 'التالي',
-                    icon: const Icon(Icons.arrow_back_rounded),
+                    icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
                     onPressed: _onNext,
                   ),
                 ],
@@ -152,22 +144,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  // --- THIS IS THE MISSING METHOD ---
-  Widget _buildOnboardingPage(OnboardingItem item) {
+  Widget _buildOnboardingPage(OnboardingItem item, AppColors colors) {
     return SingleChildScrollView(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Icon with background and glow
           Container(
             width: 150,
             height: 150,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.primary.withOpacity(0.1),
+              color: colors.primary.withOpacity(0.1),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: colors.primary.withOpacity(0.1),
                   blurRadius: 40,
                   spreadRadius: 10,
                 )
@@ -177,24 +167,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: Container(
                 width: 120,
                 height: 120,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary,
+                  color: colors.primary,
                 ),
                 child: Icon(item.icon, color: Colors.white, size: 70),
               ),
             ),
           ),
-          const SizedBox(height: AppDimensions.spacingXXL * 2), // Extra large spacing
+          const SizedBox(height: AppDimensions.spacingXXL * 2),
       
-          // Texts
-          Text(item.title, style: AppTypography.headline1),
+          Text(item.title, style: AppTypography.headline1.copyWith(color: colors.textPrimary, fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: AppDimensions.spacingM),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingL),
             child: Text(
               item.description,
-              style: AppTypography.body1.copyWith(color: AppColors.textSecondaryLight),
+              style: AppTypography.body1.copyWith(color: colors.textSecondary),
               textAlign: TextAlign.center,
             ),
           ),

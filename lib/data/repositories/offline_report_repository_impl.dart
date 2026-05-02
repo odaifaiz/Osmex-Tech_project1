@@ -133,7 +133,7 @@ class OfflineReportRepositoryImpl implements ReportRepository {
       longitude: longitude,
       address: address,
       isUrgent: isUrgent,
-      imageUrls: imageUrls ?? [],
+      imageUrls: imageUrls ?? localImagePaths ?? [],
       categoryName: categoryName,
       categoryIcon: categoryIcon,
       userName: userName,
@@ -168,6 +168,11 @@ class OfflineReportRepositoryImpl implements ReportRepository {
           order: i,
         );
       }
+    }
+
+    // ── 4. Trigger Sync Process Immediately ───────────────────
+    if (_connectivity.isOnline) {
+      _syncEngine.syncAll(); // Fire-and-forget sync trigger
     }
 
     return localReport;
