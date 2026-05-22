@@ -210,14 +210,46 @@ class DraftsScreen extends ConsumerWidget {
                         category: report.categoryName ?? 'غير محدد',
                         time: 'طابور المزامنة',
                         imageUrl: imagePath,
-                        onSend: () {
-                          ref.read(syncEngineRefProvider).syncAll();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('جاري محاولة المزامنة...')),
+                        onSend: () async {
+                          final confirmed = _showConfirmDialog(
+                            context,
+                            title: 'تأكيد المزامنة',
+                            message: 'هل أنت متأكد من رغبتك في مزامنة هذا البلاغ الآن؟',
+                            confirmLabel: 'مزامنة',
+                            colors: colors,
                           );
+                          
+                          if (confirmed == true) {
+                            final success = await ref.read(syncEngineRefProvider).syncSingleReport(report.id);
+                            if (success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('تمت المزامنة بنجاح'), backgroundColor: Colors.green),
+                              );
+                              ref.invalidate(pendingReportsProvider);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('فشلت المزامنة. تأكد من اتصالك بالإنترنت'), backgroundColor: Colors.red),
+                              );
+                            }
+                          }
                         },
-                        onDelete: () {
-                          // Optionally delete the local draft via DB provider
+                        onDelete: () async {
+                          final confirmed = await _showConfirmDialog(
+                            context,
+                            title: 'حذف المسودة',
+                            message: 'هل أنت متأكد من رغبتك في حذف هذه المسودة؟ لا يمكن التراجع عن هذا الإجراء.',
+                            confirmLabel: 'حذف',
+                            isDestructive: true,
+                            colors: colors,
+                          );
+
+                          if (confirmed == true) {
+                            await ref.read(localReportDataSourceProvider).deleteReport(report.id);
+                            ref.invalidate(pendingReportsProvider);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('تم حذف المسودة بنجاح')),
+                            );
+                          }
                         },
                       );
                     },
@@ -248,8 +280,23 @@ class DraftsScreen extends ConsumerWidget {
       ),
       leadingWidth: 90,
       leading: TextButton(
-        onPressed: () {
-          // You could clear the sync queue here
+        onPressed: () async {
+          final confirmed = await _showConfirmDialog(
+            context,
+            title: 'مسح الكل',
+            message: 'هل أنت متأكد من رغبتك في مسح جميع المسودات المعلقة؟',
+            confirmLabel: 'مسح الكل',
+            isDestructive: true,
+            colors: colors,
+          );
+
+          if (confirmed == true) {
+            await ref.read(localReportDataSourceProvider).clearPendingReports();
+            ref.invalidate(pendingReportsProvider);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('تم مسح جميع المسودات')),
+            );
+          }
         },
         child: Text(
           'مسح الكل',
@@ -271,11 +318,22 @@ class DraftsScreen extends ConsumerWidget {
 
   Widget _buildSendAllButton(WidgetRef ref, BuildContext context, AppColors colors) {
     return GestureDetector(
-      onTap: () {
-        ref.read(syncEngineRefProvider).syncAll();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('جاري دفع جميع البلاغات المعلقة...')),
+      onTap: () async {
+        final confirmed = await _showConfirmDialog(
+          context,
+          title: 'مزامنة الكل',
+          message: 'هل أنت متأكد من رغبتك في مزامنة جميع المسودات المعلقة الآن؟',
+          confirmLabel: 'مزامنة الكل',
+          colors: colors,
         );
+
+        if (confirmed == true) {
+          await ref.read(syncEngineRefProvider).syncAll();
+          ref.invalidate(pendingReportsProvider);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('جاري دفع جميع البلاغات المعلقة...')),
+          );
+        }
       },
       child: Container(
         height: 54,
@@ -307,4 +365,38 @@ class DraftsScreen extends ConsumerWidget {
       ),
     );
   }
+
+  Future<bool?> _showConfirmDialog(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required String confirmLabel,
+    required AppColors colors,
+    bool isDestructive = false,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: colors.card,
+        title: Text(title, style: AppTypography.headline3.copyWith(color: colors.textPrimary)),
+        content: Text(message, style: AppTypography.body1.copyWith(color: colors.textSecondary)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('إلغاء', style: TextStyle(color: colors.textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isDestructive ? colors.error : colors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text(confirmLabel),
+          ),
+        ],
+      ),
+    );
+  }
 }
+

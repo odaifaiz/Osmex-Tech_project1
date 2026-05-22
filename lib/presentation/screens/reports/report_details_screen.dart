@@ -13,6 +13,9 @@ import 'package:city_fix_app/presentation/screens/reports/rating_dialog.dart';
 import 'package:city_fix_app/domain/entities/report.dart';
 import 'package:city_fix_app/presentation/widgets/common/app_image_widget.dart';
 import 'package:city_fix_app/l10n/app_localizations.dart';
+import 'package:city_fix_app/presentation/provider/rating_provider.dart';
+import 'package:city_fix_app/domain/entities/rating.dart';
+import 'package:city_fix_app/core/utils/report_status_helper.dart';
 
 class ReportDetailsScreen extends ConsumerStatefulWidget {
   const ReportDetailsScreen({super.key});
@@ -88,8 +91,8 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
   }
 
   Widget _buildContent(Report report, AppLocalizations l10n, AppColors colors) {
-    final statusText = _getStatusText(context, report.status);
-    final statusColor = _getStatusColor(report.status, colors);
+    final statusText = ReportStatusHelper.getStatusText(report.status, l10n);
+    final statusColor = ReportStatusHelper.getStatusColor(report.status, colors);
     final imageUrl = report.imageUrls?.isNotEmpty == true ? report.imageUrls!.first : '';
 
     return SingleChildScrollView(
@@ -127,7 +130,7 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
                 _buildDescriptionCard(report, l10n, colors),
                 const SizedBox(height: 24),
 
-                _buildRatingCard(l10n, colors),
+                _buildRatingCard(report, l10n, colors),
                 const SizedBox(height: 30),
 
                 _buildTimelineSection(report, l10n, colors),
@@ -274,7 +277,33 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
     );
   }
 
-  Widget _buildRatingCard(AppLocalizations l10n, AppColors colors) {
+  Widget _buildRatingCard(Report report, AppLocalizations l10n, AppColors colors) {
+    final userId = ref.watch(currentUserIdProvider);
+    if (userId == null) return const SizedBox.shrink();
+
+    final ratingAsync = ref.watch(userRatingProvider((reportId: report.id, userId: userId)));
+
+    return ratingAsync.when(
+      data: (rating) {
+        if (rating != null) {
+          return _buildSubmittedRatingView(rating, l10n, colors);
+        }
+        return _buildInteractiveRatingView(report.id, userId, l10n, colors);
+      },
+      loading: () => Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: colors.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: colors.primary.withOpacity(0.3)),
+        ),
+        child: const Center(child: SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2))),
+      ),
+      error: (_, __) => _buildInteractiveRatingView(report.id, userId, l10n, colors),
+    );
+  }
+
+  Widget _buildInteractiveRatingView(String reportId, String userId, AppLocalizations l10n, AppColors colors) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -307,7 +336,13 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) => const RatingDialog(),
+                builder: (context) => RatingDialog(
+                  reportId: reportId,
+                  userId: userId,
+                  onSuccess: () {
+                    ref.invalidate(userRatingProvider((reportId: reportId, userId: userId)));
+                  },
+                ),
               );
             },
             style: ElevatedButton.styleFrom(
@@ -321,6 +356,72 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
             child: Text(
               l10n.rateNow, 
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubmittedRatingView(Rating rating, AppLocalizations l10n, AppColors colors) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.primary.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                 Icon(Icons.star_rounded, color: Colors.amber, size: 22),
+                 const SizedBox(width: 8),
+                 Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'شكراً لتقييمك (${rating.rating})',
+                        style: TextStyle(
+                          color: colors.textPrimary, 
+                          fontWeight: FontWeight.bold, 
+                          fontSize: 13
+                        ),
+                      ),
+                      if (rating.comment != null && rating.comment!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          rating.comment!,
+                          style: TextStyle(color: colors.textSecondary, fontSize: 11),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ]
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: colors.success.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.check_circle_rounded, color: colors.success, size: 14),
+                const SizedBox(width: 4),
+                Text(
+                  'مكتمل',
+                  style: TextStyle(color: colors.success, fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
           ),
         ],
@@ -435,32 +536,6 @@ class _ReportDetailsScreenState extends ConsumerState<ReportDetailsScreen> {
     );
   }
 
-  String _getStatusText(BuildContext context, String status) {
-    final l10n = AppLocalizations.of(context)!;
-    switch (status) {
-      case 'new': return l10n.statusPending;
-      case 'pending': return l10n.statusPending;
-      case 'acknowledged': return l10n.statusInProgress;
-      case 'in_progress': return l10n.statusInProgress;
-      case 'resolved': return l10n.statusResolved;
-      case 'rejected': return l10n.statusRejected;
-      case 'closed': return l10n.statusClosed;
-      default: return status;
-    }
-  }
-
-  Color _getStatusColor(String status, AppColors colors) {
-    switch (status) {
-      case 'new': return colors.error;
-      case 'pending': return colors.error;
-      case 'acknowledged': return colors.warning;
-      case 'in_progress': return colors.warning;
-      case 'resolved': return colors.success;
-      case 'rejected': return colors.error;
-      case 'closed': return colors.textSecondary;
-      default: return colors.textSecondary;
-    }
-  }
 
   String _formatDate(BuildContext context, DateTime date) {
     return '${date.day}/${date.month}/${date.year} - ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';

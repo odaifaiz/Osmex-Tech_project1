@@ -1,6 +1,7 @@
 // lib/presentation/widgets/common/app_text_field.dart (FINAL, COMPLETE, AND MERGED)
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
@@ -14,6 +15,11 @@ class AppTextField extends StatefulWidget {
   final TextInputType keyboardType;
   final int maxLines;
   final Widget? prefixIconWidget;
+  final int? maxLength;
+  final List<TextInputFormatter>? inputFormatters;
+  final String? helperText;
+  final String? counterText;
+  final Widget? counter;
 
   const AppTextField({
     super.key,
@@ -25,6 +31,11 @@ class AppTextField extends StatefulWidget {
     this.validator,
     this.keyboardType = TextInputType.text,
     this.maxLines = 1,
+    this.maxLength,
+    this.inputFormatters,
+    this.helperText,
+    this.counterText,
+    this.counter,
   });
 
   @override
@@ -77,11 +88,16 @@ class _AppTextFieldState extends State<AppTextField> {
         obscureText: widget.isPassword ? _obscureText : false,
         keyboardType: widget.keyboardType,
         maxLines: widget.maxLines,
+        maxLength: widget.maxLength,
+        inputFormatters: widget.inputFormatters,
         style: AppTypography.body1.copyWith(color: colors.textPrimary),
         validator: widget.validator,
         textAlign: isRtl ? TextAlign.right : TextAlign.left,
         decoration: InputDecoration(
           hintText: widget.hintText,
+          helperText: widget.helperText,
+          counterText: widget.counterText,
+          counter: widget.counter,
           prefixIcon: widget.prefixIconWidget ??
               (widget.prefixIcon != null
                   ? Icon(widget.prefixIcon, color: colors.textSecondary)

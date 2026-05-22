@@ -17,6 +17,7 @@ import 'package:city_fix_app/presentation/widgets/common/app_bottom_nav.dart';
 import 'package:city_fix_app/presentation/provider/auth_provider.dart';
 import 'package:city_fix_app/presentation/provider/report_provider.dart';
 import 'package:city_fix_app/l10n/app_localizations.dart';
+import 'package:city_fix_app/core/utils/report_status_helper.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -49,30 +50,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  String _getStatusText(BuildContext context, String status) {
-    final l10n = AppLocalizations.of(context)!;
-    switch (status) {
-      case 'pending': return l10n.statusPending;
-      case 'acknowledged': return l10n.statusInProgress;
-      case 'in_progress': return l10n.statusInProgress;
-      case 'resolved': return l10n.statusResolved;
-      case 'rejected': return l10n.statusRejected;
-      case 'closed': return l10n.statusClosed;
-      default: return status;
-    }
-  }
-
-  Color _getStatusColor(String status, AppColors colors) {
-    switch (status) {
-      case 'pending': return colors.error;
-      case 'acknowledged': return colors.warning;
-      case 'in_progress': return colors.warning;
-      case 'resolved': return colors.success;
-      case 'rejected': return colors.error;
-      case 'closed': return colors.textSecondary;
-      default: return colors.textSecondary;
-    }
-  }
 
   String _formatDate(BuildContext context, DateTime date) {
     final l10n = AppLocalizations.of(context)!;
@@ -187,8 +164,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             final report = recentReports[index];
             return ReportCard(
               title: report.title,
-              status: _getStatusText(context, report.status),
-              statusColor: _getStatusColor(report.status, colors),
+              status: ReportStatusHelper.getStatusText(report.status, l10n),
+              statusColor: ReportStatusHelper.getStatusColor(report.status, colors),
               date: _formatDate(context, report.createdAt),
               imageUrl: report.imageUrls?.isNotEmpty == true ? report.imageUrls!.first : '',
               onTap: () {

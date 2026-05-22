@@ -8,6 +8,7 @@ import 'package:city_fix_app/core/constants/route_constants.dart';
 import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_dimensions.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
+import 'package:city_fix_app/core/utils/report_status_helper.dart';
 import 'package:city_fix_app/presentation/widgets/common/app_bottom_nav.dart';
 import 'package:city_fix_app/presentation/screens/reports/report_widgets.dart';
 import 'package:city_fix_app/presentation/provider/report_provider.dart';
@@ -85,13 +86,13 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
           if (index == _currentTabIndex) return;
           switch (index) {
             case 0:
-              context.goNamed(RouteConstants.homeRouteName);
+              context.pushNamed(RouteConstants.homeRouteName);
               break;
             case 2:
-              context.goNamed(RouteConstants.mapRouteName);
+              context.pushNamed(RouteConstants.mapRouteName);
               break;
             case 3:
-              context.goNamed(RouteConstants.settingsRouteName);
+              context.pushNamed(RouteConstants.settingsRouteName);
               break;
           }
         },
@@ -150,7 +151,7 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
   Widget _buildFilterTabs(AppLocalizations l10n, AppColors colors) {
     final List<Map<String, String?>> filters = [
       {'label': l10n.all, 'key': null},
-      {'label': l10n.statusPending, 'key': 'new'},
+      {'label': l10n.statusPending, 'key': 'pending'},
       {'label': l10n.statusInProgress, 'key': 'in_progress'},
       {'label': l10n.statusResolved, 'key': 'resolved'},
       {'label': l10n.statusClosed, 'key': 'closed'},
@@ -226,8 +227,8 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
   }
 
   Widget _buildReportCard(Report report, AppLocalizations l10n, AppColors colors) {
-    final statusText = _getStatusText(context, report.status);
-    final statusColor = _getStatusColor(report.status, colors);
+    final statusText = ReportStatusHelper.getStatusText(report.status, l10n);
+    final statusColor = ReportStatusHelper.getStatusColor(report.status, colors);
     final imageUrl = report.imageUrls?.isNotEmpty == true ? report.imageUrls!.first : '';
     final timeAgo = _formatDate(context, report.createdAt);
 
@@ -319,32 +320,6 @@ class _MyReportsScreenState extends ConsumerState<MyReportsScreen> {
     );
   }
 
-  String _getStatusText(BuildContext context, String status) {
-    final l10n = AppLocalizations.of(context)!;
-    switch (status) {
-      case 'new': return l10n.statusPending;
-      case 'pending': return l10n.statusPending;
-      case 'acknowledged': return l10n.statusInProgress;
-      case 'in_progress': return l10n.statusInProgress;
-      case 'resolved': return l10n.statusResolved;
-      case 'rejected': return l10n.statusRejected;
-      case 'closed': return l10n.statusClosed;
-      default: return status;
-    }
-  }
-
-  Color _getStatusColor(String status, AppColors colors) {
-    switch (status) {
-      case 'new': return colors.error;
-      case 'pending': return colors.error;
-      case 'acknowledged': return colors.warning;
-      case 'in_progress': return colors.warning;
-      case 'resolved': return colors.success;
-      case 'rejected': return colors.error;
-      case 'closed': return colors.textSecondary;
-      default: return colors.textSecondary;
-    }
-  }
 
   String _formatDate(BuildContext context, DateTime date) {
     final l10n = AppLocalizations.of(context)!;
