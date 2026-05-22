@@ -14,7 +14,7 @@ class ReportRepositoryImpl implements ReportRepository {
     try {
       final response = await _supabase.from('reports').select('''
             *,
-            users!inner(full_name, avatar_url),
+            users!reports_user_id_fkey(full_name, avatar_url),
             categories!inner(name_ar, icon),
             report_images(image_url)
           ''').order('created_at', ascending: false).limit(limit);
@@ -33,7 +33,7 @@ class ReportRepositoryImpl implements ReportRepository {
     try {
       final response = await _supabase.from('reports').select('''
             *,
-            users!inner(full_name, avatar_url),
+            users!reports_user_id_fkey(full_name, avatar_url),
             categories!inner(name_ar, icon),
             report_images(image_url)
           ''').eq('user_id', userId).order('created_at', ascending: false);
@@ -53,7 +53,7 @@ class ReportRepositoryImpl implements ReportRepository {
     try {
       var query = _supabase.from('reports').select('''
             *,
-            users!inner(full_name, avatar_url),
+            users!reports_user_id_fkey(full_name, avatar_url),
             categories!inner(name_ar, icon),
             report_images(image_url)
           ''').eq('user_id', userId);
@@ -86,7 +86,7 @@ class ReportRepositoryImpl implements ReportRepository {
     try {
       final response = await _supabase.from('reports').select('''
             *,
-            users!inner(full_name, avatar_url, phone),
+            users!reports_user_id_fkey(full_name, avatar_url, phone),
             categories!inner(name_ar, icon),
             report_images(image_url),
             ratings(*)

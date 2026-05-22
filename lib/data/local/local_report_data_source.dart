@@ -71,7 +71,9 @@ class LocalReportDataSource {
       return {
         'total': all.length,
         'resolved': all.where((r) => r.status == 'resolved').length,
-        'inProgress': all.where((r) => r.status == 'in_progress').length,
+        'inProgress': all.where((r) => 
+          r.status == 'in_progress' || r.status == 'acknowledged'
+        ).length,
       };
     } catch (e) {
       throw LocalDatabaseException('فشل حساب إحصائيات المستخدم: $e');
@@ -93,8 +95,23 @@ class LocalReportDataSource {
 
   Future<void> cacheReports(List<Report> reports) async {
     try {
+      final pending = await _db.getPendingReports();
       final List<Report> mergedReports = [];
+      
       for (final r in reports) {
+        // Skip if this report matches a local pending_create report (logical duplicate)
+        final isPending = pending.any((p) => 
+          p.syncStatus == 'pending_create' && 
+          p.userId == r.userId && 
+          p.title == r.title && 
+          p.address == r.address
+        );
+        
+        if (isPending) {
+          print('⏩ [LocalDS] Skipping logical duplicate from server: ${r.title}');
+          continue;
+        }
+
         final existing = await _db.getReportById(r.id);
         mergedReports.add(_mergeImages(r, existing != null ? _toEntity(existing) : null));
       }
@@ -137,7 +154,7 @@ class LocalReportDataSource {
         categoryIcon: Value(categoryIcon),
         title: Value(title),
         description: Value(description),
-        status: const Value('new'),
+        status: const Value('pending'),
         latitude: Value(latitude),
         longitude: Value(longitude),
         address: Value(address),
@@ -179,9 +196,19 @@ class LocalReportDataSource {
 
   Future<void> deleteReport(String id) async {
     try {
+      await _db.deleteSyncItemsByLocalId(id);
       await _db.deleteReport(id);
     } catch (e) {
       throw LocalDatabaseException('فشل حذف البلاغ محلياً: $e');
+    }
+  }
+
+  Future<void> clearPendingReports() async {
+    try {
+      await _db.clearSyncQueue();
+      await _db.clearPendingReports();
+    } catch (e) {
+      throw LocalDatabaseException('فشل مسح جميع المسودات: $e');
     }
   }
 
@@ -245,13 +272,13 @@ class LocalReportDataSource {
   String? _arabicToDbStatus(String? status) {
     if (status == null || status == 'الكل' || status == 'all') return null;
     const map = {
-      'جديد': 'new',
+      'جديد': 'pending',
       'قيد المعالجة': 'in_progress',
-      'محلول': 'resolved',
+      'تم الحل': 'resolved',
       'مغلق': 'closed',
       // Keys for compatibility with provider values
-      'new': 'new',
-      'pending': 'new',
+      'new': 'pending',
+      'pending': 'pending',
       'in_progress': 'in_progress',
       'resolved': 'resolved',
       'closed': 'closed',

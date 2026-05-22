@@ -15,6 +15,8 @@ import 'package:city_fix_app/data/models/report_model.dart';
 import 'package:drift/drift.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../repositories/offline_report_repository_impl.dart';
+
 class SyncEngine {
   final AppDatabase _db;
   final SupabaseClient _supabase;
@@ -98,6 +100,24 @@ class SyncEngine {
     }
   }
 
+  /// Manually sync a specific report by its localId
+  Future<bool> syncSingleReport(String localId) async {
+    if (_isSyncing || !_connectivity.isOnline) return false;
+    
+    try {
+      final items = await _db.getSyncItemsByLocalId(localId);
+      if (items.isEmpty) return true;
+
+      for (final item in items) {
+        await _processSyncItem(item);
+      }
+      return true;
+    } catch (e) {
+      print('❌ [Sync] Single report sync error: $e');
+      return false;
+    }
+  }
+
   // ── Private ─────────────────────────────────────────────────
 
   Future<void> _processSyncItem(SyncQueueData item) async {
@@ -162,7 +182,11 @@ class SyncEngine {
     );
     await _localReports.replaceTempWithServerReport(localId, mergedReport);
 
-    // ── 5. Handle pending image uploads for this report ───────
+    // ── 5. Update ID Migration Map ────────────────────────────
+    // This allows the repository to map stale local IDs to the new server UUID
+    OfflineReportRepositoryImpl.updateMigration(localId, serverReport.id);
+
+    // ── 6. Handle pending image uploads for this report ───────
     // Update any queued image uploads to reference the real server ID
     await _updateImageQueueIds(localId, serverReport.id);
 

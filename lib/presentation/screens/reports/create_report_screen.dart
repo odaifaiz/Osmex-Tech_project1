@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:city_fix_app/presentation/widgets/common/app_text_field.dart';
 import 'package:city_fix_app/core/theme/app_colors.dart';
@@ -97,7 +98,16 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                 controller: _titleController,
                 hintText: l10n.reportTitleHint,
                 prefixIcon: Icons.edit_outlined,
-                validator: (value) => (value == null || value.isEmpty) ? l10n.selectTitleError : null,
+                maxLength: 60,
+                helperText: "Write a short and clear title",
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(60),
+                ],
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) return l10n.selectTitleError;
+                  if (value.trim().length < 10) return 'Title must be at least 10 characters';
+                  return null;
+                },
               ),
               const SizedBox(height: AppDimensions.spacingL),
 
@@ -118,7 +128,16 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                 controller: _descriptionController,
                 hintText: l10n.descriptionHint,
                 maxLines: 4,
-                validator: (value) => (value == null || value.isEmpty) ? l10n.selectDescriptionError : null,
+                maxLength: 250,
+                helperText: "Briefly explain the issue",
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(250),
+                ],
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) return l10n.selectDescriptionError;
+                  if (value.trim().length < 20) return 'Description must be at least 20 characters';
+                  return null;
+                },
               ),
               const SizedBox(height: AppDimensions.spacingL),
 

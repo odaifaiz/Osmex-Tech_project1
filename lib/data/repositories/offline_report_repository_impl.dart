@@ -70,13 +70,31 @@ class OfflineReportRepositoryImpl implements ReportRepository {
     return _local.getUserReportsByStatus(userId, status);
   }
 
+  // Static map to handle "ID Migration" during a session.
+  // When a local_... ID is replaced by a server UUID, we store the mapping here.
+  // This prevents stale UI references from crashing the details screen.
+  static final Map<String, String> _idMigrationMap = {};
+
+  static void updateMigration(String localId, String serverId) {
+    _idMigrationMap[localId] = serverId;
+  }
+
   @override
   Future<Report> getReportById(String reportId) async {
-    // Try local first
-    final local = await _local.getReportById(reportId);
+    // 1. Check migration map first
+    final migratedId = _idMigrationMap[reportId];
+    final effectiveId = migratedId ?? reportId;
+
+    // 2. Try local first
+    final local = await _local.getReportById(effectiveId);
     if (local != null) return local;
 
-    // If not local, must be online to fetch
+    // 3. If it's a local ID and wasn't found, it's definitely not on server either
+    if (effectiveId.startsWith('local_')) {
+      throw const LocalDatabaseException('البلاغ المحلي غير موجود');
+    }
+
+    // 4. If not local, must be online to fetch
     if (!_connectivity.isOnline) {
       throw const NetworkException('البلاغ غير موجود محلياً ولا يوجد اتصال');
     }
@@ -84,10 +102,10 @@ class OfflineReportRepositoryImpl implements ReportRepository {
     try {
       final response = await _supabase.from('reports').select('''
             *,
-            users!inner(full_name, avatar_url),
+            users!reports_user_id_fkey(full_name, avatar_url),
             categories!inner(name_ar, icon),
             report_images(image_url)
-          ''').eq('id', reportId).single();
+          ''').eq('id', effectiveId).single();
       final report = ReportModel.fromJson(response);
       await _local.cacheReport(report);
       return report;
@@ -123,7 +141,111 @@ class OfflineReportRepositoryImpl implements ReportRepository {
     String? userName,
     String? userAvatar,
   }) async {
-    // ── 1. Write to local DB immediately (works offline) ─────
+    // ── 1. SAFE SERVER-FIRST FLOW (When Online) ─────────────────────
+    if (_connectivity.isOnline) {
+      String? realId;
+      try {
+        print('🌐 [OfflineRepo] Online: Attempting direct server-first report creation');
+        
+        final payload = {
+          'user_id': userId,
+          'category_id': categoryId,
+          'title': title,
+          'description': description,
+          'status': 'pending',
+          'latitude': latitude,
+          'longitude': longitude,
+          'address': address,
+          'is_urgent': isUrgent,
+        };
+
+        // 1a. Insert report to Supabase
+        final serverResponse = await _supabase.from('reports').insert(payload).select().single();
+        realId = serverResponse['id'] as String;
+        final createdAt = DateTime.parse(serverResponse['created_at'] as String);
+        
+        List<String> finalImageUrls = [];
+        
+        // 1b. Upload images (with fallback to sync queue if specific upload fails)
+        if (localImagePaths != null && localImagePaths.isNotEmpty) {
+          for (int i = 0; i < localImagePaths.length; i++) {
+            final path = localImagePaths[i];
+            final file = File(path);
+            if (file.existsSync()) {
+              try {
+                final fileExt = path.split('.').last;
+                final fileName = '${realId}_${DateTime.now().millisecondsSinceEpoch}_$i.$fileExt';
+                final storagePath = 'reports/$fileName';
+                
+                await _supabase.storage.from('report-images').upload(storagePath, file);
+                final publicUrl = _supabase.storage.from('report-images').getPublicUrl(storagePath);
+                
+                await _supabase.from('report_images').insert({
+                  'report_id': realId,
+                  'image_url': publicUrl,
+                  'created_at': DateTime.now().toUtc().toIso8601String(),
+                });
+                finalImageUrls.add(publicUrl);
+              } catch (imgErr) {
+                print('⚠️ [OfflineRepo] Single image upload failed, queueing for later: $imgErr');
+                // Enqueue this specific image for sync later
+                await _syncEngine.enqueueImageUpload(
+                  localId: realId, // Use real ID
+                  localImagePath: path,
+                  order: i,
+                );
+              }
+            }
+          }
+        }
+        
+        // 1c. Save the report locally (Status: synced)
+        final reportModel = ReportModel(
+          id: realId,
+          userId: userId,
+          categoryId: categoryId,
+          title: title,
+          description: description,
+          status: 'pending',
+          latitude: latitude,
+          longitude: longitude,
+          address: address,
+          isUrgent: isUrgent,
+          createdAt: createdAt,
+          imageUrls: finalImageUrls,
+          categoryName: categoryName,
+          categoryIcon: categoryIcon,
+          userName: userName,
+          userAvatar: userAvatar,
+          syncStatus: 'synced',
+        );
+        
+        await _local.cacheReport(reportModel);
+        print('✅ [OfflineRepo] Server-first report created successfully: $realId');
+        return reportModel;
+        
+      } catch (e) {
+        // If we ALREADY inserted the report (realId is not null), we should NOT fall back to 
+        // the offline creation flow, because that would create a duplicate.
+        if (realId != null) {
+           print('❌ [OfflineRepo] Online image/local-cache failed AFTER server insert. ID: $realId. Data is safe on server.');
+           // In this rare case, the images are already queued or will be manually synced.
+           // We just need to return a local version of what we have.
+           return ReportModel(
+              id: realId, userId: userId, categoryId: categoryId, title: title, description: description,
+              status: 'pending', latitude: latitude, longitude: longitude, address: address,
+              isUrgent: isUrgent, createdAt: DateTime.now(), imageUrls: [], syncStatus: 'synced',
+              categoryName: categoryName, categoryIcon: categoryIcon, userName: userName, userAvatar: userAvatar,
+           );
+        }
+        
+        print('⚠️ [OfflineRepo] Server-first creation failed: $e, falling back to local-first offline queue');
+        // Fallthrough to offline flow below
+      }
+    }
+
+    // ── 2. OFFLINE FALLBACK FLOW ──────────────────────────────
+    print('💾 [OfflineRepo] Offline/Fallback: Saving locally and queueing');
     final localReport = await _local.createLocalReport(
       userId: userId,
       categoryId: categoryId,
@@ -142,7 +264,6 @@ class OfflineReportRepositoryImpl implements ReportRepository {
 
     print('💾 [OfflineRepo] Report saved locally: ${localReport.id}');
 
-    // ── 2. Enqueue for remote sync ────────────────────────────
     final syncPayload = {
       'user_id': userId,
       'category_id': categoryId,
@@ -159,7 +280,6 @@ class OfflineReportRepositoryImpl implements ReportRepository {
       payload: syncPayload,
     );
 
-    // ── 3. Enqueue image uploads ──────────────────────────────
     if (localImagePaths != null) {
       for (int i = 0; i < localImagePaths.length; i++) {
         await _syncEngine.enqueueImageUpload(
@@ -170,9 +290,8 @@ class OfflineReportRepositoryImpl implements ReportRepository {
       }
     }
 
-    // ── 4. Trigger Sync Process Immediately ───────────────────
     if (_connectivity.isOnline) {
-      _syncEngine.syncAll(); // Fire-and-forget sync trigger
+      _syncEngine.syncAll();
     }
 
     return localReport;
@@ -187,7 +306,7 @@ class OfflineReportRepositoryImpl implements ReportRepository {
       try {
         final response = await _supabase.from('reports').select('''
               *,
-              users!inner(full_name, avatar_url),
+              users!reports_user_id_fkey(full_name, avatar_url),
               categories!inner(name_ar, icon),
               report_images(image_url)
             ''').order('created_at', ascending: false).limit(limit);
@@ -207,7 +326,7 @@ class OfflineReportRepositoryImpl implements ReportRepository {
       try {
         final response = await _supabase.from('reports').select('''
               *,
-              users!inner(full_name, avatar_url),
+              users!reports_user_id_fkey(full_name, avatar_url),
               categories!inner(name_ar, icon),
               report_images(image_url)
             ''').eq('user_id', userId).order('created_at', ascending: false);

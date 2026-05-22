@@ -111,10 +111,15 @@ class AppDatabase extends _$AppDatabase {
           .get();
 
   Future<List<LocalReport>> getUserReportsByStatus(
-      String userId, String status) =>
+          String userId, String status) =>
       (select(localReports)
-            ..where((r) =>
-                r.userId.equals(userId) & r.status.equals(status))
+            ..where((r) {
+              if (status == 'in_progress') {
+                return r.userId.equals(userId) & 
+                       (r.status.equals('in_progress') | r.status.equals('acknowledged'));
+              }
+              return r.userId.equals(userId) & r.status.equals(status);
+            })
             ..orderBy([(r) => OrderingTerm.desc(r.createdAt)]))
           .get();
 
@@ -175,6 +180,9 @@ class AppDatabase extends _$AppDatabase {
             ..where((q) => q.retryCount.isSmallerThanValue(5)))
           .get();
 
+  Future<List<SyncQueueData>> getSyncItemsByLocalId(String localId) =>
+      (select(syncQueue)..where((q) => q.localId.equals(localId))).get();
+
   Future<int> enqueueSyncItem(SyncQueueCompanion item) =>
       into(syncQueue).insert(item);
 
@@ -200,5 +208,14 @@ class AppDatabase extends _$AppDatabase {
         updates: {syncQueue},
       );
 
+  Future<void> deleteSyncItemsByLocalId(String localId) =>
+      (delete(syncQueue)..where((q) => q.localId.equals(localId))).go();
+
   Future<void> clearSyncQueue() => delete(syncQueue).go();
+
+  Future<void> clearPendingReports() =>
+      (delete(localReports)..where((r) => r.syncStatus.isIn([
+            'pending_create',
+            'pending_update',
+          ]))).go();
 }

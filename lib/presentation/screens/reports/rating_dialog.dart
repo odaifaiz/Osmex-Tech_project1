@@ -1,19 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:city_fix_app/core/theme/app_colors.dart';
 import 'package:city_fix_app/core/theme/app_typography.dart';
 import 'package:city_fix_app/presentation/widgets/common/app_button.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:city_fix_app/domain/entities/rating.dart';
+import 'package:city_fix_app/presentation/provider/rating_provider.dart';
 
-class RatingDialog extends StatefulWidget {
-  const RatingDialog({super.key});
+class RatingDialog extends ConsumerStatefulWidget {
+  final String reportId;
+  final String userId;
+  final VoidCallback onSuccess;
+
+  const RatingDialog({
+    super.key,
+    required this.reportId,
+    required this.userId,
+    required this.onSuccess,
+  });
 
   @override
-  State<RatingDialog> createState() => _RatingDialogState();
+  ConsumerState<RatingDialog> createState() => _RatingDialogState();
 }
 
-class _RatingDialogState extends State<RatingDialog> {
+class _RatingDialogState extends ConsumerState<RatingDialog> {
   double _rating = 0;
   bool _isSubmitted = false;
+  bool _isSubmitting = false;
   final TextEditingController _commentController = TextEditingController();
 
   @override
@@ -116,9 +129,9 @@ class _RatingDialogState extends State<RatingDialog> {
             Expanded(
               flex: 2,
               child: AppButton(
-                text: 'إرسال التقييم',
-                onPressed: _rating > 0 
-                  ? () => setState(() => _isSubmitted = true) 
+                text: _isSubmitting ? 'جاري الإرسال...' : 'إرسال التقييم',
+                onPressed: _rating > 0 && !_isSubmitting 
+                  ? _submitRating 
                   : null,
               ),
             ),
@@ -126,6 +139,37 @@ class _RatingDialogState extends State<RatingDialog> {
         ),
       ],
     );
+  }
+
+  Future<void> _submitRating() async {
+    setState(() => _isSubmitting = true);
+    
+    try {
+      final repository = ref.read(ratingRepositoryProvider);
+      final rating = Rating(
+        reportId: widget.reportId,
+        userId: widget.userId,
+        rating: _rating,
+        comment: _commentController.text.trim().isEmpty ? null : _commentController.text.trim(),
+      );
+      
+      await repository.submitRating(rating);
+      
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+          _isSubmitted = true;
+        });
+        widget.onSuccess();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('حدث خطأ أثناء إرسال التقييم: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildSuccessView(AppColors colors) {
